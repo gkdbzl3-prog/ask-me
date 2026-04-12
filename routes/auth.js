@@ -1,5 +1,5 @@
 import express from "express";
-import crpyto from "crypto";
+import { randomBytes, createHash } from "crypto";
 
 const router = express.Router();
 
@@ -9,13 +9,14 @@ const base64UrlEncode = (buffer) =>
     .replace(/\+/g,"-")
     .replace(/\//g,"_")
     .replace(/=+$/,"");
+
 const createCodeVerifier = () => {
- return base64UrlEncode(crypto.randomBytes(32));
+ return base64UrlEncode(randomBytes(32));
 };
 
 const createCodeChallenge = (verifier) => {
  return base64UrlEncode(
-    crypto.createHah("sha256").update(verifier).digest()
+    createHash("sha256").update(verifier).digest()
  );
 };
 
@@ -23,7 +24,7 @@ router.get("/x/login", (req,res) => {
  const clientId = process.env.X_CLIENT_ID;
  const redirectUri = process.env.X_REDIRECT_URL;
 
- const state = crypto.randomBytes(16).toString("hex");
+ const state = randomBytes(16).toString("hex");
  const codeVerifier = createCodeVerifier();
  const codeChallenge = createCodeChallenge(codeVerifier);
 
