@@ -1,5 +1,6 @@
 import express from "express";
 import { randomBytes, createHash } from "crypto";
+ import fetch from "node-fetch";
 
 const router = express.Router();
 
@@ -50,6 +51,7 @@ router.get("/x/login", (req,res) => {
 });
 
 router.get("/x/callback", async (req,res) => {
+ try {
  const code = req.query.code;
  const state = req.query.state;
 
@@ -68,13 +70,68 @@ router.get("/x/callback", async (req,res) => {
     return res.status(400).send("code_verifier 없음");
  }
 
+ const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
+   method: "POST",
+   headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+         "Basic " +
+         Buffer.from(
+            `${process.env.X_CLIENT_ID}:${process.env.X_CLIENT_SECRET}`
+         ).toString("base64"),
+   },
+   body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: process.env.X_REDIRECT_URI,
+      code_verifier: codeVerifier,
+   }),
+ });
 
- const clientId = process.env.X_CLIENT_ID;
- const clientSecret = process.env.X_CLIENT_SECRET;
- const redirectUri = process.env.X_REDIRECT_URL;
+ const tokenData = await tokenRes.json();
+ console.log("tokenData:", tokenData);
 
+ if (!tokenData.access_token) {
+   return res.status(400).send(
+      `토큰 교환 실패: ${JSON.stringify(tokenData)}`
+      );
+ }
 
- res.send(`callback 도착, code: ${code}`);
+ const userRes = await fetch("https://api.x.com/2/users/me", {
+   headers: {
+      Authorization: `Bearer ${tokenData.access_token}`,
+   },
+ });
+
+ const userData = await userRes.json();
+ console.log("userData:", userData);
+
+ if(!userData?.data?.username) {
+   return res.status(400).send(
+      `유저 정보 조회 실패: ${JSON.stringify(userData)}`
+   );
+ }
+
+ res.send(`
+   <!doctype html>
+   <html lang="ko">
+    <head>
+      <meta charset="UTF-8" />
+      <title>X Auth Success</title>
+    </head>
+    <body>
+      <script>
+      localStorage.setItem("isXConnected", "true");
+      localStorage.setItem("connectedXId", "${userData.data.username}");
+      window.location.href = "https://ask-me.fly.dev";
+      </script>
+    </body>
+   </html>`);
+ } catch (error) {
+   console.error("X callback error:", error);
+   res.status(500).send("콜백 처리 중 오류 발생");
+ }
 });
 
 export default router;
+
