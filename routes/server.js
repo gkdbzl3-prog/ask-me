@@ -8,7 +8,7 @@ import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
 
 const app = express();
-const PORT = precess.env.PORT || 8080;
+const PORT = precess.env.PORT || 3081;
 const __filename = fileURLTopate(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname,"..");
