@@ -179,11 +179,13 @@ function removeQuestion(id) {
 const [archivePosts, setArchivePosts] = useState([]);
 
 useEffect(() => {
+console.log("archive fetch 시작");
   const loadArchivePosts = async () => {
     try {
       const twitterId = localStorage.getItem("twitterId") || "";
       const tag = "";
-
+console.log("fetch url", `/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=
+${encodeURIComponent(tag)}`);
       const res = await fetch(
 `/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=${encodeURIComponent(tag)}`
       );
