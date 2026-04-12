@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "node routes/server.js",
+    "start": "node routes/server.js",
     "all": "concurrently \"npm run dev -- --host\" \"npm run server\""
   },
   "dependencies": {

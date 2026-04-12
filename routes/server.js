@@ -8,8 +8,8 @@ import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
 
 const app = express();
-const PORT = precess.env.PORT || 3081;
-const __filename = fileURLTopate(import.meta.url);
+const PORT = precess.env.PORT || 8080;
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname,"..");
 const distPath = path.join(rootDir, "dist");
@@ -27,5 +27,5 @@ app.get("*",(req,res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
- console.log(`server running on hhttp://localhost:${PORT}`);
+ console.log(`server running on ${PORT}`);
 });
