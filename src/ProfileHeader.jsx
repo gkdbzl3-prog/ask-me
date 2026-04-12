@@ -110,6 +110,7 @@ const getRelativeDaysText = (dateString) => {
    })
 
  const highlightLikeCount = highlightCard?.likeCount || 0;
+
  const handleConnectX = () => {
    window.location.href = "http://localhost:3001/auth/x/login";
   };
