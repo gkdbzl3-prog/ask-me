@@ -8,7 +8,7 @@ import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
 
 const app = express();
-const PORT = precess.env.PORT || 8080;
+const PORT = process.env.PORT || 8080;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname,"..");
@@ -22,7 +22,7 @@ app.use("/auth",authRouter);
 
 app.use(express.static(distPath));
 
-app.get("*",(req,res) => {
+app.get((req,res) => {
  res.sendFile(path.join(distPath, "index.html"));
 });
 
