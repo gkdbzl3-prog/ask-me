@@ -23,7 +23,7 @@ router.get("/x/login", (req,res) => {
  const clientId = process.env.X_CLIENT_ID;
  const redirectUri = process.env.X_REDIRECT_URL;
 
- const state = base64UrlEncode(crypto.randomBytes(16));
+ const state = crypto.randomBytes(16).toString("hex");
  const codeVerifier = createCodeVerifier();
  const codeChallenge = createCodeChallenge(codeVerifier);
 
