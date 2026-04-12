@@ -57,12 +57,14 @@ router.get("/x/login", (req,res) => {
 
 router.get("/x/callback", async (req,res) => {
  try {
+ console.log("=== X CALLBACK START ===");
  const code = req.query.code;
  const state = req.query.state;
 
  const savedState = req.cookies.x_oauth_state;
  const codeVerifier = req.cookies.x_code_verifier;
 
+ 
  if (!code || !state) {
     return res.status(400).send("code 또는 state 없음");
  }
@@ -74,7 +76,10 @@ router.get("/x/callback", async (req,res) => {
  if (!codeVerifier) {
     return res.status(400).send("code_verifier 없음");
  }
-
+ console.log("code:", req.query.code);
+ console.log("state:", req.query.state);
+ console.log("savedState:", req.cookies.x_oauth_state);
+ console.log("codeVerifier:", req.cookies.x_code_verifier);
  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
    method: "POST",
    headers: {
