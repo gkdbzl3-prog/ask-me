@@ -1,6 +1,5 @@
 import express from "express";
 import { randomBytes, createHash } from "crypto";
- import fetch from "node-fetch";
 
 const router = express.Router();
 
@@ -23,7 +22,7 @@ const createCodeChallenge = (verifier) => {
 
 router.get("/x/login", (req,res) => {
  const clientId = process.env.X_CLIENT_ID;
- const redirectUri = process.env.X_REDIRECT_URL;
+ const redirectUri = process.env.X_REDIRECT_URI;
 
  const state = randomBytes(16).toString("hex");
  const codeVerifier = createCodeVerifier();
@@ -31,7 +30,13 @@ router.get("/x/login", (req,res) => {
 
  res.cookie("x_oauth_state", state, {
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+ });
+
+ res.cookie("x_code_verifier", codeVerifier, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
   sameSite: "lax",
  });
 

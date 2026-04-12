@@ -182,7 +182,7 @@ useEffect(() => {
 console.log("archive fetch 시작");
   const loadArchivePosts = async () => {
     try {
-      const twitterId = localStorage.getItem("twitterId") || "";
+      const connectedXId = localStorage.getItem("connectedXId") || "";
       const tag = "";
 console.log("fetch url", `/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=
 ${encodeURIComponent(tag)}`);

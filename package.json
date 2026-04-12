@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node routes/server.js",
-    "all": "concurrently \"npm run dev -- --host\" \"npm run server\""
+    "all": "concurrently \"npm run dev -- --host\" \"npm run start\""
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
