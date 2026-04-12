@@ -179,7 +179,7 @@ function removeQuestion(id) {
 const [archivePosts, setArchivePosts] = useState([]);
 
 useEffect(() => {
-  const loadArchive = async () => {
+  const loadArchivePosts = async () => {
     try {
       const twitterId = localStorage.getItem("twitterId") || "";
       const tag = "";
@@ -189,14 +189,14 @@ useEffect(() => {
 ${encodeURIComponent(tag)}`
     );
 
-    const data = await res.json();
+      const data = await res.json();
       setArchivePosts(data);
       } catch (error) {
         console.error("아카이브 불러오기 실패", error);
       }
     };
 
-  loadArchive();
+  loadArchivePosts();
     },[]);
 
 useEffect(() => {
