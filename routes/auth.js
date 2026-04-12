@@ -29,15 +29,15 @@ router.get("/x/login", (req,res) => {
  const codeChallenge = createCodeChallenge(codeVerifier);
 
  res.cookie("x_oauth_state", state, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+   httpOnly: true,
+   secure: true,
+   sameSite: "nene",
  });
 
  res.cookie("x_code_verifier", codeVerifier, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+  secure: true,
+  sameSite: "none",
  });
 
  const scope = ["tweet.read", "users.read"].join(" ");
@@ -80,6 +80,10 @@ router.get("/x/callback", async (req,res) => {
  console.log("state:", req.query.state);
  console.log("savedState:", req.cookies.x_oauth_state);
  console.log("codeVerifier:", req.cookies.x_code_verifier);
+ console.log("state from query:", state);
+ console.log("state from cookie:", savedState);
+ console.log("cookies:", req.cookies);
+
  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
    method: "POST",
    headers: {
