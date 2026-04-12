@@ -127,38 +127,18 @@ function removeQuestion(id) {
 
 
  function ArchiveGallery({posts}) {
-  const groupedPosts = posts.reduce((acc, post) => {
-    const key = post.hashtag || "untagged";
 
-    if (!acc[key]) {
-      acc[key] = {
-        hashtag: post.hashtag,
-        images: [],
-        postUrls: [],
-      };
-    }
-
-    acc[key].images.push(...post.images);
-    acc[key].postUrls.push(post.postUrl);
-
-    if (Array.isArray(post.images)) {
-      acc[key].images.push(...post.images);
-    }
-
-    return acc;
-  },{});
-
-  const groupedList = Object.values(groupedPosts);
-  console.log("posts",posts);
-  console.log("groupedList", groupedList);
   return (
     <section className="archive-box">
       <h3 className="archive-title">Archive</h3>
 
      <div className="archive-grid">
-      {groupedList.map((group) => (
+      {posts.map((group) => (
         <div key={group.hashtag} className="archive-card">
-         <p className="archive-hashtag">#{group.hashtag}</p>
+         <div className="archive-head">
+          <p className="archive-hashtag">#{group.hashtag}</p>
+          <span className="archive-count">{group.count}</span>
+         </div>
 
         <div className={`archive-images image-count-${Math.min(group.images.length, 4)}`}
           >
@@ -179,15 +159,12 @@ function removeQuestion(id) {
 const [archivePosts, setArchivePosts] = useState([]);
 
 useEffect(() => {
-console.log("archive fetch 시작");
-  const loadArchivePosts = async () => {
+  const loadArchiveHashtags = async () => {
     try {
       const connectedXId = localStorage.getItem("connectedXId") || "";
-      const tag = "";
-console.log("fetch url", `/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=
-${encodeURIComponent(tag)}`);
+      
       const res = await fetch(
-`/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=${encodeURIComponent(tag)}`
+        `/archive/hashtags?ownerId=${encodeURIComponent(connectedXId)}`
       );
 
       const data = await res.json();
@@ -197,7 +174,7 @@ ${encodeURIComponent(tag)}`);
       }
     };
 
-  loadArchivePosts();
+  loadArchiveHashtags();
     },[]);
 
 useEffect(() => {
