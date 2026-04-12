@@ -185,9 +185,8 @@ useEffect(() => {
       const tag = "";
 
       const res = await fetch(
-`http://localhost:3001/archive/posts?ownerId=${encodeURIComponent(twitterId)}&tag=
-${encodeURIComponent(tag)}`
-    );
+`/archive/posts?ownerId=${encodeURIComponent(connectedXId)}&tag=${encodeURIComponent(tag)}`
+      );
 
       const data = await res.json();
       setArchivePosts(data);
