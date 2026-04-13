@@ -90,7 +90,7 @@ router.get("/hashtags", async (req,res) => {
     });
   }
  
-let rawPosts = [];
+ let rawPosts = [];
  let source ="mock";
 
  if (accessToken) {
@@ -108,7 +108,7 @@ let rawPosts = [];
  const xJson = await xRes.json();
  console.log("xJson:",JSON.stringify(xJson, null, 2));
 
- if (jRes.ok) {
+ if (xRes.ok) {
   rawPosts = mapXPostsToRawPosts(
     xJson.data,
     xJson.includes,
