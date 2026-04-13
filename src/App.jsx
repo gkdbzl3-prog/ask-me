@@ -162,13 +162,14 @@ useEffect(() => {
   const loadArchiveHashtags = async () => {
     try {
       const connectedXId = localStorage.getItem("connectedXId") || "";
-      
+      const connectedXUserId = localStorage.getItem("connectedXUserId") || "";
+
       const res = await fetch(
-        `/archive/hashtags?ownerId=${encodeURIComponent(connectedXId)}`
+        `/archive/hashtags?ownerId=${encodeURIComponent(connectedXUserId)}}&username=${encodeURIComponent(connectedXId)}`
       );
 
       const data = await res.json();
-      setArchivePosts(data);
+      setArchivePosts(data.hashtags || []);
       } catch (error) {
         console.error("아카이브 불러오기 실패", error);
       }

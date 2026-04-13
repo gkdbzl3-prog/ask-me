@@ -137,10 +137,13 @@ router.get("/x/callback", async (req,res) => {
       <script>
       localStorage.setItem("isXConnected", "true");
       localStorage.setItem("connectedXId", "${userData.data.username}");
+      localStorage.setItem("connectedXUserId","${userData.data.id}");
+      localStorage.setItem("twitterId","${userData.data.username}");
       window.location.href = "https://ask-me.fly.dev";
       </script>
     </body>
-   </html>`);
+   </html>
+ `);
  } catch (error) {
    console.error("X callback error:", error);
    res.status(500).send("콜백 처리 중 오류 발생");
