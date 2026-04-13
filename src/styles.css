@@ -162,30 +162,34 @@ flex-direction: column;
  grid-template-columns:
   clamp(240px, 26vw, 420px)
   minmax(0,1fr) 430px;
- gap: 30px;
+ gap: 28px;
  width: min(1400px, calc(100vw - 40px));
  margin: 24px auto;
  align-items: start;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
  .app-shell {
-  grid-template-columns: clamp(210px, 28vw, 280px)
-  minmax(0, 1fr);
+  display: block;
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
  }
 
  .archive-panel {
   display: none;
  }
-}
 
-@media  (max-width: 860px) {
- .app-shell {
-  grid-template-columns: 1fr;
- }
- .profile-panel {
+ .profile-public {
   display: none;
  }
+
+.chat-panel {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+ }
+
 }
 
 .chat-panel {
@@ -958,19 +962,19 @@ width: 76%;
     font-size: 18px;
   }
 
-.mobile-tabs .nav-btn:hover {
- background: linear-gradient( 180deg,
+  .mobile-tabs .nav-btn:hover {
+  background: linear-gradient( 180deg,
             rgba(255,255,255,0.94) 0%,
             rgba(250,245,255,0.84) 100%);
 
- transform: translateY(-1px);
-}
+  transform: translateY(-1px);
+ }
 
-.mobile-tabs .nav-btn.active {
- background: linear-gradient( 190deg,
+ .mobile-tabs .nav-btn.active {
+  background: linear-gradient( 190deg,
                 rgba(186,148,240,0.42) 0%,
                 rgba(169,120,230,0.3) 100%);
- border-color: rgba(169,120,230,0.52);
+  border-color: rgba(169,120,230,0.52);
 }
 }
 
@@ -1106,10 +1110,12 @@ width: 76%;
 }
 
 .profile-like-row {
+ display: flex;
+ justify-content: flex-end;
+ align-items: center;
+ gap: 5px;
+ margin-top: 10px;
  color: rgba(63,43,104,0.78);
- order: 1;
- text-align: right;
- margin: 40px -8px 0 0;
  line-height: 1.2;
  order: 0;
 }
