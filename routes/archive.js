@@ -52,7 +52,7 @@ function buildHashtagGroups(rawPosts) {
         };
       }
 
-      hashtag.Map[cleanTag].count += 1;
+      hashtagMap[cleanTag].count += 1;
 
       if (Array.isArray(post.images)) {
         hashtagMap[cleanTag].images.push(...post.images);
@@ -90,7 +90,8 @@ router.get("/hashtags", async (req,res) => {
     });
   }
  
-
+let rawPosts = [];
+ let source ="mock";
 
  if (accessToken) {
   const xRes = await fetch(
@@ -107,9 +108,7 @@ router.get("/hashtags", async (req,res) => {
  const xJson = await xRes.json();
  console.log("xJson:",JSON.stringify(xJson, null, 2));
 
- let rawPosts = [];
- let source ="mock";
-
+ if (jRes.ok) {
   rawPosts = mapXPostsToRawPosts(
     xJson.data,
     xJson.includes,
@@ -119,7 +118,9 @@ router.get("/hashtags", async (req,res) => {
  } else {
   console.log("X API 실패, mock fallback 사용");
   console.log("X API error payload:", xJson);
+ }
 
+ if (rawPosts.length === 0)
   rawPosts = [
     {
     id: "1001",
@@ -148,6 +149,7 @@ router.get("/hashtags", async (req,res) => {
   return res.json({
     ownerId,
     username,
+    source,
     rawPostCount: rawPosts.length,
     hashtags: groupedHashtags,
   });
