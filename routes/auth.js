@@ -132,6 +132,10 @@ router.get("/x/callback", async (req,res) => {
    sameSite: "none",
  });
 
+ console.log("callback userData:", userData);
+ console.log("callback username:", userData?.data?.username);
+ console.log("callback user id:", userData?.data?.id);
+
  res.send(`
    <!doctype html>
    <html lang="ko">
