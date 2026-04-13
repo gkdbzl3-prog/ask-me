@@ -90,8 +90,7 @@ router.get("/hashtags", async (req,res) => {
     });
   }
  
- let rawPosts = [];
- let source ="mock";
+
 
  if (accessToken) {
   const xRes = await fetch(
@@ -108,7 +107,9 @@ router.get("/hashtags", async (req,res) => {
  const xJson = await xRes.json();
  console.log("xJson:",JSON.stringify(xJson, null, 2));
 
- if (xRes.ok) {
+ let rawPosts = [];
+ let source ="mock";
+
   rawPosts = mapXPostsToRawPosts(
     xJson.data,
     xJson.includes,
@@ -117,10 +118,8 @@ router.get("/hashtags", async (req,res) => {
   source = "x";
  } else {
   console.log("X API 실패, mock fallback 사용");
- }
- }
+  console.log("X API error payload:", xJson);
 
- if (rawPosts.length === 0) {
   rawPosts = [
     {
     id: "1001",
