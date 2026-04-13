@@ -2,6 +2,7 @@ import express from "express";
 import { randomBytes, createHash } from "crypto";
 
 const router = express.Router();
+const isProduction = process.env.NODE_ENV === "production";
 
 const base64UrlEncode = (buffer) =>
   buffer
@@ -29,15 +30,15 @@ router.get("/x/login", (req,res) => {
  const codeChallenge = createCodeChallenge(codeVerifier);
 
  res.cookie("x_oauth_state", state, {
-   httpOnly: true,
-   secure: true,
-   sameSite: "nene",
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: "lax",
  });
 
  res.cookie("x_code_verifier", codeVerifier, {
   httpOnly: true,
-  secure: true,
-  sameSite: "none",
+  secure: isProduction,
+  sameSite: "lax",
  });
 
  const scope = ["tweet.read", "users.read"].join(" ");
@@ -128,9 +129,9 @@ router.get("/x/callback", async (req,res) => {
 
  res.cookie("x_access_token", tokenData.access_token, {
    httpOnly: true,
-   secure: true,
-   sameSite: "none",
- });
+   secure: isProduction,
+   sameSite: "lax",
+  });
 
  console.log("callback userData:", userData);
  console.log("callback username:", userData?.data?.username);
