@@ -58,7 +58,7 @@ router.get("/x/login", (req,res) => {
 
 router.get("/x/callback", async (req,res) => {
  try {
- console.log("=== X CALLBACK START ===");
+
  const code = req.query.code;
  const state = req.query.state;
 
@@ -77,13 +77,7 @@ router.get("/x/callback", async (req,res) => {
  if (!codeVerifier) {
     return res.status(400).send("code_verifier 없음");
  }
- console.log("code:", req.query.code);
- console.log("state:", req.query.state);
- console.log("savedState:", req.cookies.x_oauth_state);
- console.log("codeVerifier:", req.cookies.x_code_verifier);
- console.log("state from query:", state);
- console.log("state from cookie:", savedState);
- console.log("cookies:", req.cookies);
+
 
  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
    method: "POST",
@@ -125,7 +119,7 @@ router.get("/x/callback", async (req,res) => {
  });
 
  const userData = await userRes.json();
- console.log("userData:", userData);
+
 
  if(!userData?.data?.username) {
    return res.status(400).send(
@@ -139,9 +133,7 @@ router.get("/x/callback", async (req,res) => {
    sameSite: "lax",
  });
 
- console.log("callback userData:", userData);
- console.log("callback username:", userData?.data?.username);
- console.log("callback user id:", userData?.data?.id);
+
 
  res.send(`
    <!doctype html>

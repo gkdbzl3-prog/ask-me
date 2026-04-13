@@ -264,7 +264,9 @@ return(
     onChange={(e) => setBio(e.target.value)}
     placeholder="당신이 누군지 궁금해요" />
   ):(
-  <p>{bio || "당신이 누군지 궁금해요"}</p>
+  <div className="profile-bio-view">
+  <p>{bio || "상태 메시지 없음"}</p>
+  </div>
   )}
  </div>
 

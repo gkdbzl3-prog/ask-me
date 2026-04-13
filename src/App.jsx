@@ -12,7 +12,7 @@ function App() {
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
- const [viewMode, setViewMode] = useState("owner");
+ const [viewMode, setViewMode] = useState("guest");
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
  const [profileImage, setProfileImage] = useState(
@@ -124,20 +124,33 @@ function removeQuestion(id) {
  );
 }
 
+function getQuestionPreview(question) {
+ const text = question?.text?.trim() || "";
+ const hasImage = !!question?.fileUrl || !!question?.fileName;
 
+ if (text) return text;
+ if (hasImage) return "(사진)";
+ if (!text && hasImage) return "📸사진";
+ return "(내용없음)";
+}
 
- function ArchiveGallery({posts}) {
+ function ArchiveGallery({posts, source}) {
 
   return (
     <section className="archive-box">
+     <div className="archive-title-row">
       <h3 className="archive-title">Archive</h3>
+      {source ===  "mock" && (
+        <p className="archive-source-badge">sample</p>
+      )}
+    </div>
 
      <div className="archive-grid">
       {posts.map((group) => (
         <div key={group.hashtag} className="archive-card">
          <div className="archive-head">
           <p className="archive-hashtag">#{group.hashtag}</p>
-          <span className="archive-count">{group.count}</span>
+          <span className="archive-count">게시글 {group.count}개</span>
          </div>
 
         <div className={`archive-images image-count-${Math.min(group.images.length, 4)}`}
@@ -157,6 +170,7 @@ function removeQuestion(id) {
  }
 
 const [archivePosts, setArchivePosts] = useState([]);
+const [archiveSource, setArchiveSource] = useState("");
 
 useEffect(() => {
   const loadArchiveHashtags = async () => {
@@ -173,6 +187,7 @@ useEffect(() => {
 
       const data = await res.json();
       setArchivePosts(data.hashtags || []);
+      setArchiveSource(data.source || "");
       } catch (error) {
         console.error("아카이브 불러오기 실패", error);
       }
@@ -381,16 +396,13 @@ return (
                   </div>
                   )}
 
-                  <div className="profile-like-row">
-                    <span className="total-likecount">
-                  ❤️{totalLikeCount}</span>
-                  </div>
 
                   <div className="answer-box-wrap">
                     <div className="answer-box">
                       <p className="answer-text">{card.answer}</p>
                       <p className="quoted-question">
                         {card.isPrivate ? "🔐 비공개된 질문입니다" : card.text}
+                        {getQuestionPreview(card)}
                       </p>
                     </div>
               </div>
@@ -537,8 +549,8 @@ return (
                 }
             }}
             placeholder={
-              viewMode === "owner" && replyTargetId !== null
-                ? "답변을 입력하세요"
+              viewMode === "owner"
+                ? (replyTargetId !== null ? "답변을 입력하세요" : "질문에 답할 시간✨")
                 : `${nickname}님에게 하고 싶은 말을 적어보세요!`}/>
 
           
@@ -564,7 +576,7 @@ return (
 </main>
 
  <aside className="archive-panel">
-  <ArchiveGallery posts={archivePosts} />
+  <ArchiveGallery posts={archivePosts} source={archiveSource} />
  </aside>
  </div>
 </div>

@@ -14,7 +14,7 @@ function mapXPostsToRawPosts(xData,xIncludes, username = "") {
  const posts = Array.isArray(xData) ? xData : [];
 
  return posts.map((post) => {
-  const mediaKeys = post.attachments?.media_key || [];
+  const mediaKeys = post.attachments?.media_keys || [];
 
  const images = mediaKeys
   .map((key) => mediaMap.get(key))
@@ -24,11 +24,11 @@ function mapXPostsToRawPosts(xData,xIncludes, username = "") {
 
  return {
   id: post.id,
-  tex: post.text || "",
-  images,
+  text: post.text || "",
+  images: [...new Set(images)].slice(0,8),
   postUrl: username
     ? `https://x.com/${username}/status/${post.id}`
-    : `https//x.com/i/web/status/${post.id}`,
+    : `https://x.com/i/web/status/${post.id}`,
   };
  });
 }
@@ -76,9 +76,7 @@ function buildHashtagGroups(rawPosts) {
 
 router.get("/hashtags", async (req,res) => {
  try {
-  console.log("=== /archive/hashtags 시작 ===");
-  console.log("query:", req.query);
-  console.log("cookies:",req.cookies);
+
 
   const ownerId = req.query.ownerId || "";
   const username = req.query.username || "";
@@ -103,10 +101,10 @@ router.get("/hashtags", async (req,res) => {
   }
  );
 
- console.log("xRes status:", xRes.status);
+ 
 
  const xJson = await xRes.json();
- console.log("xJson:",JSON.stringify(xJson, null, 2));
+
 
  if (xRes.ok) {
   rawPosts = mapXPostsToRawPosts(
