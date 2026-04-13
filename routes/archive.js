@@ -78,6 +78,7 @@ router.get("/hashtags", async (req,res) => {
  try {
   console.log("=== /archive/hashtags 시작 ===");
   console.log("query:", req.query);
+  console.log("cookies:",req.cookies);
 
   const ownerId = req.query.ownerId || "";
   const username = req.query.username || "";
@@ -89,12 +90,14 @@ router.get("/hashtags", async (req,res) => {
       message: "access token 없음",
     });
   }
+ 
 
   const userId = ownerId;
 
   console.log("ownerId:", ownerId);
   console.log("username:", username);
   console.log("userId:", userId);
+  console.log("has access token:", !!accessToken);
 
   const xRes = await fetch(
 `https://api.x.com/2/users/${userId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
@@ -104,6 +107,7 @@ router.get("/hashtags", async (req,res) => {
     },
   }
  );
+
  console.log("xRes status:", xRes.status);
 
  const xJson = await xRes.json();
@@ -115,10 +119,7 @@ router.get("/hashtags", async (req,res) => {
   username
  );
 
- console.log("rawPosts:", rawPosts);
-
  const groupedHashtags = buildHashtagGroups(rawPosts);
- console.log("groupedHashtags:", groupedHashtags);
 
   return res.json({
     ownerId,
@@ -128,7 +129,7 @@ router.get("/hashtags", async (req,res) => {
   });
  } catch (error) {
   console.error("archive hashtags error:", error);
-  return res.status(500).json({ message: "archive hashtags error" });
+  return res.status(500).json({ message: "archive hashtags error", error: String(error), });
  }
 });
 

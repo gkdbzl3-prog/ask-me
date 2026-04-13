@@ -163,7 +163,8 @@ useEffect(() => {
     try {
       const connectedXId = localStorage.getItem("connectedXId") || "";
       const connectedXUserId = localStorage.getItem("connectedXUserId") || "";
-
+      console.log("connectedXUserId:", localStorage.getItem("connectedXUserId"));
+      console.log("connectedXId:", localStorage.getItem("connectedXId"));
       const res = await fetch(
         `/archive/hashtags?ownerId=${encodeURIComponent(connectedXUserId)}}&username=${encodeURIComponent(connectedXId)}`
       );
