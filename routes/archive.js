@@ -46,7 +46,7 @@ function buildHashtagGroups(rawPosts) {
       if (!hashtagMap[cleanTag]) {
         hashtagMap[cleanTag] = {
           hashtag: cleanTag,
-          coung: 0,
+          count: 0,
           images: [],
           postUrls: [],
         };
@@ -82,25 +82,20 @@ router.get("/hashtags", async (req,res) => {
 
   const ownerId = req.query.ownerId || "";
   const username = req.query.username || "";
-
   const accessToken = req.cookies.x_access_token;
 
-  if (!accessToken) {
-    return res.status(401).json({
-      message: "access token 없음",
+  if (!ownerId || !username) {
+    return res.status(400).json({
+      message: "ownerId 또는 username 없음",
     });
   }
  
+ let rawPosts = [];
+ let source ="mock";
 
-  const userId = ownerId;
-
-  console.log("ownerId:", ownerId);
-  console.log("username:", username);
-  console.log("userId:", userId);
-  console.log("has access token:", !!accessToken);
-
+ if (accessToken) {
   const xRes = await fetch(
-`https://api.x.com/2/users/${userId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
+`https://api.x.com/2/users/${ownerId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
   {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -113,19 +108,19 @@ router.get("/hashtags", async (req,res) => {
  const xJson = await xRes.json();
  console.log("xJson:",JSON.stringify(xJson, null, 2));
 
- let rawPosts = [];
-
  if (xRes.ok) {
-  const sJson = await xRes.json();
   rawPosts = mapXPostsToRawPosts(
-    sJson.data,
+    xJson.data,
     xJson.includes,
     username
   );
+  source = "x";
  } else {
-  const errorJson = await xRes.json();
-  console.log("X api faalback:", errorJson);
+  console.log("X API 실패, mock fallback 사용");
+ }
+ }
 
+ if (rawPosts.length === 0) {
   rawPosts = [
     {
     id: "1001",
@@ -146,6 +141,7 @@ router.get("/hashtags", async (req,res) => {
     postUrl: "#",
     },
   ];
+  source = "mock";
  }
 
  const groupedHashtags = buildHashtagGroups(rawPosts);

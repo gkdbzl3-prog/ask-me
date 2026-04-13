@@ -104,7 +104,13 @@ router.get("/x/callback", async (req,res) => {
  });
 
  const tokenData = await tokenRes.json();
- console.log("tokenData:", tokenData);
+
+ console.log("tokenData ok:", {
+   token_type: tokenData.token_type,
+   expires_in: tokenData.expires_in,
+   scope: tokenData.scope,
+   has_access_token: !!tokenData.access_token,
+ });
 
  if (!tokenData.access_token) {
    return res.status(400).send(
