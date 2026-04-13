@@ -126,6 +126,12 @@ router.get("/x/callback", async (req,res) => {
    );
  }
 
+ res.cookie("x_access_token", tokenData.access_token, {
+   httpOnly: true,
+   secure: true,
+   sameSite: "none",
+ });
+
  res.send(`
    <!doctype html>
    <html lang="ko">

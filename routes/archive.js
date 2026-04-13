@@ -37,7 +37,8 @@ function buildHashtagGroups(rawPosts) {
  const hashtagMap = {};
 
  rawPosts.forEach((post) => {
-  const matches = post.text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
+  const text = post?.text || "";
+  const matches = text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
 
     matches.forEach((tag) => {
       const cleanTag = tag.replace("#","");
@@ -81,7 +82,14 @@ router.get("/hashtags", async (req,res) => {
   const ownerId = req.query.ownerId || "";
   const username = req.query.username || "";
 
-  const accessToken = "유저 access token";
+  const accessToken = req.cookies.x_access_token;
+
+  if (!accessToken) {
+    return res.status(401).json({
+      message: "access token 없음",
+    });
+  }
+
   const userId = ownerId;
 
   console.log("ownerId:", ownerId);
