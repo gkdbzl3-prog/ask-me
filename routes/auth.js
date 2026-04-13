@@ -131,7 +131,7 @@ router.get("/x/callback", async (req,res) => {
    httpOnly: true,
    secure: isProduction,
    sameSite: "lax",
-  });
+ });
 
  console.log("callback userData:", userData);
  console.log("callback username:", userData?.data?.username);

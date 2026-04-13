@@ -113,11 +113,40 @@ router.get("/hashtags", async (req,res) => {
  const xJson = await xRes.json();
  console.log("xJson:",JSON.stringify(xJson, null, 2));
 
- const rawPosts = mapXPostsToRawPosts(
-  xJson.data,
-  xJson.includes,
-  username
- );
+ let rawPosts = [];
+
+ if (xRes.ok) {
+  const sJson = await xRes.json();
+  rawPosts = mapXPostsToRawPosts(
+    sJson.data,
+    xJson.includes,
+    username
+  );
+ } else {
+  const errorJson = await xRes.json();
+  console.log("X api faalback:", errorJson);
+
+  rawPosts = [
+    {
+    id: "1001",
+    text: "오늘의 다꾸 #날이_좋은_날 #루틴",
+    images: ["/images/sample1.jpg", "/images/sample2.jpg"],
+    postUrl: "#",
+    },
+    {
+    id: "1002",
+    text: "공부끝 #공부기록 #루틴",
+    images: ["/images/sample3.jpg"],
+    postUrl:"#",
+    },
+    {
+    id: "1003",
+    text: "정리중 #공부기록",
+    images: ["/images/sample4.jpg","/images/sample5.jpg"],
+    postUrl: "#",
+    },
+  ];
+ }
 
  const groupedHashtags = buildHashtagGroups(rawPosts);
 
