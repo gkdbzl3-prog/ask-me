@@ -66,28 +66,22 @@ const handleLike = (id) => {
  const [isSending, setIsSending] = useState(false);
 
 async function handleSend() {
- console.log("handleSend start", {
-  input,
-  selectedFile,
-  routeUsername,
-  viewMode,
-  secret,
- });
- console.log("POST body:", {
-  text: trimmedInput,
-  isPrivate: secret,
-  fileUrl,
-  fileName,
- });
-
- console.log("routeUsername in handleSend:", routeUsername);
-
  if (isSending) return;
-  setIsSending(true);
 
-  try {
- const trimmedInput = input.trim();
+ const trimmedInput = (input || "").trim();
  if (!trimmedInput && !selectedFile) return;
+
+ setIsSending(true);
+
+ try {
+  console.log("handleSend start", {
+   input,
+   trimmedInput,
+   selectedFile,
+   routeUsername,
+   viewMode,
+   secret,
+  });
 
 
 
@@ -121,8 +115,15 @@ async function handleSend() {
   fileName = selectedFile.name;
  }
 
- if (routeUsername) {
-  try {
+  console.log("POST body:", {
+   text: trimmedInput,
+   isPrivate: secret,
+   fileUrl,
+   fileName,
+  });
+
+  if (routeUsername) {
+   try {
     const res = await fetch(`/api/users/${routeUsername}/questions`, {
       method: "POST",
         headers: {
@@ -172,14 +173,15 @@ async function handleSend() {
   fileName,
   fileUrl,
  };
+
+  setQuestionCards((prev) => [...prev, newQuestion]);
+  setInput("");
+  setSecret(false);
+  setSelectedFile(null);
+  setShowPreview(false);
   } finally {
  setIsSending(false);
- setQuestionCards((prev) => [...prev, newQuestion]);
- setInput("");
- setSecret(false);
- setSelectedFile(null);
- setShowPreview(false);
- }
+  }
 }
 
 function removeQuestion(id) {
@@ -304,6 +306,8 @@ useEffect(() => {
 useEffect(() => {
  if (!routeUsername) return;
 
+ setViewMode("guest");
+
  fetch(`/api/users/${routeUsername}`)
   .then((res) => res.json())
   .then((data) => {
@@ -311,12 +315,13 @@ useEffect(() => {
     const nextHighlightId =
       data.highlight_question_id || localStorage.getItem("highlightId") || "";
 
-  setHighlightId(nextHighlightId);
-  setNickname(data.display_name || data.username || "이름없음");
-  setProfileImage(data.avatar_url || "");
-  setBgUrl(data.bg_url || "");
+   setHighlightId(nextHighlightId);
+   setNickname(data.display_name || data.username || "이름없음");
+   setProfileBio(data.bio || "");
+   setProfileImage(data.avatar_url || "");
+   setBgUrl(data.bg_url || "");
 
-  localStorage.setItem("editNickname", data.display_name || "");
+   localStorage.setItem("editNickname", data.display_name || "");
   localStorage.setItem("bio", data.bio || "");
   localStorage.setItem("profileImage", data.avatar_url || "");
   localStorage.setItem("bgUrl", data.bg_url || "");
@@ -327,58 +332,6 @@ useEffect(() => {
   console.error("questions fetch error:", err)
  );
 },[routeUsername]);
-
-
-useEffect(() => {
- fetch(`/api/users/${routeUsername}/questions`)
-  .then((res) => res.json())
-  .then((data) => {
-  console.log("question data:", data);
-  setQuestionCards(data);
-  })
-  .catch((err) => console.error("questions fetch error:", err));
-}, [routeUsername]);
-
-
-useEffect(() => {
- if (routeUsername) {
-  setViewMode("guest");
- }
-},[routeUsername]);
-
-useEffect(() => {
- if (!routeUsername) return;
-
-  setViewMode("guest");
-
- fetch(`/api/users/${routeUsername}`)
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("user data:", data);
-
-    setNickname(data.display_name || data.username || "이름 없음");
-    setProfileBio(data.bio || "");
-    setProfileImage(data.avatar_url || "");
-    setBgUrl(data.bg_url || "");
-  })
-  .catch((err) => console.error("user fetch error:", err));
-
- console.log("DB save brnch 진입", {
-  routeUsername,
-  trimmedInput,
-  secret,
-  fileName,
-  hasFildUrl: !!fileUrl,
- });
-
- fetch(`/api/users/${routeUsername}/questions`)
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("question data:", data);
-    setQuestionCards(data);
-  })
-  .catch((err) => console.error("questions fetch error:", err));
-}, [routeUsername]);
 
 return (
   <>
