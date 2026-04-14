@@ -13,7 +13,11 @@ function App() {
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
- const isOwnerView = sessionUser?.username === profile.username;
+ const sessionUser = { username: "idmulluhaeyadae"};
+const pathParts = window.location.pathname.split("/");
+const routeUsername =
+  pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
+ const isOwnerView = sessionUser?.username === routeUsername;
  const [viewMode, setViewMode] = isOwnerView ? "owner" : "guest";
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
@@ -173,9 +177,7 @@ function getQuestionPreview(question) {
 
 const [archivePosts, setArchivePosts] = useState([]);
 const [archiveSource, setArchiveSource] = useState("");
-const pathParts = window.location.pathname.split("/");
-const routeUsername =
-  pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
+
 
 useEffect(() => {
   const loadArchiveHashtags = async () => {
