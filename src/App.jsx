@@ -172,6 +172,9 @@ function getQuestionPreview(question) {
 
 const [archivePosts, setArchivePosts] = useState([]);
 const [archiveSource, setArchiveSource] = useState("");
+const pathParts = window.location.pathname.split("/");
+const routeUsername =
+  pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
 
 useEffect(() => {
   const loadArchiveHashtags = async () => {
@@ -197,15 +200,26 @@ useEffect(() => {
   loadArchiveHashtags();
     },[]);
 
-useEffect(() => {
- fetch(`api/users/${username}`)
-  .then((res) => res.json())
-  .then((data) => {});
 
-  fetch(`/api/users/${username}/questions`)
-    .then((res) => res.json())
-    .then((data) => setQuestionCards(data));
-}, [username]);
+useEffect(() => {
+ if (!routeUsername) return;
+
+ fetch(`/api/users/${routeUsername}`)
+  .then((res) => res.json())
+  .then((data) => {
+    console.log("user data:", data);
+  })
+  .catch((err) => console.error("user fetch error:", err));
+
+ fetch(`/api/users/${routeUsername}/questions`)
+  .then((tes) => res.json())
+  .then((data) => {
+    console.log("question data:", data);
+  setQuestionCards(data);
+  })
+  .catch((err) => console.error("questions fetch error:", err));
+}, [routeUsername]);
+
 
 return (
   <>

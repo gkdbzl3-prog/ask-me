@@ -2,9 +2,8 @@ import express from "express";
 import { supabase } from "../supabase.js";
 
 const router = express.Router();
-console.log("users router loaded");
+
 router.get("/users/:username", async (req, res) => {
-console.log("GET /api/users/:username hit", req.params.username);
  try {
     const { username } = req.params;
 
@@ -26,7 +25,7 @@ console.log("GET /api/users/:username hit", req.params.username);
 });
 
 router.get("/users/:username/questions", async (req, res) => {
-console.log("GET /api/users/:username/questions hit", req.params.username);
+
  try {
     const { username } = req.params;
 
@@ -50,7 +49,22 @@ console.log("GET /api/users/:username/questions hit", req.params.username);
      return res.status(500).json({ message: "question load failed", error: questionError });
     }
 
-    return res.json(questions);
+   return res.json(
+    questions.map((q) => ({
+     id: q.id,
+     text: q.text,
+     isPrivate: q.is_private,
+     fileUrl: q_file_url,
+     fileName: q.file_name,
+     answer: q.answer,
+     answerFileUrl: q.answer_file_url,
+     answerFileName: q.answer_file_name,
+     answered: q.answered,
+     likeCount: q.like_count,
+     createdAtISO: q.created_at,
+     answeredAtISO: q.answered_at,
+    }))
+   );
  } catch (error) {
     console.error("GET /users/:username/questions error:", error);
     return res.status(500).json({ message: "server error"});
