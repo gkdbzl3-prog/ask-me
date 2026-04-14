@@ -65,6 +65,14 @@ const handleLike = (id) => {
 
 
 async function handleSend() {
+ console.log("handleSend start", {
+  input,
+  selectedFile,
+  routeUsername,
+  viewMode,
+  secret,
+ });
+ console.log("routeUsername in handleSend:", routeUsername);
  const trimmedInput = input.trim();
  if (!trimmedInput && !selectedFile) return;
 
@@ -114,9 +122,9 @@ async function handleSend() {
           fileName,
         }),
     });
-
+  console.log("POST status:", res.status);
   const result = await res.json();
-
+  console.log("POST result:", result);
   if (!res.ok) {
     console.error("question insert failed:", result);
     alert("질문 저장에 실패했어요");
@@ -339,6 +347,14 @@ useEffect(() => {
     setBgUrl(data.bg_url || "");
   })
   .catch((err) => console.error("user fetch error:", err));
+
+ console.log("DB save brnch 진입", {
+  routeUsername,
+  trimmedInput,
+  secret,
+  fileName,
+  hasFildUrl: !!fileUrl,
+ });
 
  fetch(`/api/users/${routeUsername}/questions`)
   .then((res) => res.json())

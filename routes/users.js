@@ -83,6 +83,9 @@ router.get("/users/:username/questions", async (req, res) => {
 });
 
 router.post("/users/:username/questions", async (req, res) => {
+ console.log("POST /api/users/:username/questions hit");
+ console.log("params:", req.params);
+ console.log("body:", req.body);
  try {
     const { username } = req.params;
     const {
@@ -94,7 +97,7 @@ router.post("/users/:username/questions", async (req, res) => {
 
     const trimmedText = String(text || "").trim();
 
-    if (!trimmendText && !fileUrl) {
+    if (!trimmedText && !fileUrl) {
      return res.status(400).json({
         message: "텍스트 또는 이미지를 넣어주세요.",
      });
@@ -121,13 +124,14 @@ router.post("/users/:username/questions", async (req, res) => {
      answered: false,
      like_count: 0,
     };
-
+    console.log("insertPayload:", insertPayload);
     const { data: inserted, error: insertError } = await supabase
      .from("questions")
      .insert(insertPayload)
      .select("*")
      .single();
-
+    console.log("inserted:", inserted);
+    console.log("insertError:", insertError);
     if (insertError) {
     console.error("POST /users/:username/questions insert error:", insertError);
     return res.status(500).json({
