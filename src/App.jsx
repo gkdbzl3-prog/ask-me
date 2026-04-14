@@ -8,7 +8,8 @@ import ProfileHeader from "./ProfileHeader";
 function App() {
  const [input, setInput] = useState("");
  const isOwner = false;
- const nickname = "날";
+ const [nickname, setNickname] = "날";
+ const [profileBio, setProfileBio] = useState("");
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
@@ -203,11 +204,54 @@ useEffect(() => {
 
 useEffect(() => {
  if (!routeUsername) return;
- console.log("routeUsername:", routeUsername);
+
  fetch(`/api/users/${routeUsername}`)
   .then((res) => res.json())
   .then((data) => {
     console.log("user data:", data);
+
+   localStorage.setItem("editNickname", data.display_name || "");
+   localStorage.setItem("bio", data.bio || "");
+   localStorage.setItem("profileImage", data.avatar_url || "");
+   localStorage.setItem("bgUrl", data.bg_url || "");
+
+   setProfileImage(data.avatar_url || "");
+   setBgUrl(data.bg_url || "");
+  })
+  .catch((err) => console.error("user fetch error:", err));
+
+ fetch(`/api/users/${routeUsername}/questions`)
+  .then((res) => res.json())
+  .then((data) => {
+  console.log("question data:", data);
+  setQuestionCards(data);
+  })
+  .catch((err) => console.error("questions fetch error:", err));
+}, [routeUsername]);
+
+
+useEffect(() => {
+ if (routeUsername) {
+  setViewMode("guest");
+ }
+},[routeUsername]);
+
+useEffect(() => {
+ if (!routeUsername) return;
+
+ fetch(`/api/users/${routeUsername}`)
+  .then((res) => res.json())
+  .then((data) => {
+    console.log("user data:", data);
+
+    setNickname(data.display_name || data.username || "이름 없음");
+    setProfileBio(data.bio || "");
+    setProfileImage(data.avatar_url || "");
+    setBgUrl(data.bg_url || "");
+
+    localStorage.setItem("editNickname", data.display_name || "");
+    localStorage.setItem("bio", data.bio || "");
+    localStorage.setItem("bgUrl", data.bg_url || "");
   })
   .catch((err) => console.error("user fetch error:", err));
 
@@ -215,11 +259,10 @@ useEffect(() => {
   .then((res) => res.json())
   .then((data) => {
     console.log("question data:", data);
-  setQuestionCards(data);
+    setQuestionCards(data);
   })
   .catch((err) => console.error("questions fetch error:", err));
 }, [routeUsername]);
-
 
 return (
   <>
@@ -295,7 +338,10 @@ return (
       setProfileImage={setProfileImage}
       totalLikeCount={totalLikeCount}
       bgUrl={bgUrl}
-      setBgUrl={setBgUrl} />
+      setBgUrl={setBgUrl}
+      nickname={nickname}
+      profileBio={profileBio}
+       />
     </aside>
 
 
