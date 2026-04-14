@@ -14,7 +14,7 @@ function App() {
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
  const isOwnerView = sessionUser?.username === profile.username;
- const viewMode = isOwnerView ? "owner" : "guest";
+ const [viewMode, setViewMode] = isOwnerView ? "owner" : "guest";
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
  const [profileImage, setProfileImage] = useState(
