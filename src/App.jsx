@@ -203,7 +203,7 @@ useEffect(() => {
 
 useEffect(() => {
  if (!routeUsername) return;
-
+ console.log("routeUsername:", routeUsername);
  fetch(`/api/users/${routeUsername}`)
   .then((res) => res.json())
   .then((data) => {
