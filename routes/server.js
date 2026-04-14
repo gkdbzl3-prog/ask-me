@@ -21,22 +21,21 @@ app.use(cors({
  origin: true,
  credentials: true,
 }));
-app.use(cookieParser());
-app.use(express.json());
 
-app.use("/archive",archiveRouter);
+app.use(express.json());
+app.use(cookieParser());
+
 app.use("/auth",authRouter);
+app.use("/archive",archiveRouter);
 app.use("/api", usersRouter);
 
 app.use(express.static(distPath));
 
-app.get("api/users/:username", async (req,res) => {
- const { username } = req.params;
-});
-
-app.get("/{*path}", (req,res) => {
+app.use((req,res) => {
  res.sendFile(path.join(distPath, "index.html"));
 });
+
+
 
 app.listen(PORT, "0.0.0.0", () => {
  console.log(`server running on port ${PORT}`);

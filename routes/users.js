@@ -2,8 +2,9 @@ import express from "express";
 import { supabase } from "../supabase.js";
 
 const router = express.Router();
-
+console.log("users router loaded");
 router.get("/users/:username", async (req, res) => {
+console.log("GET /api/users/:username hit", req.params.username);
  try {
     const { username } = req.params;
 
@@ -25,6 +26,7 @@ router.get("/users/:username", async (req, res) => {
 });
 
 router.get("/users/:username/questions", async (req, res) => {
+console.log("GET /api/users/:username/questions hit", req.params.username);
  try {
     const { username } = req.params;
 

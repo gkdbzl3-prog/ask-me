@@ -198,6 +198,10 @@ useEffect(() => {
     },[]);
 
 useEffect(() => {
+ fetch(`api/users/${username}`)
+  .then((res) => res.json())
+  .then((data) => {});
+
   fetch(`/api/users/${username}/questions`)
     .then((res) => res.json())
     .then((data) => setQuestionCards(data));
