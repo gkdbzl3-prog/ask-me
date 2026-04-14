@@ -86,17 +86,68 @@ async function handleSend() {
 
 
  if (viewMode === "owner" && replyTargetId !== null) {
+  let answerFileUrl = "";
+  let answerFileName = "";
+
+  if (selectedFile) {
+    answerFileUrl = await fileToDataUrl(selectedFile);
+    answerFileName = selectedFile.name;
+  }
+
+  if (routeUsername) {
+    try {
+      const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          answer: trimmedInput,
+          answerFileUrl,
+          answerFileName,
+        }),
+      });
+
+      const result = await res.json();
+      console.log("PATCH status:", res.status);
+      console.log("PATCH result:", result);
+
+      if (!res.ok) {
+        alert("답변 저장을 실패했습니다");
+        return;
+      }
+
+      await loadQuestionsByUsername(routeUsername);
+
+      setInput("");
+      setReplyTargetId(null);
+      setSelectedFile(null);
+      setSecret(false);
+      setShowPreview(false);
+      return;
+    } catch (error) {
+    console.error("answer save error:", error);
+    alert("답변 저장 중 오류가 발생했습니다");
+    return;
+    }
+  }
+
   setQuestionCards(
     questionCards.map((card) =>
       card.id === replyTargetId
-      ? {...card,
+      ? {
+          ...card,
           answer: trimmedInput,
+          answerFileUrl,
+          answerFileName,
           answered: true,
           unread: false,
-          }
+          answeredAtISO: new Date().toISOString(),
+        }
           : card
-         )
-        );
+      )
+    );
+
  
 
  setInput("");
@@ -136,9 +187,9 @@ async function handleSend() {
           fileName,
         }),
     });
-  console.log("POST status:", res.status);
+
   const result = await res.json();
-  console.log("POST result:", result);
+
   if (!res.ok) {
     console.error("question insert failed:", result);
     alert("질문 저장에 실패했어요");
@@ -549,6 +600,15 @@ return (
                   <div className="answer-box-wrap">
                     <div className="answer-box">
                       <p className="answer-text">{card.answer}</p>
+                      {card.answerFileUrl && (
+                        <div className="answer-rile-preview">
+                          <img
+                            src={card.answerFileUrl}
+                            alt={card.answerFileName || "첨부 이미지"}
+                          />
+                        </div>
+                      )}
+
                       <p className="quoted-question">
                         {card.isPrivate
                          ? "🔐 비공개된 질문입니다"
