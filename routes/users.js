@@ -115,7 +115,7 @@ router.post("/users/:username/questions", async (req, res) => {
     const insertPayload = {
      user_id: user.id,
      text: trimmedText,
-     is_private: !isPrivate,
+     is_private: !!isPrivate,
      file_url: fileUrl || "",
      file_name: fileName || "",
      answer: "",

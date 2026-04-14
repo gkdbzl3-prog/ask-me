@@ -63,6 +63,7 @@ const handleLike = (id) => {
  const totalLikeCount = questionCards.reduce(
     (sum, card) => sum + (card.likeCount || 0), 0);
 
+ const [isSending, setIsSending] = useState(false);
 
 async function handleSend() {
  console.log("handleSend start", {
@@ -72,7 +73,19 @@ async function handleSend() {
   viewMode,
   secret,
  });
+ console.log("POST body:", {
+  text: trimmedInput,
+  isPrivate: secret,
+  fileUrl,
+  fileName,
+ });
+
  console.log("routeUsername in handleSend:", routeUsername);
+
+ if (isSending) return;
+  setIsSending(true);
+
+  try {
  const trimmedInput = input.trim();
  if (!trimmedInput && !selectedFile) return;
 
@@ -159,12 +172,14 @@ async function handleSend() {
   fileName,
   fileUrl,
  };
-
+  } finally {
+ setIsSending(false);
  setQuestionCards((prev) => [...prev, newQuestion]);
  setInput("");
  setSecret(false);
  setSelectedFile(null);
  setShowPreview(false);
+ }
 }
 
 function removeQuestion(id) {
@@ -732,7 +747,12 @@ return (
                 </div>
                  
 
-        <button onClick={handleSend} className="send-btn" type="button">
+        <button
+          onClick={handleSend}
+          className="send-btn"
+          type="button"
+          disabled={isSending}
+        >
           <img src="/images/종이비행기.png" alt="전송" />
         </button>
       </section>
