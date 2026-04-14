@@ -212,7 +212,7 @@ useEffect(() => {
   .catch((err) => console.error("user fetch error:", err));
 
  fetch(`/api/users/${routeUsername}/questions`)
-  .then((tes) => res.json())
+  .then((res) => res.json())
   .then((data) => {
     console.log("question data:", data);
   setQuestionCards(data);
