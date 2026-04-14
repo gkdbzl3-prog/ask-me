@@ -1031,6 +1031,9 @@ width: 76%;
 .profile-main-info {
  width: 100%;
  display: flex;
+ align-items: center;
+ justify-content: space-between;
+ gap: 12px;
  flex-direction: column;
  text-align: left;
  min-width: 0;
@@ -1059,13 +1062,7 @@ width: 76%;
 }
 
 .profile-field {
- display: flex;
- align-items: flex-end;
- gap: 10px;
- min-width: 0;
- flex: 1;
- border-bottom: 1.5px solid rgba(102, 76, 156, 0.22);
- padding-bottom: 6px;
+min-width: 0;
 }
 
 .profile-field.id-field {
@@ -1080,6 +1077,8 @@ width: 76%;
 
 
 .last-answer-text {
+ flex-shrink: 0;
+ text-align: right;
  font-size: 12px;
  font-weight: 500;
  color: rgba(78, 58, 120, 0.62);

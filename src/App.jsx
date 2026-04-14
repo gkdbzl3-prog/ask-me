@@ -84,8 +84,6 @@ async function handleSend() {
         );
  
 
- 
-
  setInput("");
  setReplyTargetId(null);
  setSelectedFile(null);
@@ -100,6 +98,43 @@ async function handleSend() {
  if (selectedFile) {
   fileUrl = await fileToDataUrl(selectedFile);
   fileName = selectedFile.name;
+ }
+
+ if (routeUsername) {
+  try {
+    const res = await fetch(`/api/users/${routeUsername}/questions`, {
+      method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: trimmedInput,
+          isPrivate: secret,
+          fileUrl,
+          fileName,
+        }),
+    });
+
+  const result = await res.json();
+
+  if (!res.ok) {
+    console.error("question insert failed:", result);
+    alert("질문 저장에 실패했어요");
+    return;
+  }
+
+  await loadQuestionsByUsername(routeUsername);
+
+  setInput("");
+  setSecret(false);
+  setSelectedFile(null);
+  setShowPreview(false);
+  return;
+  } catch (error) {
+    console.error("question send error:", error);
+    alert("질문 전송 중 오류가 발생했어요.");
+    return;
+  }
  }
 
  const newQuestion = {
@@ -122,8 +157,6 @@ async function handleSend() {
  setSecret(false);
  setSelectedFile(null);
  setShowPreview(false);
-console.log("selectedFile:", selectedFile);
-console.log("newQuestion fileUrl:", newQuestion.fileUrl);
 }
 
 function removeQuestion(id) {
@@ -180,6 +213,45 @@ function getQuestionPreview(question) {
 const [archivePosts, setArchivePosts] = useState([]);
 const [archiveSource, setArchiveSource] = useState("");
 
+function getRecentAnswerText(questionCards) {
+ const answeredCards = Array.isArray(questionCards)
+  ? questionCards.filter((card) => card.answered)
+  : [];
+
+ if (answeredCards.length === 0) return "답변 없음";
+
+ const latestAnswered = answeredCards
+  .map((card) => card.answeredAtISO || card.createdAtISO)
+  .filter(Boolean)
+  .sort((a,b) => new Date(b) - new Date(a))[0];
+
+ if (!latestAnswered) return "답변 없음";
+
+ const diffMs = Date.now() - new Date(latestAnswered).getTime();
+ const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+ if (diffDays <= 0) return "최근 답변 오늘";
+ if (diffDays === 1) return "최근 답변 1일 전";
+ return `최근 답변 ${diffDays}일 전`;
+}
+
+ const recentAnswerText = getRecentAnswerText(questionCards);
+ const totalCards = questionCards.length;
+ const answeredCount = questionCards.filter((card) => card.answered).length;
+ const privateQuestionCount = questionCards.filter((card) => card.isPrivate).length;
+ const unansweredCount = questionCards.filter((card) => !card.answered).length;
+ const [highlightId, setHighlightId] = useState(
+  localStorage.getItem("highlight") || ""
+ );
+
+async function loadQuestionsByUsername(username) {
+  const res = await fetch(`/api/users/${username}/questions`);
+  if (!res.ok) {
+    throw new Error("questions load filed");
+  }
+  const data = await res.json();
+  setQuestionCards(Array.isArray(data) ? data : []);
+}
 
 useEffect(() => {
   const loadArchiveHashtags = async () => {
@@ -213,17 +285,28 @@ useEffect(() => {
   .then((res) => res.json())
   .then((data) => {
     console.log("user data:", data);
+    const nextHighlightId =
+      data.highlight_question_id || localStorage.getItem("highlightId") || "";
 
-   localStorage.setItem("editNickname", data.display_name || "");
-   localStorage.setItem("bio", data.bio || "");
-   localStorage.setItem("profileImage", data.avatar_url || "");
-   localStorage.setItem("bgUrl", data.bg_url || "");
+  setHighlightId(nextHighlightId);
+  setNickname(data.display_name || data.username || "이름없음");
+  setProfileImage(data.avatar_url || "");
+  setBgUrl(data.bg_url || "");
 
-   setProfileImage(data.avatar_url || "");
-   setBgUrl(data.bg_url || "");
+  localStorage.setItem("editNickname", data.display_name || "");
+  localStorage.setItem("bio", data.bio || "");
+  localStorage.setItem("profileImage", data.avatar_url || "");
+  localStorage.setItem("bgUrl", data.bg_url || "");
   })
   .catch((err) => console.error("user fetch error:", err));
 
+ loadQuestionsByUsername(routeUsername).catch((err) =>
+  console.error("questions fetch error:", err)
+ );
+},[routeUsername]);
+
+
+useEffect(() => {
  fetch(`/api/users/${routeUsername}/questions`)
   .then((res) => res.json())
   .then((data) => {
@@ -243,6 +326,8 @@ useEffect(() => {
 useEffect(() => {
  if (!routeUsername) return;
 
+  setViewMode("guest");
+
  fetch(`/api/users/${routeUsername}`)
   .then((res) => res.json())
   .then((data) => {
@@ -252,10 +337,6 @@ useEffect(() => {
     setProfileBio(data.bio || "");
     setProfileImage(data.avatar_url || "");
     setBgUrl(data.bg_url || "");
-
-    localStorage.setItem("editNickname", data.display_name || "");
-    localStorage.setItem("bio", data.bio || "");
-    localStorage.setItem("bgUrl", data.bg_url || "");
   })
   .catch((err) => console.error("user fetch error:", err));
 
@@ -345,6 +426,11 @@ return (
       setBgUrl={setBgUrl}
       nickname={nickname}
       profileBio={profileBio}
+      recentAnswerText={recentAnswerText}
+      totalCards={totalCards}
+      answeredCount={answeredCount}
+      privateQuestionCount={privateQuestionCount}
+      unansweredCount={unansweredCount}
        />
     </aside>
 

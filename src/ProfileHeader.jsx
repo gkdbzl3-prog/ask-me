@@ -9,6 +9,14 @@ export default function ProfileHeader({
     totalLikeCount,
     bgUrl,
     setBgUrl,
+    nickname,
+    profileBio,
+    recentAnswerText,
+    totalCards,
+    answeredCount,
+    privateQuestionCount,
+    unansweredCount,
+    highlightId,
     }) {
 
 
@@ -31,10 +39,7 @@ const filteredHighlightCards = questionCards.filter((card) => {
   return text.toLowerCase().includes(query);
 });
 
-const totalCards = questionCards.length;
-const answeredCount = questionCards.filter((card) => card.answered).length;
-const privateQuestionCount = questionCards.filter((card) => card.isPrivate).length;
-const answeredCards = questionCards.filter((card) => card.answered);
+
 const parseKoreanDateString = (dateString) => {
   if(!dateString) return null;
   
@@ -58,33 +63,7 @@ const parseKoreanDateString = (dateString) => {
   return new Date(year, month -1, day, hour, minute, second);
 };
 
-const getRelativeDaysText = (dateString) => {
-  if (!dateString) return "답변 없음";
 
-  const parsed = parseKoreanDateString(dateString);
-  if (!parsed || Number.isNaN(parsed.getTime())) return dateString;
-
-  const now = new Date();
-  const diffMs = now - parsed;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 0) return "오늘";
-  if (diffDays === 1) return "어제";
-  return `${diffDays}일 전`;
-};
-
-  const lastAnswerDate = 
-  answeredCards.length > 0
-    ? getRelativeDaysText(
-      answeredCards[answeredCards.length - 1].createdAtISO ||
-      answeredCards[answeredCards.length - 1].createdAt)
-    
-    :"답변 없음";
-
-  const [highlightId, setHighlightId] = useState(() => {
-    const saved = localStorage.getItem("highlightId");
-    return saved ? Number(saved) : null;
-  });
 
   const highlightCard = questionCards.find((card) => card.id === highlightId);
   const [profilePageIndex, setProfilePageIndex] = useState(0);
@@ -115,7 +94,7 @@ const getRelativeDaysText = (dateString) => {
    window.location.href = "/auth/x/login";
   };
 
- const unansweredCount = questionCards.filter((card) => !card.answered).length;
+
 
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
@@ -198,12 +177,14 @@ return(
         onChange={(e) => setEditNickname(e.target.value)}
         placeholder="닉네임" />
       ):(
-      <span className="field-value">{editNickname}</span>
+      <span className="field-value">
+      {viewMode === "guest" ? nickname : editNickname}      
+      </span>
       )}
 
 
     <span className="last-answer-text">
-      최근 답변 {lastAnswerDate}
+      {recentAnswerText}
     </span>
    </div>
   </div>
@@ -267,7 +248,7 @@ return(
     placeholder="당신이 누군지 궁금해요" />
   ):(
   <div className="profile-bio-view">
-  <p>{bio || "상태 메시지 없음"}</p>
+  <p>(profileBio || "상태 메시지 없음")</p>
   </div>
   )}
  </div>
