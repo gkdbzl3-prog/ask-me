@@ -363,27 +363,35 @@ useEffect(() => {
 useEffect(() => {
  if (!routeUsername) return;
 
- setViewMode("guest");
-
  fetch(`/api/users/${routeUsername}`)
   .then((res) => res.json())
   .then((data) => {
     console.log("user data:", data);
+
     const nextHighlightId =
-      data.highlight_question_id || localStorage.getItem("highlightId") || "";
+      data.highlightId || localStorage.getItem("highlightId") || "";
 
    setHighlightId(nextHighlightId);
-   setNickname(data.display_name || data.username || "이름없음");
+   setNickname(data.displayName || data.username || "이름없음");
    setProfileBio(data.bio || "");
-   setProfileImage(data.avatar_url || "");
-   setBgUrl(data.bg_url || "");
+   setProfileImage(data.avatarUrl || "");
+   setBgUrl(data.bgUrl || "");
 
-   localStorage.setItem("editNickname", data.display_name || "");
+ const connectedXId = localStorage.getItem("connectedXId") || "";
+ const isOwner = connectedXId === routeUsername;
+ setViewMode(isOwner ? "owner":"guest");
+
+  localStorage.setItem("editNickname", data.displayName || "");
   localStorage.setItem("bio", data.bio || "");
-  localStorage.setItem("profileImage", data.avatar_url || "");
-  localStorage.setItem("bgUrl", data.bg_url || "");
+  localStorage.setItem("profileImage", data.avatarUrl || "");
+  localStorage.setItem("bgUrl", data.bgUrl || "");
   })
   .catch((err) => console.error("user fetch error:", err));
+}, [routeUsername]);
+
+
+useEffect(() => {
+ if (!routeUsername) return;
 
  loadQuestionsByUsername(routeUsername).catch((err) =>
   console.error("questions fetch error:", err)
