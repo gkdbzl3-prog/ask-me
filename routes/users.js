@@ -54,7 +54,7 @@ router.get("/users/:username/questions", async (req, res) => {
      id: q.id,
      text: q.text,
      isPrivate: q.is_private,
-     fileUrl: q_file_url,
+     fileUrl: q.file_url,
      fileName: q.file_name,
      answer: q.answer,
      answerFileUrl: q.answer_file_url,
