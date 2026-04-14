@@ -146,7 +146,7 @@ flex-direction: column;
 
 .ask-area-wrap {
  position: fixed;
- left: 49%;
+ left: 50%;
  bottom: 24px;
  transform: translateX(-50%);
  display: flex;
@@ -1474,19 +1474,7 @@ width: 76%;
  font-weight: 300;
 }
 
-.input {
- width: 100%;
- min-height: 90px;
- border-radius: 16px;
- border: 1px solid rgba(126,97,184,0.12);
- background: rgba(255,255,255,0.3);
- color: #2f214d;
- padding: 14px 16px;
- resize: vertical;
- box-sizing: border-box;
- outline: none;
- font: inherit;
-}
+
 
 
 

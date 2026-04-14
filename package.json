@@ -11,6 +11,7 @@
     "all": "concurrently \"npm run dev -- --host\" \"npm run start\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.103.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",

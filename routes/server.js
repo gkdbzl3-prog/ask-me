@@ -7,6 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
+import usersRouter from "./users.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -25,8 +26,13 @@ app.use(express.json());
 
 app.use("/archive",archiveRouter);
 app.use("/auth",authRouter);
+app.use("/api", usersRouter);
 
 app.use(express.static(distPath));
+
+app.get("api/users/:username", async (req,res) => {
+ const { username } = req.params;
+});
 
 app.get("/{*path}", (req,res) => {
  res.sendFile(path.join(distPath, "index.html"));

@@ -115,6 +115,8 @@ const getRelativeDaysText = (dateString) => {
    window.location.href = "/auth/x/login";
   };
 
+ const unansweredCount = questionCards.filter((card) => !card.answered).length;
+
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
 },[editNickname]);
@@ -316,6 +318,8 @@ return(
     답변 완료 {answeredCount}
     {"·"}
     비공개 {privateQuestionCount}
+    {"·"}
+    미답변 {unansweredCount}
  </span>
 
 

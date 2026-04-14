@@ -12,7 +12,8 @@ function App() {
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
- const [viewMode, setViewMode] = useState("guest");
+ const isOwnerView = sessionUser?.username === profile.username;
+ const viewMode = isOwnerView ? "owner" : "guest";
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
  const [profileImage, setProfileImage] = useState(
@@ -197,8 +198,10 @@ useEffect(() => {
     },[]);
 
 useEffect(() => {
-  localStorage.setItem("questionCards", JSON.stringify(questionCards));
-}, [questionCards]);
+  fetch(`/api/users/${username}/questions`)
+    .then((res) => res.json())
+    .then((data) => setQuestionCards(data));
+}, [username]);
 
 return (
   <>
@@ -279,10 +282,10 @@ return (
 
 
 
-<main className="chat-panel">
+<main className={`chat-panel ${viewMode}-view`}>
 {mobileTab === "chat" &&(
 
-    <section className="card-list">
+    <section className={`card-list ${viewMode}-view`}>
       {questionCards.length === 0 ? (
         <p>질문이 없음</p>
       ) : (
@@ -395,6 +398,8 @@ return (
                     </button>
                   </div>
                   )}
+
+
 
 
                   <div className="answer-box-wrap">
