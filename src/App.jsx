@@ -8,7 +8,7 @@ import ProfileHeader from "./ProfileHeader";
 function App() {
  const [input, setInput] = useState("");
  const isOwner = false;
- const [nickname, setNickname] = "날";
+ const [nickname, setNickname] = useState("날");
  const [profileBio, setProfileBio] = useState("");
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
@@ -18,7 +18,9 @@ const pathParts = window.location.pathname.split("/");
 const routeUsername =
   pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
  const isOwnerView = sessionUser?.username === routeUsername;
- const [viewMode, setViewMode] = isOwnerView ? "owner" : "guest";
+ const [viewMode, setViewMode] = useState(
+  isOwnerView ? "owner" : "guest"
+ );
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
  const [profileImage, setProfileImage] = useState(
