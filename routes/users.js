@@ -54,7 +54,7 @@ router.get("/users/:username/questions", async (req, res) => {
      .from("questions")
      .select("*")
      .eq("user_id", user.id)
-     .order("created_at", { ascending: false });
+     .order("created_at", { ascending: true });
 
     if (questionError) {
      return res.status(500).json({ message: "question load failed", error: questionError });

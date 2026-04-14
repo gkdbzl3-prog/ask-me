@@ -275,7 +275,13 @@ async function loadQuestionsByUsername(username) {
     throw new Error("questions load filed");
   }
   const data = await res.json();
-  setQuestionCards(Array.isArray(data) ? data : []);
+  const sortedQuestions = Array.isArray(data)
+   ? [...data].sort(
+      (a, b) => new Date(a.createdAtISO || 0) - new Date(b.createdAtISO || 0)
+     )
+   : [];
+
+  setQuestionCards(sortedQuestions);
 }
 
 useEffect(() => {
@@ -544,8 +550,9 @@ return (
                     <div className="answer-box">
                       <p className="answer-text">{card.answer}</p>
                       <p className="quoted-question">
-                        {card.isPrivate ? "🔐 비공개된 질문입니다" : card.text}
-                        {getQuestionPreview(card)}
+                        {card.isPrivate
+                         ? "🔐 비공개된 질문입니다"
+                         : getQuestionPreview(card)}
                       </p>
                     </div>
               </div>
