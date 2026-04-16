@@ -95,7 +95,7 @@ const parseKoreanDateString = (dateString) => {
    window.location.href = "/auth/x/login";
   };
 
-  async function saveProiefileToDB() {
+  async function saveProfileToDB() {
     if (!routeUsername) return;
 
     try {
@@ -289,7 +289,7 @@ return(
     placeholder="당신이 누군지 궁금해요" />
   ):(
   <div className="profile-bio-view">
-  <p>(profileBio || "상태 메시지 없음")</p>
+  <p>{profileBio || "상태 메시지 없음"}</p>
   </div>
   )}
  </div>
@@ -455,21 +455,23 @@ return(
 
   </div>
 
-
-
-
   </section>
-        <button
+
+
+
+
+</>
+  )}
+
+    {viewMode === "owner" && (
+      <>
+              <button
           type="button"
           className="inline-save-btn"
           onClick={saveProfileToDB}
         >
           저장
           </button>
-</>
-  )}
-
-{viewMode === "owner" && (
 <div className="profile-page-nav">
   <button
     type="button"
@@ -486,7 +488,8 @@ return(
     disabled={profilePageIndex === 1}>
      ❯
   </button>
-</div>
+        </div>
+        </>
 )}
 
   
