@@ -276,7 +276,7 @@ flex-direction: column;
 .ask-input-shell {
  position: static;
  width: 100%;
- transform: none;
+ transform: translateX(10px);
  left: auto;
  bottom: auto;
  display: flex;

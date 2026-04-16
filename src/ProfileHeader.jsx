@@ -174,8 +174,8 @@ return(
 <section className="profile-public">
     
 
-    {profilePageIndex === 0 && (
-  <>
+
+
   <div className="profile-page">
     <div className="profile-header">
      <div className="avatar-wrap">
@@ -364,11 +364,9 @@ return(
   )}
   </div> */}
 </div>
-  </>
-)}
 
-  {viewMode === "owner" && profilePageIndex === 1 && (
-  <>
+
+
     {/* <div className="highlight-picker">
        <input
         value={highlightQuery}
@@ -465,10 +463,9 @@ return(
 
 
 
-</>
-  )}
 
-    {viewMode === "owner" && (
+
+    {/* {viewMode === "owner" && (
       <>
               <button
           type="button"
@@ -495,7 +492,7 @@ return(
   </button>
         </div>
         </>
-)}
+)} */}
 
   
  </section>
