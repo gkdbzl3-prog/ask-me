@@ -228,14 +228,7 @@ flex-direction: column;
   border-color: rgba(169,120,230,0.52);
 }
 
-.reply-btn {
- display: inline-flex;
- align-items: center;
- justify-content: center;
- position: static;
- margin-top: 8px;
- z-index: 2;
-}
+
 
 .question-bubble {
  overflow: visible;
@@ -531,7 +524,7 @@ flex-direction: column;
  background:rgb(245 234 250 / 85%);
  border: 1.5px solid rgba(201, 184, 240, 0.8);
  border-radius: 18px;
- padding: 10px 10px 5px 18px;
+ padding: 10px 15px 5px 18px;
  backdrop-filter: blur(8px);
  -webkit-backdrop-filter: blur(8px);
  box-shadow: 0 2px 12px rgba(143, 105, 232, 0.08);
@@ -545,13 +538,13 @@ flex-direction: column;
 .question-actions {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-self: stretch;
+  justify-content: center;
   min-width: auto;
   flex-shrink: 0;
   flex: 0 0 auto;
   gap: 5px;
   margin-top: 30px;
+  
 }
 
 
@@ -628,7 +621,6 @@ flex-direction: column;
 
 .owner-view .question-actions {
  order: 2;
- align-items: flex-start;
 }
 
 .owner-view .answer-line {
@@ -653,7 +645,6 @@ flex-direction: column;
 
 .guest-view .question-actions {
  order: 1;
- align-items: flex-end;
 }
 
 .guest-view .question-bubble {
@@ -685,9 +676,10 @@ flex-direction: column;
 
 .question-side {
  display: flex;
- align-items: center;
+ align-items: end;
  justify-content: center;
  gap: 6px;
+ order: 1;
 }
 
 .like-btn {
@@ -760,6 +752,7 @@ flex-direction: column;
  border-radius: 12px;
  font-size: 11px;
  cursor: pointer;
+ align-self: center;
  white-space: nowrap;
 }
 
@@ -1112,7 +1105,7 @@ align-items: center;
 }
 
 .profile-bio p {
- margin: 0;
+ margin: 0 0 0 5px;
 }
 
 .profile-like-row {
@@ -1199,9 +1192,8 @@ align-items: center;
 }
 
 .background-select-text {
- margin: 10px 0 5px 0;
+ text-align: center;
  color: #3d2768;
-
 }
 
 .background-select-btn {
@@ -1210,10 +1202,11 @@ align-items: center;
  background: rgba(199, 196, 196, 0.795);
  color: #4a2d85;
  font-size: 12px;
- padding: 5px 10px;
+ padding: 3px 5px;
  font: inherit;
  font-size: 13px;
  font-weight: 500;
+ text-align: center;
  cursor: pointer;
  backdrop-filter: blur(8px);
  -webkit-backdrop-filter: blur(8px);
@@ -1471,6 +1464,7 @@ align-items: center;
  outline: none;
  backdrop-filter: blur(8px);
  -webkit-backdrop-filter: blur(8px);
+ margin-top: 10px;
 }
 
 .profile-bio-view {
@@ -1618,6 +1612,7 @@ align-items: center;
  gap: 8px;
  align-items: center;
  text-align: center;
+ margin-top: 10px;
 }
 
 .background-select-btn {
@@ -1641,7 +1636,7 @@ align-items: center;
  border-radius: 14px;
  background: rgba(155,155,155,0.42);
  color: #4a2d85;
- padding: 5px 10px;
+ padding: 3px 5px;
  font-family: "myfont";
  font-size: 13px;
  cursor: pointer;
@@ -1817,7 +1812,7 @@ align-items: center;
  padding: 3px 7px;
  font: inherit;
  cursor: pointer;
- font-size: 13px;
+ font-size: 12px;
 }
 
 .x-disconnect-btn {

@@ -62,18 +62,19 @@ router.get("/users/:username/questions", async (req, res) => {
 
    return res.json(
     questions.map((q) => ({
-     id: q.id,
-     text: q.text,
-     isPrivate: q.is_private,
-     fileUrl: q.file_url,
-     fileName: q.file_name,
-     answer: q.answer,
-     answerFileUrl: q.answer_file_url,
-     answerFileName: q.answer_file_name,
-     answered: q.answered,
-     likeCount: q.like_count,
-     createdAtISO: q.created_at,
-     answeredAtISO: q.answered_at,
+       id: q.id,
+       text: q.text,
+       isPrivate: q.is_private,
+       fileUrl: q.file_url,
+       fileName: q.file_name,
+       answer: q.answer,
+       answerFileUrl: q.answer_file_url,
+       answerFileName: q.answer_file_name,
+       answered: q.answered,
+       likeCount: q.like_count,
+       createdAtISO: q.created_at,
+       answeredAtISO: q.answered_at,
+       askerAuthId: q.asker_auth_id,
     }))
    );
  } catch (error) {
@@ -272,5 +273,81 @@ router.patch("/users/:username/profile", async (req, res) => {
       return res.status(500).json({ message: "server error" });
    }
 });
+
+router.delete("/questions/:id", async (req, res) => {
+   try {
+      const { data: { user },
+      } = await supabase.auth.getUser();
+      const { id } = req.params;
+
+      const { error } = await supabase
+         .from("questions")
+         .delete()
+         .eq("id", id);
+      
+      if (error) {
+         console.error("DELETE /questions/:id error:", error);
+         return res.status(500).json({
+            message: "question delete failed",
+            error,
+         });
+      }
+
+      return res.json({ ok: true, deletedId: id });
+   } catch (error) {
+      console.error("DELETE /questions/:id server error:", error);
+      return res.status(500).json({ message: "server error" });
+   }
+});
+
+
+router.patch("/questions/:id/answer/delete", async (req, res) => {
+   try {
+      const { id } = req.paramas;
+
+      const updatePayload = {
+         answer: "",
+         answer_file_url: "",
+         answer_file_name: "",
+         answered: false,
+         answered_at: null,
+      };
+
+      const { data: updated, error } = await supabase
+         .from("questions")
+         .update(updatePayload)
+         .eq("id", id)
+         .select("*")
+         .single();
+      
+      if (error) {
+         console.error("PATCH /questions/:id/answer/delete error:", error);
+         return res.status(500).json({
+            message: "answer delete failed",
+            error,
+         });
+      }
+
+      return res.json({
+         id: updated.id,
+         text: updated.text,
+         isPrivate: updated.is_private,
+         fileUrl: updated.file_url,
+         fileName: updated.file_name,
+         answer: updated.answer,
+         answerFileUrl: updated.answer_file_url,
+         answerFileName: updated.answer_file_name,
+         answered: updated.answered,
+         likeCount: updated.like_count,
+         createdAtISO: updated.created_at,
+         answeredAtISO: updated.answered_at,
+      });
+   } catch (error) {
+      console.error("PATCH /questions/:id/answer/delete server error:", error);
+      return res.status(500).json({ message: "server error" });
+   }
+});
+
+
 
 export default router;

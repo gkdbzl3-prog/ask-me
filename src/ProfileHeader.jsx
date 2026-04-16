@@ -453,10 +453,19 @@ return(
     >
     초기화
     </button>
-  </div>
 
 
-  </div>
+    {viewMode === "owner" && (
+              <button
+          type="button"
+          className="inline-save-btn"
+          onClick={saveProfileToDB}
+        >
+          저장
+          </button>
+          )}
+        </div>
+      </div>
 
   </section>
 
@@ -465,34 +474,7 @@ return(
 
 
 
-    {/* {viewMode === "owner" && (
-      <>
-              <button
-          type="button"
-          className="inline-save-btn"
-          onClick={saveProfileToDB}
-        >
-          저장
-          </button>
-<div className="profile-page-nav">
-  <button
-    type="button"
-    onClick={() => setProfilePageIndex((prev) => Math.max(prev - 1,0))}
-    disabled={profilePageIndex === 0}>
-    ❮
-  </button>
 
-  <span>{profilePageIndex + 1} / 2</span>
-
-  <button
-    type="button"
-    onClick={() => setProfilePageIndex((prev)  => Math.min(prev + 1,1))}
-    disabled={profilePageIndex === 1}>
-     ❯
-  </button>
-        </div>
-        </>
-)} */}
 
   
  </section>

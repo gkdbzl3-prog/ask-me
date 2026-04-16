@@ -5,26 +5,27 @@ import ProfileHeader from "./ProfileHeader";
 
 
 function App() {
- const [input, setInput] = useState("");
- const [nickname, setNickname] = useState("날");
- const [profileBio, setProfileBio] = useState("");
- const [secret, setSecret] = useState(false);
- const [selectedFile, setSelectedFile] = useState(null);
- const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
- const pathParts = window.location.pathname.split("/");
- const routeUsername =
-  pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
- const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
- const [replyTargetId, setReplyTargetId] = useState(null);
- const [showPreview, setShowPreview] = useState(false);
- const [profileImage, setProfileImage] = useState(
-    localStorage.getItem("profileImage") || "");
- const [mobileTab, setMobileTab] = useState("chat");
- const [devViewMode, setDevViewMode] = useState("guest");
- const connectedXId = localStorage.getItem("connectedXId") || "";
- const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
- const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
- const [questionCards, setQuestionCards] = useState(() => {
+  const [input, setInput] = useState("");
+  const [nickname, setNickname] = useState("날");
+  const [profileBio, setProfileBio] = useState("");
+  const [secret, setSecret] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl") || "");
+  const pathParts = window.location.pathname.split("/");
+  const routeUsername =
+    pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
+  const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const [replyTargetId, setReplyTargetId] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [profileImage, setProfileImage] = useState(
+   localStorage.getItem("profileImage") || "");
+  const [mobileTab, setMobileTab] = useState("chat");
+  const [devViewMode, setDevViewMode] = useState("guest");
+  const connectedXId = localStorage.getItem("connectedXId") || "";
+  const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
+  const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
+  const [currentAuthUserId, setCurrentAuthUserId] = useState("");
+  const [questionCards, setQuestionCards] = useState(() => {
   try {
    const savedQuestions =
     localStorage.getItem("questionCards") ||
@@ -239,11 +240,68 @@ async function handleSend() {
   }
 }
 
-function removeQuestion(id) {
- setQuestionCards(
-   questionCards.filter((card) => card.id !== id)
- );
-}
+  async function removeQuestion(questionId) {
+    try {
+      const res = await fetch(`/api/questions/${questionId}`, {
+        method: "DELETE",
+      });
+
+      const result = await res.json();
+      console.log("delete question result:", result);
+
+      if (!res.ok) {
+        alert("질문 삭제 실패");
+        return;
+      }
+
+      if (routeUsername) {
+        await loadQuestionsByUsername(routeUsername);
+      } else {
+        setQuestionCards((prev) => prevfilter((card) => card.id !== questionId));
+      }
+    } catch (error) {
+      console.error("removeQuestion error:", error);
+      alert("질문 삭제 중 오류 발생");
+    }
+  }
+ 
+  async function removeAnswer(questionId) {
+    try {
+      const res = await fetch(`/api/questions/${questionId}/answer/delete`, {
+        method: "PATCH",
+      });
+
+      const result = await res.json();
+      console.log("delete answer result:", result);
+
+      if (!res.ok) {
+        alert("삭제 실패");
+        return;
+      }
+
+      if (routeUsername) {
+        await loadQuestionsByUsername(routeUsername);
+      } else {
+        setQuestionCards((prev) =>
+          prev.map((card) =>
+            card.id === questionId
+              ? {
+                ...card,
+                answer: "",
+                answerFileUrl: "",
+                answerFileName: "",
+                answered: false,
+                answeredAtISO: null,
+              }
+              : card
+          )
+        );
+      }
+    } catch (eeror) {
+      console.erroer("removeAnswer error:", error);
+      alert("삭제 중 오류 발생");
+    }
+  }
 
 function getQuestionPreview(question) {
  const text = question?.text?.trim() || "";
@@ -364,7 +422,49 @@ async function loadQuestionsByUsername(username) {
       return fallbackValue;
     }
   }
-  
+
+  useEffect(() => {
+    async function ensureAnonymousAuth() {
+      const {
+        data: { user },
+        error: getUserError,
+      } = await supabase.auth.getUser();
+
+      if (getUserError) {
+        console.error("getUser error:", getUserError);
+      }
+
+      if (user) {
+        setCurrentAuthUserId(user.id);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInAnonymously();
+      
+      if (error) {
+        console.error("anonymous sign-in error:", error);
+        return;
+      }
+
+      setCurrentAuthUseerId(data.user?.id || "");
+    }
+
+    ensureAnonymousAuth();
+  }, []);
+
+  useEffect(() => {
+    async function loadAuthUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      setCurrentAuthUserId(user?.id || "");
+    }
+
+    loadAuthUser();
+  }, []);
+
+
 useEffect(() => {
  localStorage.setItem("questionCards", JSON.stringify(questionCards));
 }, [questionCards]);
@@ -536,8 +636,9 @@ return (
               ) : (
 
                 questionCards.map((card) => {
-                  const hasAnswer = card.answered || !!card.answer || !!card.answerFileUrl;
-              
+                  const hasAnswer = card.answered || !!card.answer || !!card.answerFileUrl
+                  const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
+
                   return (
                     <article
                       key={card.id}
@@ -590,7 +691,7 @@ return (
 
               
                             <div className="question-actions">
-                              <div className="question-top-actions">
+
                                 {viewMode === "owner" && (
                                   <button
                                     className="reply-btn"
@@ -601,10 +702,9 @@ return (
                                     {hasAnswer ? "답변수정" : "답변하기"}
                                   </button>
                                 )}
-                              </div>
 
-
-                              <div className="question-bottom-actions">
+                            </div>
+      
                                 {hasAnswer && (
                                   <div className="question-side check-side">
                                     <span className="answered-mark">
@@ -617,8 +717,8 @@ return (
                                   </div>
                                 )}
 
-
-                                {viewMode === "owner" && (
+           
+                                {canDeleteQuestion && (
                                   <div className="question-side delete-side">
                                     <button
                                       className="question-delete-btn"
@@ -628,8 +728,7 @@ return (
                                   </div>
                                 )}
                  
-                              </div>
-                            </div>
+  
                           </div>
                         
                       </div>
@@ -642,7 +741,7 @@ return (
                           {viewMode === "owner" && (
                             <button
                               className="answer-delete-btn"
-                              onClick={() => removeQuestion(card.id)}
+                              onClick={() => removeAnswer(card.id)}
                             >
                               ×
                             </button>
