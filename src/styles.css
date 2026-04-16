@@ -400,7 +400,7 @@ flex-direction: column;
 }
 
 
-.qa-card-content {
+.question-row {
  display: flex;
  flex-direction: column;
  gap: 6px;
