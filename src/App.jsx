@@ -323,7 +323,7 @@ function getRecentAnswerText(questionCards) {
  const [highlightId, setHighlightId] = useState(
   localStorage.getItem("highlight") || ""
  );
-
+  const highlightedCard = questionCards.find((card) => card.id === highlightId) || null;
 async function loadQuestionsByUsername(username) {
   const res = await fetch(`/api/users/${username}/questions`);
   if (!res.ok) {
@@ -399,7 +399,7 @@ useEffect(() => {
      const nextHighlightId =
       data.highlightId || localStorage.getItem("highlightId") || "";
 
-   setHighlightId(data.highlightId || "");
+   setHighlightId(nextHighlightId);
    setNickname(data.displayName || data.username || "이름없음");
    setProfileBio(data.bio || "");
    setProfileImage(data.avatarUrl || "");

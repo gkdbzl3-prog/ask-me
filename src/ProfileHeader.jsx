@@ -105,11 +105,11 @@ const parseKoreanDateString = (dateString) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          displayName: editNickname,
+          displayName: nickname || editNickname,
           bio: profileBio,
           avatarUrl: profileImage,
           bgUrl,
-          highlightId: highlightId || null
+          highlightId,
         }),
       });
 
@@ -125,6 +125,7 @@ const parseKoreanDateString = (dateString) => {
       setProfileImage(result.avatarUrl || "");
       setBgUrl(result.bgUrl || "");
       setHighlightId(result.highlightId || "");
+      localStorage.setItem("highlightId", result.highlightId || "");
 
       localStorage.setItem("editNickname", result.displayName || "");
       localStorage.setItem("bio", result.bio || "");
@@ -330,22 +331,23 @@ return(
      </div>
  </div>
 
- <div className="profile-like-row">
-  <span>❤️{totalLikeCount}</span>
- </div>
+
 
  <span className="profile-stats-text">
-    <span className="total-stats">총 {totalCards}건 </span>
-    {"·"}
-    답변 완료 {answeredCount}
-    {"·"}
-    비공개 {privateQuestionCount}
-    {"·"}
-    미답변 {unansweredCount}
- </span>
+            <span className="total-stats">총 {totalCards}건 </span>
+            <span>
+            답변 완료 {answeredCount}
+            {" · "}
+            비공개 {privateQuestionCount}
+            {" · "}
+            미답변 {unansweredCount}
+            {" · "}
+              좋아요 수 {totalLikeCount}
+              </span>
+          </span>
+ 
 
-
- <div className="profile-highlight">
+ {/* <div className="profile-highlight">
     <h3>Highlight</h3>
   <div className="highlight-head">
   {highlightCard && (
@@ -360,14 +362,14 @@ return(
   ):(
     <p className="highlight-empty">비어있습니다.</p>
   )}
-  </div>
+  </div> */}
 </div>
   </>
 )}
 
   {viewMode === "owner" && profilePageIndex === 1 && (
   <>
-    <div className="highlight-picker">
+    {/* <div className="highlight-picker">
        <input
         value={highlightQuery}
         onChange={(e) => setHighlightQuery(e.target.value)}
@@ -375,13 +377,16 @@ return(
         className="highlight-search-input" />
 
     <div className="highlight-search-list">
-     {filteredHighlightCards.length > 0 ? (
-      filteredHighlightCards.map((card) => (
-        <button
-         key={card.id}
-         type="button"
-         className={`highlight-option ${highlightId === card.id ? "active":""}`}
-         onClick={() => setHighlightId(card.id)}>
+            {filteredHighlightCards.length > 0 ? (
+              filteredHighlightCards.map((card) => (
+                <button
+                  key={card.id}
+                  type="button"
+                  className={`highlight-option ${highlightId === card.id ? "active" : ""}`}
+                  onClick={() => {
+                    setHighlightId(card.id);
+                    localStorage.setItem("highlightId", card.id);
+                  }}>
         {card.text}
        </button>
       ))
@@ -398,7 +403,7 @@ return(
 
 
 
-  </div>
+  </div> */}
   
 
 

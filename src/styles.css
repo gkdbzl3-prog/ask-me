@@ -1118,12 +1118,9 @@ align-items: center;
 .profile-like-row {
  display: flex;
  justify-content: flex-end;
- align-items: center;
  gap: 5px;
- margin-top: 10px;
  color: rgba(63,43,104,0.78);
  line-height: 1.2;
- order: 0;
 }
 
 .profile-stats {
