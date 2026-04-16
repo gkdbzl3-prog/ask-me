@@ -160,7 +160,7 @@ router.post("/users/:username/questions", async (req, res) => {
 router.patch("/questions/:id/answer", async (req, res) => {
  console.log("PATCH /api/questions/:id/answer hit");
  console.log("params:", req.params);
- console.lot("body:", req.body);
+ console.log("body:", req.body);
 
  try {
     const { id} = req.params;
@@ -212,6 +212,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
      fileUrl: updated.file_url,
      fileName: updated.file_name,
      answer: updated.answer,
+     answerFileUrl: updated.answer_file_url,
      answerFileName: updated.answer_file_name,
      answered: updated.answered,
      likeCount: updated.like_count,
@@ -224,5 +225,52 @@ router.patch("/questions/:id/answer", async (req, res) => {
 }
 });
 
+router.patch("/users/:username/profile", async (req, res) => {
+   try {
+      const { username } = req.params;
+      const {
+         displayName = "",
+         bio = "",
+         avatarUrl = "",
+         bgUrl = "",
+         highlightId = null,
+      } = req.body || {};
+
+      const updatePayload = {
+         display_name: displayName || "",
+         bio: bio || "",
+         avatar_url: avatarUrl || "",
+         bg_url: bgUrl || "",
+         highlight_question_id: highlightId || null,
+      };
+
+      const { data: updated, error } = await supabase
+         .from("users")
+         .update(updatePayload)
+         .eq("username", username)
+         .select("*")
+         .single();
+      if (error) {
+         console.error("PATCH /users/:username/profile error:", error);
+         return res.status(500).json({
+            message: "profile update failed",
+            error,
+         });
+      }
+
+      return res.json({
+         id: updated.id,
+         username: updated.username,
+         displayName: updated.display_name,
+         bio: updated.bg_url,
+         xUserId: updated.x_user_id,
+         highlightId: updated.highlight_question_id,
+         createdAtISO: updated.created_at,
+      });
+   } catch (error) {
+      console.error("PATCH /users/:username/profile server erroor:", error);
+      return res.status(500).json({ message: "server error" });
+   }
+});
 
 export default router;

@@ -2,21 +2,22 @@
 import React, { useState, useEffect } from "react";
 
 export default function ProfileHeader({ 
-    viewMode, 
-    questionCards=[],
-    profileImage,
-    setProfileImage,
-    totalLikeCount,
-    bgUrl,
-    setBgUrl,
-    nickname,
-    profileBio,
-    recentAnswerText,
-    totalCards,
-    answeredCount,
-    privateQuestionCount,
-    unansweredCount,
-    highlightId,
+  viewMode, 
+  questionCards=[],
+  profileImage,
+  setProfileImage,
+  totalLikeCount,
+  bgUrl,
+  setBgUrl,
+  nickname,
+  profileBio,
+  recentAnswerText,
+  totalCards,
+  answeredCount,
+  privateQuestionCount,
+  unansweredCount,
+  highlightId,
+  routeUsername,
     }) {
 
 
@@ -94,7 +95,47 @@ const parseKoreanDateString = (dateString) => {
    window.location.href = "/auth/x/login";
   };
 
+  async function saveProiefileToDB() {
+    if (!routeUsername) return;
 
+    try {
+      const res = await fetch(`/api/users/${routeUsername}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          displayName: editNickname,
+          bio: profileBio,
+          avatarUrl: profileImage,
+          bgUrl,
+          highlightId: highlightId || null
+        }),
+      });
+
+      const result = await res.json();
+      console.log("profile save result:", result);
+
+      if (!res.ok) {
+        alert("프로필 저장 실패");
+        return;
+      }
+      setNickname(result.displayName || "");
+      setProfileBio(result.bio || "");
+      setProfileImage(result.avatarUrl || "");
+      setBgUrl(result.bgUrl || "");
+      setHighlightId(result.highlightId || "");
+
+      localStorage.setItem("editNickname", result.displayName || "");
+      localStorage.setItem("bio", result.bio || "");
+      localStorage.setItem("profileImage", result.avatarUrl || "");
+      localStorage.setItem("bgUrl", result.bgUrl || "");
+      localStorage.setItem("highlightId", result.highlightId || "");
+    } catch (error) {
+      console.error("profile save error:", error);
+      alert("프로필 저장 중 오류 발생");
+    }
+  }
 
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
@@ -418,7 +459,13 @@ return(
 
 
   </section>
-
+        <button
+          type="button"
+          className="inline-save-btn"
+          onClick={saveProfileToDB}
+        >
+          저장
+          </button>
 </>
   )}
 

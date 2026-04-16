@@ -6,29 +6,34 @@ import ProfileHeader from "./ProfileHeader";
 
 function App() {
  const [input, setInput] = useState("");
- const isOwner = false;
  const [nickname, setNickname] = useState("날");
  const [profileBio, setProfileBio] = useState("");
  const [secret, setSecret] = useState(false);
  const [selectedFile, setSelectedFile] = useState(null);
  const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl")||"");
- const sessionUser = { username: "idmulluhaeyadae"};
-const pathParts = window.location.pathname.split("/");
-const routeUsername =
+ const pathParts = window.location.pathname.split("/");
+ const routeUsername =
   pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
- const isOwnerView = sessionUser?.username === routeUsername;
- const [viewMode, setViewMode] = useState(
-  isOwnerView ? "owner" : "guest"
- );
+ const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
  const [replyTargetId, setReplyTargetId] = useState(null);
  const [showPreview, setShowPreview] = useState(false);
  const [profileImage, setProfileImage] = useState(
     localStorage.getItem("profileImage") || "");
  const [mobileTab, setMobileTab] = useState("chat");
-
- const [questionCards, setQuestionCards] = useState( () => {
-  const saved = localStorage.getItem("questionCards");
-  return saved ? JSON.parse(saved) : [];
+ const [devViewMode, setDevViewMode] = useState("guest");
+ const connectedXId = localStorage.getItem("connectedXId") || "";
+ const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
+ const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
+ const [questionCards, setQuestionCards] = useState(() => {
+  try {
+   const savedQuestions =
+    localStorage.getItem("questionCards") ||
+    localStorage.getItem("questionCard");
+   return savedQuestions ? JSON.parse(savedQuestions) : [];
+  } catch (error) {
+   console.error("questionCards parse error:", error);
+   return [];
+  }
  });
 
 
@@ -334,15 +339,41 @@ async function loadQuestionsByUsername(username) {
   setQuestionCards(sortedQuestions);
 }
 
+ function formatDisplayDate(dateValue) {
+  if (!dateValue) return "";
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleString("ko-KR", {
+   year: "numeric",
+   month: "numeric",
+   day: "numeric",
+   hour: "numeric",
+   minute: "2-digit",
+   second: "2-digit",
+  });
+ }
+  
+  function satdParseJSON(key, fallbackValue) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallbackValue;
+      return JSON.parse(raw);
+    } catch (error) {
+      console.error(`${key} parse error:`, error);
+      return fallbackValue;
+    }
+  }
+  
+useEffect(() => {
+ localStorage.setItem("questionCards", JSON.stringify(questionCards));
+}, [questionCards]);
+
 useEffect(() => {
   const loadArchiveHashtags = async () => {
     try {
-      const connectedXId = localStorage.getItem("connectedXId") || "";
       const connectedXUserId = localStorage.getItem("connectedXUserId") || "";
-      console.log("connectedXUserId:", localStorage.getItem("connectedXUserId"));
-      console.log("connectedXId:", localStorage.getItem("connectedXId"));
-      console.log("connectedXUserId before fetch:", connectedXUserId);
-      console.log("connectedXId before fetch:", connectedXId);
+
       const res = await fetch(
         `/archive/hashtags?ownerId=${encodeURIComponent(connectedXUserId)}&username=${encodeURIComponent(connectedXId)}`
       );
@@ -362,23 +393,17 @@ useEffect(() => {
 useEffect(() => {
  if (!routeUsername) return;
 
- fetch(`/api/users/${routeUsername}`)
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("user data:", data);
-
-    const nextHighlightId =
+  fetch(`/api/users/${routeUsername}`)
+    .then((res) => res.json())
+    .then((data) => {
+     const nextHighlightId =
       data.highlightId || localStorage.getItem("highlightId") || "";
 
-   setHighlightId(nextHighlightId);
+   setHighlightId(data.highlightId || "");
    setNickname(data.displayName || data.username || "이름없음");
    setProfileBio(data.bio || "");
    setProfileImage(data.avatarUrl || "");
    setBgUrl(data.bgUrl || "");
-
- const connectedXId = localStorage.getItem("connectedXId") || "";
- const isOwner = connectedXId === routeUsername;
- setViewMode(isOwner ? "owner":"guest");
 
   localStorage.setItem("editNickname", data.displayName || "");
   localStorage.setItem("bio", data.bio || "");
@@ -386,9 +411,10 @@ useEffect(() => {
   localStorage.setItem("bgUrl", data.bgUrl || "");
   })
   .catch((err) => console.error("user fetch error:", err));
-}, [routeUsername]);
+}, [isLocalDev, routeUsername]);
 
 
+  
 useEffect(() => {
  if (!routeUsername) return;
 
@@ -426,7 +452,22 @@ return (
           fill="none" stroke="rgba(130,80,180,0.45)" strokeWidth="2.5" strokeLinecap="round"/>
   </svg>
 
-
+        {isLocalDev && (
+          <div className="dev-mode-toggle">
+            <button
+              type="button"
+              className={devViewMode === "guest" ? "active" : ""}
+              onClick={() => setDevViewMode("guest")}>
+              guest
+            </button>
+            <button
+              type="button"
+              className={devViewMode === "owner" ? "active" : ""}
+              onClick={() => setDevViewMode("owner")}>
+              owner
+            </button>
+          </div>
+        )}
 
  <div className="desktop-nav">
     <button className={`nav-btn ${mobileTab === "profile" ? "active" :""}`}
@@ -504,7 +545,7 @@ return (
             ${card.answered ? "answered" : ""}`}>
                       <div className="qa-card-content">
                   
-                        {!hasAnswer && (
+                        
                           <div className="question-line">
                             <div className="question-box-wrap">
                               <div className="question-bubble">
@@ -514,7 +555,7 @@ return (
                                     <>
                                       <p className="private-tag">🔐비공개 질문</p>
                                       <p className="question-text">{card.text}</p>
-                                      <p className="meta">{card.createdAt || card.createdAtISO}</p>
+                                      <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
                                     </>
                                   ) : (
                                     <span className="private-tag">🔐비공개된 질문입니다</span>
@@ -581,7 +622,7 @@ return (
                               </div>
                             </div>
                           </div>
-                        )}
+                        
                       </div>
                         
           
