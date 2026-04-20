@@ -356,8 +356,9 @@ return(
 
 
 
-   {viewMode === "owner" && (
+  
 
+    {viewMode === "owner" && (
 
  <section className="profile-admin">
   <h3 className="setting" >Setting</h3>
@@ -409,20 +410,21 @@ return(
     </button>
 
 
-   
+  
               <button
           type="button"
           className="inline-save-btn"
           onClick={saveProfileToDB}
         >
           저장
-          </button>
-          )}
+              </button>
+
         </div>
       </div>
 
   </section>
-
+          
+  )}
 
 
 
