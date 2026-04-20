@@ -89,11 +89,11 @@ router.post("/users/:username/questions", async (req, res) => {
  try {
     const { username } = req.params;
     const {
-     text="",
-     isPrivate = false,
-     fileUrl = "",
+       text = "",
+       isPrivate = false,
+       fileUrl = "",
        fileName = "",
-     askerAuthId = null,
+       askerAuthId = null,
     } = req.body || {};
 
     const trimmedText = String(text || "").trim();
@@ -114,17 +114,17 @@ router.post("/users/:username/questions", async (req, res) => {
     }
 
     const insertPayload = {
-     user_id: user.id,
-     text: trimmedText,
-     is_private: !!isPrivate,
-     file_url: fileUrl || "",
-     file_name: fileName || "",
-     answer: "",
-     answer_file_url: "",
-     answer_file_name: "",
-     answered: false,
+       user_id: user.id,
+       text: trimmedText,
+       is_private: !!isPrivate,
+       file_url: fileUrl || "",
+       file_name: fileName || "",
+       answer: "",
+       answer_file_url: "",
+       answer_file_name: "",
+       answered: false,
        like_count: 0,
-     asker_auth_id: askerAuthId || null,
+       asker_auth_id: askerAuthId,
     };
     console.log("insertPayload:", insertPayload);
     const { data: inserted, error: insertError } = await supabase

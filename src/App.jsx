@@ -25,17 +25,7 @@ function App() {
   const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
-  const [questionCards, setQuestionCards] = useState(() => {
-  try {
-   const savedQuestions =
-    localStorage.getItem("questionCards") ||
-    localStorage.getItem("questionCard");
-   return savedQuestions ? JSON.parse(savedQuestions) : [];
-  } catch (error) {
-   console.error("questionCards parse error:", error);
-   return [];
-  }
- });
+  const [questionCards, setQuestionCards] = useState([]);
 
 
  const replyTargetCard = questionCards.find((card) => 
@@ -97,10 +87,14 @@ async function handleSend() {
   if (selectedFile) {
     answerFileUrl = await fileToDataUrl(selectedFile);
     answerFileName = selectedFile.name;
-  }
+   }
+   
+   if (!routeUsername) {
+     alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
+     return;
+   }
 
   if (routeUsername) {
-    try {
       const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
         method: "PATCH",
         headers: {
@@ -216,29 +210,8 @@ async function handleSend() {
   }
  }
 
- const newQuestion = {
-  id: Date.now(),
-  text: trimmedInput,
-  isPrivate: secret,
-  answer: "",
-  answered: false,
-  createdAt: new Date().toLocaleString("ko-KR"),
-  createdAtISO: new Date().toISOString(),
-  liked: false,
-  likeCount: 0,
-  unread: false,
-  fileName,
-  fileUrl,
- };
 
-  setQuestionCards((prev) => [...prev, newQuestion]);
-  setInput("");
-  setSecret(false);
-  setSelectedFile(null);
-  setShowPreview(false);
-  } finally {
- setIsSending(false);
-  }
+
 }
 
   async function removeQuestion(questionId) {
@@ -256,9 +229,7 @@ async function handleSend() {
       }
 
       if (routeUsername) {
-        await loadQuestionsByUsername(routeUsername);
-      } else {
-        setQuestionCards((prev) => prev.filter((card) => card.id !== questionId));
+        await loadQuestionsByUsername(routeUsername)
       }
     } catch (error) {
       console.error("removeQuestion error:", error);
@@ -282,21 +253,6 @@ async function handleSend() {
 
       if (routeUsername) {
         await loadQuestionsByUsername(routeUsername);
-      } else {
-        setQuestionCards((prev) =>
-          prev.map((card) =>
-            card.id === questionId
-              ? {
-                ...card,
-                answer: "",
-                answerFileUrl: "",
-                answerFileName: "",
-                answered: false,
-                answeredAtISO: null,
-              }
-              : card
-          )
-        );
       }
     } catch (error) {
       console.error("removeAnswer error:", error);
@@ -466,9 +422,6 @@ async function loadQuestionsByUsername(username) {
   }, []);
 
 
-useEffect(() => {
- localStorage.setItem("questionCards", JSON.stringify(questionCards));
-}, [questionCards]);
 
 useEffect(() => {
   const loadArchiveHashtags = async () => {
@@ -516,9 +469,12 @@ useEffect(() => {
 
 
   
-useEffect(() => {
- if (!routeUsername) return;
-
+  useEffect(() => {
+    if (!routeUsername) {
+    setQuestionCards([]);
+    return;
+  }
+    
  loadQuestionsByUsername(routeUsername).catch((err) =>
   console.error("questions fetch error:", err)
  );
