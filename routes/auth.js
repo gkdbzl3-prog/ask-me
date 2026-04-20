@@ -148,7 +148,7 @@ router.get("/x/callback", async (req,res) => {
       localStorage.setItem("connectedXId", "${userData.data.username}");
       localStorage.setItem("connectedXUserId","${userData.data.id}");
       localStorage.setItem("twitterId","${userData.data.username}");
-      window.location.href = "https://ask-me.fly.dev";
+      window.location.href = "https://ask-me.fly.dev/u/${userData.data.username}";
       </script>
     </body>
    </html>
