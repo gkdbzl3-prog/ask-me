@@ -18,6 +18,9 @@ export default function ProfileHeader({
   unansweredCount,
   highlightId,
   routeUsername,
+  setNickname,
+  setProfileBio,
+  setHighlightId,
     }) {
 
 
@@ -105,8 +108,8 @@ const parseKoreanDateString = (dateString) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          displayName: nickname || editNickname,
-          bio: profileBio,
+          displayName: editNickname,
+          bio,
           avatarUrl: profileImage,
           bgUrl,
           highlightId,

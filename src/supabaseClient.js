@@ -12,4 +12,4 @@ if (!supabaseAnonKey) {
     throw new Error("VITE_SUPABASE_ANON_KEY is missing");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

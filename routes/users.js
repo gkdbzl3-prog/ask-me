@@ -203,7 +203,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
 
     if (updateError) {
      return res.status(500).json({
-        message: "answer update failde",
+        message: "answer update failed",
         error: updateError,
      });
     }
@@ -265,13 +265,15 @@ router.patch("/users/:username/profile", async (req, res) => {
          id: updated.id,
          username: updated.username,
          displayName: updated.display_name,
-         bio: updated.bg_url,
+         bio: updated.bio,
+         avatarUrl: updated.avatar_url,
+         bgUrl: updated.bg_Url,
          xUserId: updated.x_user_id,
          highlightId: updated.highlight_question_id,
          createdAtISO: updated.created_at,
       });
    } catch (error) {
-      console.error("PATCH /users/:username/profile server erroor:", error);
+      console.error("PATCH /users/:username/profile server error:", error);
       return res.status(500).json({ message: "server error" });
    }
 });
@@ -305,7 +307,7 @@ router.delete("/questions/:id", async (req, res) => {
 
 router.patch("/questions/:id/answer/delete", async (req, res) => {
    try {
-      const { id } = req.paramas;
+      const { id } = req.params;
 
       const updatePayload = {
          answer: "",

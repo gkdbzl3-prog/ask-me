@@ -258,7 +258,7 @@ async function handleSend() {
       if (routeUsername) {
         await loadQuestionsByUsername(routeUsername);
       } else {
-        setQuestionCards((prev) => prevfilter((card) => card.id !== questionId));
+        setQuestionCards((prev) => prev.filter((card) => card.id !== questionId));
       }
     } catch (error) {
       console.error("removeQuestion error:", error);
@@ -298,8 +298,8 @@ async function handleSend() {
           )
         );
       }
-    } catch (eeror) {
-      console.erroer("removeAnswer error:", error);
+    } catch (error) {
+      console.error("removeAnswer error:", error);
       alert("삭제 중 오류 발생");
     }
   }
@@ -447,7 +447,7 @@ async function loadQuestionsByUsername(username) {
         return;
       }
 
-      setCurrentAuthUseerId(data.user?.id || "");
+      setCurrentAuthUserId(data.user?.id || "");
     }
 
     ensureAnonymousAuth();
@@ -609,20 +609,25 @@ return (
    <div className="app-shell">
     <aside className="profile-panel">
       <ProfileHeader
-      viewMode={viewMode}
-      questionCards={questionCards}
-      profileImage={profileImage}
-      setProfileImage={setProfileImage}
-      totalLikeCount={totalLikeCount}
-      bgUrl={bgUrl}
-      setBgUrl={setBgUrl}
-      nickname={nickname}
-      profileBio={profileBio}
-      recentAnswerText={recentAnswerText}
-      totalCards={totalCards}
-      answeredCount={answeredCount}
-      privateQuestionCount={privateQuestionCount}
-      unansweredCount={unansweredCount}
+            viewMode={viewMode}
+            questionCards={questionCards}
+            profileImage={profileImage}
+            setProfileImage={setProfileImage}
+            totalLikeCount={totalLikeCount}
+            bgUrl={bgUrl}
+            setBgUrl={setBgUrl}
+            nickname={nickname}
+            profileBio={profileBio}
+            recentAnswerText={recentAnswerText}
+            totalCards={totalCards}
+            answeredCount={answeredCount}
+            privateQuestionCount={privateQuestionCount}
+            unansweredCount={unansweredCount}
+            highlightId={highlightId}
+            routeUsername={routeUsername}
+            setNickname={setNickname}
+            setProfileBio={setProfileBio}
+            setHighlightId={setHighlightId}
        />
     </aside>
 
