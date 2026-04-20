@@ -109,7 +109,7 @@ async function handleSend() {
         body: JSON.stringify({
           answer: trimmedInput,
           answerFileUrl,
-          answerFileName,
+          answerFileName,       
         }),
       });
 
@@ -190,6 +190,7 @@ async function handleSend() {
           isPrivate: secret,
           fileUrl,
           fileName,
+          askerAuthId: currentAuthUserId,
         }),
     });
 

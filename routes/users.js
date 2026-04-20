@@ -92,7 +92,8 @@ router.post("/users/:username/questions", async (req, res) => {
      text="",
      isPrivate = false,
      fileUrl = "",
-     fileName = "",
+       fileName = "",
+     askerAuthId = null,
     } = req.body || {};
 
     const trimmedText = String(text || "").trim();
@@ -122,7 +123,8 @@ router.post("/users/:username/questions", async (req, res) => {
      answer_file_url: "",
      answer_file_name: "",
      answered: false,
-     like_count: 0,
+       like_count: 0,
+     asker_auth_id: askerAuthId || null,
     };
     console.log("insertPayload:", insertPayload);
     const { data: inserted, error: insertError } = await supabase
