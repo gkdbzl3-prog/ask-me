@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProfileHeader from "./ProfileHeader";
-
+import { supabase } from "./supabaseClient";
 
 function App() {
   const [input, setInput] = useState("");

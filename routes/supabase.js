@@ -11,4 +11,5 @@ if (!supabaseServiceKey) {
  throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing");
 }
 
+
 export const supabase = createClient(supabaseUrl, supabaseServiceKey);
