@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { supabase } from "./supabaseClient";
 
 export default function ProfileHeader({ 
   viewMode, 
@@ -116,13 +117,21 @@ const parseKoreanDateString = (dateString) => {
         }),
       });
 
-      const result = await res.json();
-      console.log("profile save result:", result);
+      const text = await res.text();
+      let result = {};
+
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch {
+        result = { raw: text };
+      }
 
       if (!res.ok) {
+        console.error("profile save failed:", result);
         alert("프로필 저장 실패");
         return;
       }
+
       setNickname(result.displayName || "");
       setProfileBio(result.bio || "");
       setProfileImage(result.avatarUrl || "");
@@ -140,6 +149,55 @@ const parseKoreanDateString = (dateString) => {
       alert("프로필 저장 중 오류 발생");
     }
   }
+
+  async function uploadImageToStorage(file, folder = "backgrounds") {
+    if (!file) return "";
+
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-media")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+    
+    if (uploadError) {
+      console.error("storage upload error:", uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("profile-media")
+      .getPublicUrl(fileName);
+    
+    return data.publicUrl;
+  }
+
+  function getStoragePathFromPublicUrl(url, bucketName = "profile-media") {
+    if (!url) return "";
+    
+    const marker = `/storage/v1/object/public/${bucketName}/`;
+    const idx = url.indexOf(marker);
+
+    if (idx === -1) return "";
+    return url.slice(idx + marker.length);
+  }
+
+  async function removeImageFromStorage(publicUrl, bucketName = "profile-media") {
+    const filePath = getStoragePathFromPublicUrl(publicUrl, bucketName);
+    if (!filePath) return;
+
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .remove([filePath]);
+    
+    if (error) {
+      console.error("storage remove error:", error);
+    }
+  }
+
 
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
@@ -197,14 +255,17 @@ return(
           type="file"
           accept="image/*"
           style={{display: "none"}}
-          onChange={async (e) => {
-            const file = e.target.files[0];
-             if(!file) return;
-
-            const dataUrl = await fileToDataUrl(file);
-            setProfileImage(dataUrl);
-            localStorage.setItem("profileImage", dataUrl);
-               }}/>
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+             try {
+          const uploadedUrl = await uploadImageToStorage(file, "avatars");
+          setProfileImage(uploadedUrl);
+        } catch (error) {
+          console.error("avatar upload error:", error);
+          alert("프로필 이미지 업로드 실패");
+        }
+                }}/>
          </>
       )}
   </div>
@@ -391,9 +452,19 @@ return(
         const file = e.target.files[0];
         if (!file) return;
 
-        const dataUrl = await fileToDataUrl(file);
-        setBgUrl(dataUrl);
-        localStorage.setItem("bgUrl", dataUrl);
+        const oldBgUrl = bgUrl;
+
+        try {
+          const uploadedUrl = await uploadImageToStorage(file, "backgrounds");
+          setBgUrl(uploadedUrl);
+        } catch (error) {
+          console.error("background upload error:", error);
+          alert("배경사진 업로드 실패");
+        }
+
+        if (oldBgUrl && oldBgUrl !== result.bgUrl) {
+          await removeImageFromStorage(oldBgUrl, "profile-media");
+        }
       }}
       />
 

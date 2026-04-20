@@ -1,5 +1,5 @@
 
-
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import React, { useState, useEffect } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
@@ -454,6 +454,12 @@ useEffect(() => {
 
 return (
   <>
+    <HCaptcha
+  sitekey="네 site key"
+  onVerify={(token) => {
+    console.log("verified token:", token);
+  }}
+/>
   <div className="app"
     style={bgUrl ? { backgroundImage: `url(${bgUrl})`}:{}}> 
 
