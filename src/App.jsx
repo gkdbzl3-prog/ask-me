@@ -68,33 +68,32 @@ async function handleSend() {
 
  setIsSending(true);
 
- try {
-  console.log("handleSend start", {
-   input,
-   trimmedInput,
-   selectedFile,
-   routeUsername,
-   viewMode,
-   secret,
-  });
+
+    console.log("handleSend start", {
+      input,
+      trimmedInput,
+      selectedFile,
+      routeUsername,
+      viewMode,
+      secret,
+    });
 
 
 
- if (viewMode === "owner" && replyTargetId !== null) {
-  let answerFileUrl = "";
-  let answerFileName = "";
+    if (viewMode === "owner" && replyTargetId !== null) {
+      let answerFileUrl = "";
+      let answerFileName = "";
 
-  if (selectedFile) {
-    answerFileUrl = await fileToDataUrl(selectedFile);
-    answerFileName = selectedFile.name;
-   }
+      if (selectedFile) {
+        answerFileUrl = await fileToDataUrl(selectedFile);
+        answerFileName = selectedFile.name;
+      }
    
-   if (!routeUsername) {
-     alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
-     return;
-   }
+      if (!routeUsername) {
+        alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
+        return;
+      }
 
-  if (routeUsername) {
       const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
         method: "PATCH",
         headers: {
@@ -103,7 +102,7 @@ async function handleSend() {
         body: JSON.stringify({
           answer: trimmedInput,
           answerFileUrl,
-          answerFileName,       
+          answerFileName,
         }),
       });
 
@@ -124,38 +123,9 @@ async function handleSend() {
       setSecret(false);
       setShowPreview(false);
       return;
-    } catch (error) {
-    console.error("answer save error:", error);
-    alert("답변 저장 중 오류가 발생했습니다");
-    return;
     }
-  }
-
-  setQuestionCards(
-    questionCards.map((card) =>
-      card.id === replyTargetId
-      ? {
-          ...card,
-          answer: trimmedInput,
-          answerFileUrl,
-          answerFileName,
-          answered: true,
-          unread: false,
-          answeredAtISO: new Date().toISOString(),
-        }
-          : card
-      )
-    );
-
- 
-
- setInput("");
- setReplyTargetId(null);
- setSelectedFile(null);
- setSecret(false);
- setShowPreview(false);
- return;
-}
+   
+  
 
  let fileUrl ="";
  let fileName = "";
