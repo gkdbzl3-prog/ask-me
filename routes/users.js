@@ -267,7 +267,7 @@ router.patch("/users/:username/profile", async (req, res) => {
          displayName: updated.display_name,
          bio: updated.bio,
          avatarUrl: updated.avatar_url,
-         bgUrl: updated.bg_Url,
+         bgUrl: updated.bg_url,
          xUserId: updated.x_user_id,
          highlightId: updated.highlight_question_id,
          createdAtISO: updated.created_at,

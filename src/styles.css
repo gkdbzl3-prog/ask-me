@@ -1190,7 +1190,7 @@ align-items: center;
 }
 
 .background-select-text {
- text-align: center;
+ text-align: flex-start;
  color: #3d2768;
 }
 

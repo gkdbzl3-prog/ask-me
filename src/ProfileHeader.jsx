@@ -350,62 +350,13 @@ return(
           </span>
  
 
- {/* <div className="profile-highlight">
-    <h3>Highlight</h3>
-  <div className="highlight-head">
-  {highlightCard && (
-    <span className="highlight-like-count">❤️ {highlightLikeCount}
-  </span> )}
-  </div>
 
-  { highlightCard ? (
-    <div className="pinnedCard">
-      <p>{highlightCard.text}</p>
-    </div>
-  ):(
-    <p className="highlight-empty">비어있습니다.</p>
-  )}
-  </div> */}
 </div>
 
 
 
-    {/* <div className="highlight-picker">
-       <input
-        value={highlightQuery}
-        onChange={(e) => setHighlightQuery(e.target.value)}
-        placeholder="질문 검색하기" 
-        className="highlight-search-input" />
 
-    <div className="highlight-search-list">
-            {filteredHighlightCards.length > 0 ? (
-              filteredHighlightCards.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  className={`highlight-option ${highlightId === card.id ? "active" : ""}`}
-                  onClick={() => {
-                    setHighlightId(card.id);
-                    localStorage.setItem("highlightId", card.id);
-                  }}>
-        {card.text}
-       </button>
-      ))
-    ):(
-      <p className="highlight-no-result">검색 결과가 없습니다.</p>
-    )}
-    </div>
-      <button
-      type="button"
-      className="highlight-clear-btn"
-      onClick={() => setHighlightId(null)}>
-    선택 해제
-    </button>
-
-
-
-  </div> */}
-  
+   {viewMode === "owner" && (
 
 
  <section className="profile-admin">
@@ -458,7 +409,7 @@ return(
     </button>
 
 
-    {viewMode === "owner" && (
+   
               <button
           type="button"
           className="inline-save-btn"
