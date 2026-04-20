@@ -161,15 +161,15 @@ const parseKoreanDateString = (dateString) => {
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from("profile-media")
       .upload(fileName, file, {
         cacheControl: "3600",
         upsert: false,
+        contentType: file.type || undefined,
       });
     
     if (uploadError) {
-      console.error("storage upload error:", uploadError);
       throw uploadError;
     }
 
@@ -307,12 +307,12 @@ return(
 
    {viewMode === "owner" && (
          <>
-      <label htmlFor="profileImageInput" className="avatar-edit-btn">
+      <label htmlFor="profileAvatarInput" className="avatar-edit-btn">
                📸
       </label>
 
        <input
-          id="profileImageInput"
+          id="profileAvatarInput"
           type="file"
           accept="image/*"
           style={{display: "none"}}
