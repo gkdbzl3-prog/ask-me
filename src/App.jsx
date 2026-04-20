@@ -455,7 +455,7 @@ useEffect(() => {
 return (
   <>
     <HCaptcha
-  sitekey="네 site key"
+  sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
   onVerify={(token) => {
     console.log("verified token:", token);
   }}
