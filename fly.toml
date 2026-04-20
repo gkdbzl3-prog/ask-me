@@ -10,6 +10,7 @@ primary_region = 'nrt'
   [build.args]
     VITE_SUPABASE_URL = "https://pyevzozgtltgcixoasca.supabase.co"
     VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5ZXZ6b3pndGx0Z2NpeG9hc2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNTgzMDEsImV4cCI6MjA5MTczNDMwMX0.SfKP8AkGQLRbppM8j7Zj4lS2WMsOnoDUGcsXQbzDQMk"
+    VITE_HCAPTCHA_SITE_KEY = "21048e42-6ab0-43b0-af24-667c168aec46"
 
 [http_service]
   internal_port = 8080
