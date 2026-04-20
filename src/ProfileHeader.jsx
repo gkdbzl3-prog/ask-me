@@ -17,11 +17,9 @@ export default function ProfileHeader({
   answeredCount,
   privateQuestionCount,
   unansweredCount,
-  highlightId,
   routeUsername,
   setNickname,
   setProfileBio,
-  setHighlightId,
     }) {
 
 
@@ -71,7 +69,7 @@ const parseKoreanDateString = (dateString) => {
 
 
 
-  const highlightCard = questionCards.find((card) => card.id === highlightId);
+
   const [profilePageIndex, setProfilePageIndex] = useState(0);
 
   const [twitterId, setTwitterId] = useState(
@@ -114,7 +112,6 @@ const parseKoreanDateString = (dateString) => {
           bio,
           avatarUrl: profileImage,
           bgUrl,
-          highlightId,
         }),
       });
 
@@ -153,13 +150,12 @@ const parseKoreanDateString = (dateString) => {
       setProfileBio(result.bio || "");
       setProfileImage(result.avatarUrl || "");
       setBgUrl(result.bgUrl || "");
-      setHighlightId(result.highlightId || "");
-      localStorage.setItem("highlightId", result.highlightId || "");
+
+  
       localStorage.setItem("editNickname", result.displayName || "");
       localStorage.setItem("bio", result.bio || "");
       localStorage.setItem("profileImage", result.avatarUrl || "");
       localStorage.setItem("bgUrl", result.bgUrl || "");
-      localStorage.setItem("highlightId", result.highlightId || "");
     } catch (error) {
       console.error("profile save error:", error);
       alert("프로필 저장 중 오류 발생");
@@ -237,6 +233,45 @@ const parseKoreanDateString = (dateString) => {
     }
   }
 
+  async function clearBackground() {
+    const oldBgUrl = bgUrl || "";
+
+    try {
+      const res = await fetch(`/api/users/${routeUsername}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          displayName: editNickname,
+          bio,
+          avatarUrl: profileImage,
+          bgUrl: "",
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        console.error("background clear failed:", result);
+        alert("배경 초기화 실패");
+        return;
+      }
+
+      setBgUrl("");
+      setProfileImage(result.avatarUrl || "");
+      setNickname(result.displayName || "");
+      setProfileBio(result.bio || "");
+
+      if (oldBgUrl) {
+        await removeImageFromStorage(oldBgUrl, "profile-media");
+      }
+    } catch (error) {
+      console.error("clearBackground error:", error);
+      alert("배경 초기화 중 오류 발생");
+    }
+  }
+
 
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
@@ -258,13 +293,7 @@ useEffect(() => {
   localStorage.setItem("link2", link2);
 }, [link2]);
 
-useEffect(() => {
-  if (highlightId === null) {
-    localStorage.removeItem("highlightId");
-  } else {
-    localStorage.setItem("highlightId", String(highlightId));
-  }
-}, [highlightId]);
+
 
 
 
@@ -301,7 +330,7 @@ return(
                     const oldAvatar = profileImage || "";      
                     const uploadedUrl = await uploadImageToStorage(file, "avatars");
                     
-                    setpendingOldAvatarUrl(oldAvatar);          
+                    setPendingOldAvatarUrl(oldAvatar);          
                     setProfileImage(uploadedUrl);        
                   } catch (error) {          
                     console.error("avatar upload error:", error);
@@ -509,13 +538,9 @@ return(
 
 
     <button
-    type="button"
-    className="background-clear-btn"
-    onClick={() => {
-      setBgUrl("");
-      localStorage.removeItem("bgUrl");
-    }}
-    >
+              type="button"
+              className="background-clear-btn"
+              onClick={ clearBackground }>
     초기화
     </button>
 

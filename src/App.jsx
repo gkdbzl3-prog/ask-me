@@ -1,5 +1,3 @@
-
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import React, { useState, useEffect } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
@@ -305,10 +303,7 @@ function getRecentAnswerText(questionCards) {
  const answeredCount = questionCards.filter((card) => card.answered).length;
  const privateQuestionCount = questionCards.filter((card) => card.isPrivate).length;
  const unansweredCount = questionCards.filter((card) => !card.answered).length;
- const [highlightId, setHighlightId] = useState(
-  localStorage.getItem("highlight") || ""
- );
-  const highlightedCard = questionCards.find((card) => card.id === highlightId) || null;
+
 async function loadQuestionsByUsername(username) {
   const res = await fetch(`/api/users/${username}/questions`);
   if (!res.ok) {
@@ -420,10 +415,7 @@ useEffect(() => {
   fetch(`/api/users/${routeUsername}`)
     .then((res) => res.json())
     .then((data) => {
-     const nextHighlightId =
-      data.highlightId || localStorage.getItem("highlightId") || "";
-
-   setHighlightId(nextHighlightId);
+  
    setNickname(data.displayName || data.username || "이름없음");
    setProfileBio(data.bio || "");
    setProfileImage(data.avatarUrl || "");
@@ -455,12 +447,6 @@ useEffect(() => {
 return (
   <>
     
-    <HCaptcha
-  sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
-  onVerify={(token) => {
-    console.log("verified token:", token);
-  }}
-    />
     
   <div className="app"
     style={bgUrl ? { backgroundImage: `url(${bgUrl})`}:{}}> 
@@ -557,11 +543,9 @@ return (
             answeredCount={answeredCount}
             privateQuestionCount={privateQuestionCount}
             unansweredCount={unansweredCount}
-            highlightId={highlightId}
             routeUsername={routeUsername}
             setNickname={setNickname}
             setProfileBio={setProfileBio}
-            setHighlightId={setHighlightId}
        />
     </aside>
 

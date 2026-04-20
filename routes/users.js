@@ -25,7 +25,6 @@ router.get("/users/:username", async (req, res) => {
         avatarUrl: data.avatar_url,
         bgUrl: data.bg_url,
         xUserId: data.x_user_id,
-        highlightId: data.highlight_question_id,
         createdAtISO: data.created_at,
         });
 
@@ -236,7 +235,6 @@ router.patch("/users/:username/profile", async (req, res) => {
          bio = "",
          avatarUrl = "",
          bgUrl = "",
-         highlightId = null,
       } = req.body || {};
 
       const updatePayload = {
@@ -244,7 +242,6 @@ router.patch("/users/:username/profile", async (req, res) => {
          bio: bio || "",
          avatar_url: avatarUrl || "",
          bg_url: bgUrl || "",
-         highlight_question_id: highlightId || null,
       };
 
       const { data: updated, error } = await supabase
@@ -269,7 +266,6 @@ router.patch("/users/:username/profile", async (req, res) => {
          avatarUrl: updated.avatar_url,
          bgUrl: updated.bg_url,
          xUserId: updated.x_user_id,
-         highlightId: updated.highlight_question_id,
          createdAtISO: updated.created_at,
       });
    } catch (error) {
