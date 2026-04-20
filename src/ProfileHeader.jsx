@@ -44,7 +44,8 @@ const filteredHighlightCards = questionCards.filter((card) => {
   return text.toLowerCase().includes(query);
 });
 
-
+  const [pendingOldAvatarUrl, setPendingOldAvatarUrl] = useState("");
+  const [pendingOldBgUrl, setPendingOldBgUrl] = useState("");
 const parseKoreanDateString = (dateString) => {
   if(!dateString) return null;
   
@@ -132,13 +133,28 @@ const parseKoreanDateString = (dateString) => {
         return;
       }
 
+      if (
+        pendingOldBgUrl &&
+        pendingOldBgUrl !== result.bgUrl
+      ) {
+        await removeImageFromStorage(pendingOldBgUrl, "profile-media");
+        setPendingOldBgUrl("");
+      }
+
+      if (
+        pendingOldAvatarUrl &&
+        pendingOldAvatarUrl !== result.avatarUrl
+      ) {
+        await removeImageFromStorage(pendingOldAvatarUrl, "profile-media");
+        setPendingOldAvatarUrl("");
+      }
+
       setNickname(result.displayName || "");
       setProfileBio(result.bio || "");
       setProfileImage(result.avatarUrl || "");
       setBgUrl(result.bgUrl || "");
       setHighlightId(result.highlightId || "");
       localStorage.setItem("highlightId", result.highlightId || "");
-
       localStorage.setItem("editNickname", result.displayName || "");
       localStorage.setItem("bio", result.bio || "");
       localStorage.setItem("profileImage", result.avatarUrl || "");
@@ -178,6 +194,29 @@ const parseKoreanDateString = (dateString) => {
   function getStoragePathFromPublicUrl(url, bucketName = "profile-media") {
     if (!url) return "";
     
+    const marker = `/storage/v1/object/public/${bucketName}/`;
+    const idx = url.indexOf(marker);
+
+    if (idx === -1) return "";
+    return url.slice(idx + marker.length);
+  }
+
+  async function removeImageFromStorage(publicUrl, bucketName = "profile-media") {
+    const filePath = getStoragePathFromPublicUrl(publicUrl, bucketName);
+    if (!filePath) return;
+
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .remove([filePath]);
+    
+    if (error) {
+      console.error("storage remove error:", error);
+    }
+  }
+
+  function getStoragePathFromPublicUrl(url, bucketName = "profile-media") {
+    if (!url) return "";
+
     const marker = `/storage/v1/object/public/${bucketName}/`;
     const idx = url.indexOf(marker);
 
@@ -258,13 +297,16 @@ return(
                 onChange={async (e) => {
                   const file = e.target.files[0];
                   if (!file) return;
-             try {
-          const uploadedUrl = await uploadImageToStorage(file, "avatars");
-          setProfileImage(uploadedUrl);
-        } catch (error) {
-          console.error("avatar upload error:", error);
-          alert("프로필 이미지 업로드 실패");
-        }
+                  try {
+                    const oldAvatar = profileImage || "";      
+                    const uploadedUrl = await uploadImageToStorage(file, "avatars");
+                    
+                    setpendingOldAvatarUrl(oldAvatar);          
+                    setProfileImage(uploadedUrl);        
+                  } catch (error) {          
+                    console.error("avatar upload error:", error);
+                    alert("프로필 이미지 업로드 실패");        
+                  }
                 }}/>
          </>
       )}
@@ -451,19 +493,16 @@ return(
       onChange={async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        const oldBgUrl = bgUrl;
-
+    
         try {
+          const oldBg = bgUrl;
           const uploadedUrl = await uploadImageToStorage(file, "backgrounds");
+
+          setPendingOldBgUrl(oldBg);
           setBgUrl(uploadedUrl);
         } catch (error) {
           console.error("background upload error:", error);
           alert("배경사진 업로드 실패");
-        }
-
-        if (oldBgUrl && oldBgUrl !== result.bgUrl) {
-          await removeImageFromStorage(oldBgUrl, "profile-media");
         }
       }}
       />

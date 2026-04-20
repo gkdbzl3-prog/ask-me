@@ -454,12 +454,14 @@ useEffect(() => {
 
 return (
   <>
+    
     <HCaptcha
   sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
   onVerify={(token) => {
     console.log("verified token:", token);
   }}
-/>
+    />
+    
   <div className="app"
     style={bgUrl ? { backgroundImage: `url(${bgUrl})`}:{}}> 
 
