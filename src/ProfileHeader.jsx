@@ -32,15 +32,8 @@ const [link1, setLink1] = useState(
 const [link2, setLink2] = useState(
   localStorage.getItem("link2") || "");
 const [theme, setTheme] = useState("purple");
-const [highlightQuery, setHighlightQuery] = useState("");
 
-const filteredHighlightCards = questionCards.filter((card) => {
-  const text = card?.text || "";
-  const query = (highlightQuery || "").trim().toLowerCase();
 
-  if (!query) return !!text;
-  return text.toLowerCase().includes(query);
-});
 
   const [pendingOldAvatarUrl, setPendingOldAvatarUrl] = useState("");
   const [pendingOldBgUrl, setPendingOldBgUrl] = useState("");
@@ -92,7 +85,7 @@ const parseKoreanDateString = (dateString) => {
     reader.readAsDataURL(file);
    })
 
- const highlightLikeCount = highlightCard?.likeCount || 0;
+
 
  const handleConnectX = () => {
    window.location.href = "/auth/x/login";
