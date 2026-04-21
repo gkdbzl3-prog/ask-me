@@ -274,21 +274,42 @@ router.patch("/users/:username/profile", async (req, res) => {
 router.delete("/questions/:id", async (req, res) => {
    try {
       const { id } = req.params;
-      const { requesterAuthId = "" } = req.body || {};
+      const {
+      requesterAuthId = "",
+         requesterXUserId = "",
+      } = req.body || {};
       
       const {data: question, error: questionError } = await supabase
       .from("questions")
-      .select("id, asker_auth_id")
+      .select("id, user_id, asker_auth_id")
       .eq("id",id)
-         .single();
+      .single();
       
       if (questionError || !question) {
          return res.status(404).json({ message: "question not found" });
       }
       
-      if (!requesterAuthId || question.asker_auth_id !== requesterAuthId) {
+      const { data: ownerUser, error: ownerError } = await supabase
+         .from("users")
+         .select("x_user_id")
+         .eq("id", question.user_id)
+         .single();
+      
+      if (ownerError || !ownerUser) {
+         return res.status(404).json({ message: "owner not found" });
+      }
+
+      const isAsker =
+         !!requesterAuthId &&
+         question.asker_auth_id === requesterAuthId;
+      
+      const isOwner =
+         !!requesterXUserId &&
+         ownerUser.x_user_id === requesterXUserId;
+      if (!isAsker && !isOwner) {
          return res.status(403).json({ message: "forbidden" });
       }
+   
 
       const { error } = await supabase
          .from("questions")

@@ -211,13 +211,17 @@ const handleLike = (id) => {
 
   async function removeQuestion(questionId) {
     try {
+      const requesterAuthId = currentAuthUserId || "";
+      const requesterXUserId = localStorage.getItem("connectedXUserId") || "";
+      
       const res = await fetch(`/api/questions/${questionId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          requesterAuthId: currentAuthUserId,
+          requesterAuthId,
+          requesterXUserId,
         }),
       });
 
@@ -711,7 +715,7 @@ return (
                               {card.answerFiles?.length > 0 && (
                                 <div className="answer-file-grid">
                                   {card.answerFiles.map((file, index) => (
-                                    <div className="question-file-item" key={index}>
+                                    <div className="answer-file-item" key={index}>
                                   <img
                                     src={file.fileUrl || file.url || ""}
                                     alt={file.fileName || `첨부이미지-${index + 1}`}
