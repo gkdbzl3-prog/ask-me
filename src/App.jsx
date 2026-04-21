@@ -30,10 +30,10 @@ function App() {
             card.id === replyTargetId);
 
   async function uploadImageToStorage(file, folder = "question-files") {
-    if (file) return "";
+    if (!file) return "";
 
-    const fileExt = file.name.aplit(".").pop()?.toLowerCase() || "png";
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice.slice(2)}.${fileExt}`;
+    const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from("profile-media")
@@ -158,7 +158,7 @@ const handleLike = (id) => {
   let uploadedFiles = [];
  
  if (selectedFiles.length > 0) {
-      const uploadedFiles = await Promise.all(
+       uploadedFiles = await Promise.all(
         selectedFiles.map(async (file) => {
           const url = await uploadImageToStorage(file, "question-files");
           return {
@@ -346,18 +346,19 @@ async function loadQuestionsByUsername(username) {
     throw new Error("questions load filed");
   }
   const data = await res.json();
-  const normalized = data.map(q => ({
-    ...q,
-    askerAuthId: q.asker_auth_id
-    }));
+  const normalized = Array.isArray(data)
+    ? data
+      .map((q) => ({
+        ...q,
+        askerAuthId: q.askerAuthId || q.asker_auth_id || "",
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.createdAtISO || 0) - new Date(b.createdAtISO || 0)
+      )
+    : [];
+ 
     setQuestionCards(normalized);
-  const sortedQuestions = Array.isArray(data)
-   ? [...data].sort(
-      (a, b) => new Date(a.createdAtISO || 0) - new Date(b.createdAtISO || 0)
-     )
-   : [];
-
-  setQuestionCards(sortedQuestions);
 }
 
  function formatDisplayDate(dateValue) {
@@ -649,7 +650,7 @@ return (
                                 <div className="question-file-grid">
                                   {card.files.map((file, index) => (
                                     <div className="question-file-item" key={index}>
-                                    <img src={file.fileurl}
+                                    <img src={file.fileUrl}
                                         alt={file.fileName || `첨부이미지-${index + 1}`} />
                                       </div>
                                   ))}
