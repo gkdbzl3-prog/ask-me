@@ -130,7 +130,7 @@ const handleLike = (id) => {
         },
         body: JSON.stringify({
           answer: trimmedInput,
-          files: uploadedAnswerFiles,        
+          answerFiles: uploadedAnswerFiles,        
         }),
       });
 
@@ -613,7 +613,7 @@ return (
               ) : (
 
                 questionCards.map((card) => {
-                  const hasAnswer = card.answered || !!card.answer || !!card.answerFileUrl
+                  const hasAnswer = card.answerFiles?.length > 0
                   const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
 
                   return (
@@ -745,9 +745,9 @@ return (
                           <div className="answer-box-wrap">
                             <div className="answer-box">
                               <p className="answer-text">{card.answer}</p>
-                              {card.files?.length > 0 && (
+                              {card.answerFiles?.length > 0 && (
                                 <div className="answer-file-grid">
-                                  {card.files.map((file, index) => (
+                                  {card.answerFiles.map((file, index) => (
                                     <div className="question-file-item" key={index}>
                                   <img
                                     src={file.fileUrl}

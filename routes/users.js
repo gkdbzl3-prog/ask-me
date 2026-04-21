@@ -64,9 +64,10 @@ router.get("/users/:username/questions", async (req, res) => {
        id: q.id,
        text: q.text,
        isPrivate: q.is_private,
+       files: q.files,
        fileUrl: q.file_url,
        fileName: q.file_name,
-       answer: q.answer,
+       answerFiles: q.answer_files,
        answerFileUrl: q.answer_file_url,
        answerFileName: q.answer_file_name,
        answered: q.answered,
@@ -90,14 +91,13 @@ router.post("/users/:username/questions", async (req, res) => {
     const {
        text = "",
        isPrivate = false,
-       fileUrl = "",
-       fileName = "",
+       files = [],
        askerAuthId = null,
     } = req.body || {};
 
     const trimmedText = String(text || "").trim();
 
-    if (!trimmedText && !fileUrl) {
+    if (!trimmedText && files.length === 0 ) {
      return res.status(400).json({
         message: "텍스트 또는 이미지를 넣어주세요.",
      });
@@ -116,8 +116,7 @@ router.post("/users/:username/questions", async (req, res) => {
        user_id: user.id,
        text: trimmedText,
        is_private: !!isPrivate,
-       file_url: fileUrl || "",
-       file_name: fileName || "",
+       files: "",
        answer: "",
        answer_file_url: "",
        answer_file_name: "",
@@ -146,7 +145,8 @@ router.post("/users/:username/questions", async (req, res) => {
     isPrivate: inserted.is_private,
     fileUrl: inserted.file_url,
     fileName: inserted.file_name,
-    answer: inserted.answer,
+      answer: inserted.answer,
+    answerFiles: inserted.answer_files,
     answerFileUrl: inserted.answer_file_url,
     answerFileName: inserted.answer_file_name,
     answered: inserted.answered,
@@ -166,11 +166,10 @@ router.patch("/questions/:id/answer", async (req, res) => {
  console.log("body:", req.body);
 
  try {
-    const { id} = req.params;
+    const { id } = req.params;
     const {
      answer = "", 
-     answerFileUrl = "",
-     answerFileName = "",
+     answerFiles = [],
     } = req.body || {};
 
     const trimmedAnswer = String(answer || "").trim();
@@ -215,6 +214,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
      fileUrl: updated.file_url,
      fileName: updated.file_name,
      answer: updated.answer,
+     answerFiles: updated.answer_files,
      answerFileUrl: updated.answer_file_url,
      answerFileName: updated.answer_file_name,
      answered: updated.answered,
@@ -349,6 +349,7 @@ router.patch("/questions/:id/answer/delete", async (req, res) => {
          fileUrl: updated.file_url,
          fileName: updated.file_name,
          answer: updated.answer,
+         answerFiles: updated.answer_files,
          answerFileUrl: updated.answer_file_url,
          answerFileName: updated.answer_file_name,
          answered: updated.answered,
