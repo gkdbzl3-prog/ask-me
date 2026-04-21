@@ -104,10 +104,10 @@ const handleLike = (id) => {
 
 
   if (viewMode === "owner" && replyTargetId !== null) {
-    let uploadedFiles = [];
+    let uploadedAnswerFiles = [];
 
     if (selectedFiles.length > 0) {
-      uploadedFiles = await Promise.all(
+      uploadedAnswerFiles = await Promise.all(
         selectedFiles.map(async (file) => {
           const fileUrl = await uploadImageToStorage(file, "answer-files");
           return {
