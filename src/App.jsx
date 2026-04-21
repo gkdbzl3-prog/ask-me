@@ -48,9 +48,7 @@ function App() {
       throw uploadError;
     }
 
-    const { data } = supabase.storage
-      .from("profile-media")
-    .getPublicUrl(fileName);
+    const { data } = supabase.storage.from("profile-media").getPublicUrl(fileName);
 
     return data.publicUrl;
   }
@@ -160,9 +158,9 @@ const handleLike = (id) => {
  if (selectedFiles.length > 0) {
        uploadedFiles = await Promise.all(
         selectedFiles.map(async (file) => {
-          const url = await uploadImageToStorage(file, "question-files");
+          const fileUrl = await uploadImageToStorage(file, "question-files");
           return {
-            url,
+            fileUrl,
             fileName: file.name,
           };
         })
@@ -345,6 +343,7 @@ async function loadQuestionsByUsername(username) {
   if (!res.ok) {
     throw new Error("questions load filed");
   }
+
   const data = await res.json();
   const normalized = Array.isArray(data)
     ? data
@@ -387,17 +386,7 @@ async function loadQuestionsByUsername(username) {
     }
   }
 
-  useEffect(() => {
-    let authId = localStorage.getItem("authId");
 
-    if (!authId) {
-      authId = window.crypto?.randomUUID?.() ||
-        `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      localStorage.setItem("authId", authId);
-    }
-
-    setCurrentAuthUserId(authId);
-  }, []);
 
   useEffect(() => {
     async function ensureAnonymousAuth() {
@@ -427,19 +416,6 @@ async function loadQuestionsByUsername(username) {
 
     ensureAnonymousAuth();
   }, []);
-
-  useEffect(() => {
-    async function loadAuthUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setCurrentAuthUserId(user?.id || "");
-    }
-
-    loadAuthUser();
-  }, []);
-
 
 
 useEffect(() => {
