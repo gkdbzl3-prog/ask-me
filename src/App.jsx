@@ -341,7 +341,7 @@ function getRecentAnswerText(questionCards) {
 async function loadQuestionsByUsername(username) {
   const res = await fetch(`/api/users/${username}/questions`);
   if (!res.ok) {
-    throw new Error("questions load filed");
+    throw new Error("questions load failed");
   }
 
   const data = await res.json();
@@ -389,33 +389,18 @@ async function loadQuestionsByUsername(username) {
 
 
   useEffect(() => {
-    async function ensureAnonymousAuth() {
-      const {
-        data: { user },
-        error: getUserError,
-      } = await supabase.auth.getUser();
+    let authId = localStorage.getItem("authId");
 
-      if (getUserError) {
-        console.error("getUser error:", getUserError);
-      }
-
-      if (user) {
-        setCurrentAuthUserId(user.id);
-        return;
-      }
-
-      const { data, error } = await supabase.auth.signInAnonymously();
-      
-      if (error) {
-        console.error("anonymous sign-in error:", error);
-        return;
-      }
-
-      setCurrentAuthUserId(data.user?.id || "");
+    if (!authId) {
+      authId =
+        window.crypto?.randomUUID?.() ||
+        `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem("authId", authId);
     }
 
-    ensureAnonymousAuth();
+    setCurrentAuthUserId(authId);
   }, []);
+
 
 
 useEffect(() => {
@@ -590,7 +575,8 @@ return (
               ) : (
 
                 questionCards.map((card) => {
-                  const hasAnswer = card.answerFiles?.length > 0
+                  const hasAnswer = !!card.answer ||
+                    (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
                   const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
 
                   return (
@@ -626,7 +612,7 @@ return (
                                 <div className="question-file-grid">
                                   {card.files.map((file, index) => (
                                     <div className="question-file-item" key={index}>
-                                    <img src={file.fileUrl}
+                                    <img src={file.fileUrl || file.url || ""}
                                         alt={file.fileName || `첨부이미지-${index + 1}`} />
                                       </div>
                                   ))}
@@ -727,7 +713,7 @@ return (
                                   {card.answerFiles.map((file, index) => (
                                     <div className="question-file-item" key={index}>
                                   <img
-                                    src={file.fileUrl}
+                                    src={file.fileUrl || file.url || ""}
                                     alt={file.fileName || `첨부이미지-${index + 1}`}
                                   />
                                 </div>
