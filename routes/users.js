@@ -278,7 +278,7 @@ router.patch("/users/:username/profile", async (req, res) => {
 router.delete("/questions/:id", async (req, res) => {
    try {
       const { id } = req.params;
-      const { requesterAuthId = "" } = req.body || {}:
+      const { requesterAuthId = "" } = req.body || {};
       
       const {data: question, error: questionError } = await supabase
       .from("questions")
@@ -293,7 +293,7 @@ router.delete("/questions/:id", async (req, res) => {
       if (!requesterAuthId || question.asker_auth_id !== requesterAuthId) {
          return res.status(403).json({ message: "forbidden" });
       }
-      
+
       const { error } = await supabase
          .from("questions")
          .delete()
