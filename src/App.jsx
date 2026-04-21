@@ -611,7 +611,8 @@ return (
                                 )}
 
                                 {card.files?.length > 0 && (
-                                <div className="question-file-grid">
+                                <div
+                                  className={`question-file-grid ${card.files.length === 1 ? "single" : "multi"}`}>
                                   {card.files.map((file, index) => (
                                     <div className="question-file-item" key={index}>
                                     <img src={file.fileUrl || file.url || ""}
