@@ -362,46 +362,39 @@ return(
     <div className="account-connect-block">
       <span className="field-label">ACCOUNT</span>
 
-      {viewMode === "owner" ? ( 
-        isXConnected ? (
-      <div className="connected-account-box"> 
-        <span className="connected-id">@{connectedXId}</span>
-        <span className="connected-badge">연동됨</span>
+      
+          {isXConnected ? (
+            <div className="connected-account-box">
+              <span className="connected-id">@{connectedXId}</span>
+              <span className="connected-badge">연동됨</span>
 
-        <button
-          type="button"
-          className="x-disconnect-btn"
-          onClick={() => {
-            setIsXConnected(false);
-            setConnectedXId("");
-            localStorage.removeItem("isXConnected");
-            localStorage.removeItem("connectedXId");
-            localStorage.removeItem("twitterId");
-          }}
-          >
-         해제
-        </button>
-      </div>
-      ):(
-        <div className="x-connect-row">
-        <button
-          type="button"
-          className="x-connect-btn"
-          onClick={handleConnectX}>
-         트위터 연동
-        </button>
+              <button
+                type="button"
+                className="x-disconnect-btn"
+                onClick={() => {
+                  setIsXConnected(false);
+                  setConnectedXId("");
+                  localStorage.removeItem("isXConnected");
+                  localStorage.removeItem("connectedXId");
+                  localStorage.removeItem("connectedXUserId");
+                  localStorage.removeItem("twitterId");
+                }}
+              >
+                해제
+              </button>
+            </div>
+          ) : (
+            <div className="x-connect-row">
+              <button
+                type="button"
+                className="x-connect-btn"
+                onClick={handleConnectX}>
+                트위터 연동
+              </button>
         
-        <span className="x-connect-status">미연동</span>
-      </div>
-       )
-      ): isXConnected ? (
-      <div className="connected-account-box"> 
-        <span className="connected-id">@{connectedXId}</span>
-        <span className="connected-badge">연동됨</span>
-      </div>
-      ):(
-       <span className="x-connect-status">미연동</span>
-      )}
+              <span className="x-connect-status">미연동</span>
+            </div>
+          )}
      </div>
     </div>
       
