@@ -125,6 +125,7 @@ router.post("/users/:username/questions", async (req, res) => {
        like_count: 0,
        asker_auth_id: askerAuthId,
     };
+
     console.log("insertPayload:", insertPayload);
     const { data: inserted, error: insertError } = await supabase
      .from("questions")
@@ -276,10 +277,23 @@ router.patch("/users/:username/profile", async (req, res) => {
 
 router.delete("/questions/:id", async (req, res) => {
    try {
-      const { data: { user },
-      } = await supabase.auth.getUser();
       const { id } = req.params;
-
+      const { requesterAuthId = "" } = req.body || {}:
+      
+      const {data: question, error: questionError } = await supabase
+      .from("questions")
+      .select("id, asker_auth_id");
+      .eq("id",id)
+         .single();
+      
+      if (questionError || !question) {
+         return res.status(404).json({ message: "question not found" });
+      }
+      
+      if (!requesterAuthId || question.asker_auth_id !== requesterAuthId) {
+         return res.status(403).json({ message: "forbidden" });
+      }
+      
       const { error } = await supabase
          .from("questions")
          .delete()

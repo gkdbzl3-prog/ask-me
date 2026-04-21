@@ -268,7 +268,7 @@ flex-direction: column;
 
 .ask-input-shell {
  position: static;
- width: 100%;
+ width: 500px;
  transform: translateX(10px);
  left: auto;
  bottom: auto;
@@ -788,19 +788,50 @@ width: 76%;
  flex-shrink: 0;
 }
 
-.question-file-preview {
+.question-file-grid {
  margin: 5px 5px 5px 3px;
+ display: grid;
+ grid-template-columns: repeat(2, minmax(0.1fr));
  width: 100%;
  max-width: 220px;
- border-radius:14px;
- overflow: hidden;
 }
 
-.question-file-preview img {
+.question-file-item {
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.55);
+}
+
+
+.question-file-item img {
  width: 100%;
  height: auto;
  display: block;
 }
+
+.answer-file-grid {
+  margin: 5px 5px 5px 3px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 220px;
+}
+
+.answer-file-item {
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.answer-file-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+
 
 .file-name {
  margin-top: 8px;
@@ -808,8 +839,43 @@ width: 76%;
  color: #7b6a95;
 }
 
+.preview-grid.is-single {
+  display: block;
+  width: 100%;
+  padding: 0 30px 0 30px;
+}
 
 
+.preview-grid.is-multi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  background: rgba(233, 227, 231, 0.27);
+}
+
+
+.preview-grid-item {
+  min-width: 0;
+}
+
+.preview-grid.is-single .preview-grid-item img {
+width: 100%;
+max-height: 450px;
+object-fit: contain;
+display: block;
+border-radius: 14px;
+}
+
+
+
+.preview-grid.is-multi .preview-grid-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+}
 
 .preview-modal {
   position: fixed;
@@ -825,10 +891,13 @@ width: 76%;
 
 .preview-modal-content {
   background: rgba(255, 255, 255, 0.82);
-  padding: 14px;
+  padding: 20px;
   border-radius: 22px;
   width: min(90vw, 420px);
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
 }
 
 .preview-modal-content img {
@@ -840,7 +909,7 @@ width: 76%;
 .preview-modal-actions {
  margin-top: 10px;
  display: flex;
- justify-content: flex-end;
+ align-self: flex-end;
  gap: 8px;
 }
 
@@ -853,26 +922,56 @@ width: 76%;
  cursor: pointer;
 }
 
-.selected-file-preview {
- width: 100%;
- height: 260px;
- border-radius: 14px;
- background: rgba(255, 255,255,0.7);
- backdrop-filter: blur(10px);
- box-shadow: 0 6px 18px rgba(0,0,0,0.08);
- overflow: hidden;
+.selected-file-grid {
+  overflow: hidden;
+  border-radius: 20px;
+  background: transparent;
+  gap: 4px
 }
 
-.selected-file-preview img{
+.selected-file-grid.is-multi {
+ width: 100%;
+ height: auto;
+ border-radius: 20px;
+ background: rgba(233, 227, 231, 0.27);
+ backdrop-filter: blur(10px);
+ overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.selected-file-grid.is-single {
+  display: block;
+  width: 100%;
+}
+
+.selected-file-grid.is-single .selected-file-preview img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  display: block;
+  border-radius: 14px;
+}
+
+.selected-file-grid.is-multi .selected-file-preview img{
  display: block;
  width: 100%;
  height: 100%;
  object-fit: cover;
  overflow: hidden;
  border-radius: 14px;
+ aspect-ratio: 1 / 1;
+ object-fit: cover;
+ display: block;
+ border-radius: 0;
+ background: rgba(255, 255, 255, 0.72);
 }
 
-
+.selected-file-grid-item {
+  overflow: hidden;
+  border-radius: 14px;
+  background: white;
+}
 
 .selected-file-preview-meta {
  margin-top: 10px;
@@ -888,7 +987,7 @@ width: 76%;
 
 .selected-file-card {
   width: 76%;
-  padding: 10px;
+  padding: 18px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(10px);
@@ -906,7 +1005,7 @@ width: 76%;
  font-size: 12px;
 }
 
-.selected-file-remove {
+.selected-file-grid-remove {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -1122,6 +1221,7 @@ align-items: center;
 .profile-stats-text {
  font-size: 14px;
  color: rgba(63, 43, 104, 0.78);
+ margin-top: 10px;
 }
 
 .total-stats {

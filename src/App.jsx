@@ -7,7 +7,7 @@ function App() {
   const [nickname, setNickname] = useState("날");
   const [profileBio, setProfileBio] = useState("");
   const [secret, setSecret] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl") || "");
   const pathParts = window.location.pathname.split("/");
   const routeUsername =
@@ -29,13 +29,31 @@ function App() {
  const replyTargetCard = questionCards.find((card) => 
             card.id === replyTargetId);
 
- const fileToDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+  async function uploadImageToStorage(file, folder = "question-files") {
+    if (file) return "";
+
+    const fileExt = file.name.aplit(".").pop()?.toLowerCase() || "png";
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice.slice(2)}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("profile-media")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || undefined,
+      });
+    
+    if (uploadError) {
+      console.error("qa storage upload error:", uploadError);
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from("profile-media")
+    .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  }
 
 const handleLike = (id) => {
   setQuestionCards((prev) =>
@@ -58,19 +76,26 @@ const handleLike = (id) => {
 
  const [isSending, setIsSending] = useState(false);
 
-async function handleSend() {
+  async function handleSend() {
+
  if (isSending) return;
 
  const trimmedInput = (input || "").trim();
- if (!trimmedInput && !selectedFile) return;
+ if (!trimmedInput && !selectedFiles) return;
 
+  if (viewMode === "owner" && replyTargetId === null) {
+    alert("먼저 질문을 선택해주세요");
+    return;
+  }
+  
+  
  setIsSending(true);
 
 
     console.log("handleSend start", {
       input,
       trimmedInput,
-      selectedFile,
+      selectedFiles,
       routeUsername,
       viewMode,
       secret,
@@ -78,14 +103,20 @@ async function handleSend() {
 
 
 
-    if (viewMode === "owner" && replyTargetId !== null) {
-      let answerFileUrl = "";
-      let answerFileName = "";
+  if (viewMode === "owner" && replyTargetId !== null) {
+    let uploadedFiles = [];
 
-      if (selectedFile) {
-        answerFileUrl = await fileToDataUrl(selectedFile);
-        answerFileName = selectedFile.name;
-      }
+    if (selectedFiles.length > 0) {
+      uploadedFiles = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const fileUrl = await uploadImageToStorage(file, "answer-files");
+          return {
+            fileUrl,
+            fileName: file.name,
+          };
+        })
+      );
+    }
    
       if (!routeUsername) {
         alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
@@ -99,8 +130,7 @@ async function handleSend() {
         },
         body: JSON.stringify({
           answer: trimmedInput,
-          answerFileUrl,
-          answerFileName,
+          files: uploadedAnswerFiles,        
         }),
       });
 
@@ -117,7 +147,7 @@ async function handleSend() {
 
       setInput("");
       setReplyTargetId(null);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setSecret(false);
       setShowPreview(false);
       return;
@@ -125,20 +155,20 @@ async function handleSend() {
    
   
 
- let fileUrl ="";
- let fileName = "";
+  let uploadedFiles = [];
  
- if (selectedFile) {
-  fileUrl = await fileToDataUrl(selectedFile);
-  fileName = selectedFile.name;
- }
+ if (selectedFiles.length > 0) {
+      const uploadedFiles = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const url = await uploadImageToStorage(file, "question-files");
+          return {
+            url,
+            fileName: file.name,
+          };
+        })
+      );
+    }
 
-  console.log("POST body:", {
-   text: trimmedInput,
-   isPrivate: secret,
-   fileUrl,
-   fileName,
-  });
 
   if (routeUsername) {
    try {
@@ -150,8 +180,7 @@ async function handleSend() {
         body: JSON.stringify({
           text: trimmedInput,
           isPrivate: secret,
-          fileUrl,
-          fileName,
+          files: uploadedFiles,
           askerAuthId: currentAuthUserId,
         }),
     });
@@ -168,7 +197,7 @@ async function handleSend() {
 
   setInput("");
   setSecret(false);
-  setSelectedFile(null);
+  setSelectedFiles([]);
   setShowPreview(false);
   return;
   } catch (error) {
@@ -186,10 +215,15 @@ async function handleSend() {
     try {
       const res = await fetch(`/api/questions/${questionId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requesterAuthId: currentAuthUserId,
+        }),
       });
 
       const result = await res.json();
-      console.log("delete question result:", result);
 
       if (!res.ok) {
         alert("질문 삭제 실패");
@@ -198,6 +232,8 @@ async function handleSend() {
 
       if (routeUsername) {
         await loadQuestionsByUsername(routeUsername)
+      } else {
+        setQuestionCards((prev) => prev.filter((card) => card.id !== questionId));
       }
     } catch (error) {
       console.error("removeQuestion error:", error);
@@ -344,6 +380,18 @@ async function loadQuestionsByUsername(username) {
       return fallbackValue;
     }
   }
+
+  useEffect(() => {
+    let authId = localStorage.getItem("authId");
+
+    if (!authId) {
+      authId = window.crypto?.randomUUID?.() ||
+        `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem("authId", authId);
+    }
+
+    setCurrentAuthUserId(authId);
+  }, []);
 
   useEffect(() => {
     async function ensureAnonymousAuth() {
@@ -561,6 +609,11 @@ return (
 
                 questionCards.map((card) => {
                   const hasAnswer = card.answered || !!card.answer || !!card.answerFileUrl
+                  const normalized = data.map(q => ({
+                    ...q,
+                    askerAuthId: q.asker_auth_id
+                  }));
+                  setQuestionCards(normalized);
                   const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
 
                   return (
@@ -588,15 +641,19 @@ return (
                                 ) : (
                                   <>
                                     <p className="question-text"> {card.text}</p>
-                                    <p className="meta">{card.createdAt}</p>
+                                      <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
                                   </>
                                 )}
 
-                                {card.fileUrl && (
-                                  <div className="question-file-preview">
-                                    <img src={card.fileUrl}
-                                      alt={card.fileName || "첨부이미지"} />
-                                  </div>
+                                {card.files?.length > 0 && (
+                                <div className="question-file-grid">
+                                  {card.files.map((file, index) => (
+                                    <div className="question-file-item" key={index}>
+                                    <img src={file.fileurl}
+                                        alt={file.fileName || `첨부이미지-${index + 1}`} />
+                                      </div>
+                                  ))}
+                                </div>                                
                                 )}
 
 
@@ -688,13 +745,17 @@ return (
                           <div className="answer-box-wrap">
                             <div className="answer-box">
                               <p className="answer-text">{card.answer}</p>
-                              {card.answerFileUrl && (
-                                <div className="answer-file-preview">
+                              {card.files?.length > 0 && (
+                                <div className="answer-file-grid">
+                                  {card.files.map((file, index) => (
+                                    <div className="question-file-item" key={index}>
                                   <img
-                                    src={card.answerFileUrl}
-                                    alt={card.answerFileName || "첨부 이미지"}
+                                    src={file.fileUrl}
+                                    alt={file.fileName || `첨부이미지-${index + 1}`}
                                   />
                                 </div>
+                                  ))}
+                                  </div>
                               )}
 
                               <p className="quoted-question">
@@ -714,12 +775,11 @@ return (
                                 <input
                                   id="profileImageInput"
                                   type="file"
-                                  accept="image/*"
                                   style={{ display: "none" }}
+                                  accept="image/*"                                
                                   onChange={(e) => {
-                                    const file = e.target.files[0];
-                                    if (!file) return;
-                                    setProfileImage(URL.createObjectURL(file));
+                                    const files = Array.from(e.toarget.files || []);                                  
+                                    setProfileImage(files);
                                   }}
                                 />
                               )}
@@ -733,10 +793,20 @@ return (
               )}
  
         
-      {showPreview && selectedFile && (
+      {showPreview && selectedFiles.length > 0 && (
       <div className="preview-modal" onClick={() => setShowPreview(false)}>
-      <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
-        <img src={URL.createObjectURL(selectedFile)} alt="선택한 이미지" />
+                  <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
+                    
+                      <div className={selectedFiles.length > 1
+                        ? "preview-grid is-multi"
+                        : "preview-grid is-single"}>                      
+                      {selectedFiles.map((file, index) => (
+                        <div className="preview-grid-item" key={`${file.name}-${index}`}>
+                          <img src={URL.createObjectURL(file)} alt={`선택한 이미지 ${index + 1}`} />
+                          </div>
+                      ))}
+                        </div>
+                    
         <div className="preview-modal-actions">
           <button type="button" onClick={() => setShowPreview(false)}>
             확인
@@ -745,12 +815,12 @@ return (
           <button
             type="button"
             onClick={() => {
-              setSelectedFile(null);
+              setSelectedFiles([]);
               setShowPreview(false);
             }}>
             취소
           </button>
-
+                     
               </div>
             </div>
           </div>          
@@ -758,24 +828,41 @@ return (
 
     <div className="ask-area-wrap">
   
-        {selectedFile && !showPreview && (
-          <div className="selected-file-card">
-          <div className="selected-file-preview">
-          <img
-            src={URL.createObjectURL(selectedFile)}
-            alt="보낼 이미지"/>
-          </div>
-          <div className="selected-file-preview-meta">
-            <span>{selectedFile.name}</span>
-
-          <button
-            type="button"
-            onClick={() => { setSelectedFile(null);}}>
-           삭제
-          </button>
-          </div>
-          </div>
-          )}
+                {selectedFiles.length > 0 && !showPreview && (
+                  <div className="selected-file-card">
+                    <div className={selectedFiles.length > 1
+                      ? "selected-file-grid is-multi"
+                      : "selected-file-grid is-single"}>
+                      {selectedFiles.map((file, index) => (
+                        <div className="selected-file-grid-item" key={`${file.name}-${index}`}>
+                          <div className="selected-file-preview">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`보낼 이미지 ${index + 1}`} />
+                          </div>              
+                        </div>
+                       
+                      ))}
+                    </div>
+                    
+                      <div className="selected-file-preview-meta">
+                        <span>
+                          {selectedFiles.length === 1
+                            ? selectedFiles[0].name
+                            : `${selectedFiles.length}개의 이미지 선택됨`}
+                          </span>
+                      
+                            <button
+                              type="button"
+                              onClick={() => {
+                          setSelectedFiles((prev) => [...prev, ...files]);              
+                              }}
+                            >
+                              삭제
+                            </button>
+                    </div>
+               </div>
+                )}
 
     <div className="ask-input-shell">
       {viewMode === "guest" && (
@@ -819,21 +906,22 @@ return (
             📎
           </button>
 
-
-          <input
-            type="file"
-            style={{ display: "none" }}
-            id="fileInput"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-              
-              setSelectedFile(file);
-              setShowPreview(true);
-              
-              e.target.value="";
-            }}
-          />
+          
+                      <input            
+                        type="file"
+                        style={{ display: "none" }}                                    
+                        id="fileInput"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {              
+                          const files = Array.from(e.target.files || []);
+                          if (!files.length) return;                          
+                            
+                          setSelectedFiles((prev) => [...prev, ...files]);              
+                          setShowPreview(true);                            
+                          e.target.value = "";            
+                        }}          
+                      />
 
           <input
             className="message-input"
