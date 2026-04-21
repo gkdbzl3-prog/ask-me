@@ -133,7 +133,10 @@ router.get("/x/callback", async (req,res) => {
    sameSite: "lax",
  });
 
-
+await supabase
+  .from("users")
+  .update({ x_user_id: userData.data.id })
+  .eq("username", userData.data.username);
 
  res.send(`
    <!doctype html>
