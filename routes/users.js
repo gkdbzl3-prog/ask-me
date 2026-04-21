@@ -181,7 +181,8 @@ router.patch("/questions/:id/answer", async (req, res) => {
     }
 
     const updatePayload = {
-     answer: trimmedAnswer,
+       answer: trimmedAnswer,
+       answer_files: answerFiles || "",
      answer_file_url: answerFileUrl || "",
      answer_file_name: answerFileName || "",
      answered: true,

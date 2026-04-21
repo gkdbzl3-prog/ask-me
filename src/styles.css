@@ -704,7 +704,7 @@ flex-direction: column;
  line-height: 1;
  padding: 0;
  color: #a19e9e;
- margin: 3px 0 0 -4px;
+ margin: -5px 0 0 -4px;
 }
 
 .question-delete-btn:hover {
