@@ -1,5 +1,6 @@
 import express from "express";
 import { randomBytes, createHash } from "crypto";
+import { supabase } from "../supabase.js";
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === "production";
