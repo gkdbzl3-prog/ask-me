@@ -346,6 +346,11 @@ async function loadQuestionsByUsername(username) {
     throw new Error("questions load filed");
   }
   const data = await res.json();
+  const normalized = data.map(q => ({
+    ...q,
+    askerAuthId: q.asker_auth_id
+    }));
+    setQuestionCards(normalized);
   const sortedQuestions = Array.isArray(data)
    ? [...data].sort(
       (a, b) => new Date(a.createdAtISO || 0) - new Date(b.createdAtISO || 0)
@@ -609,11 +614,6 @@ return (
 
                 questionCards.map((card) => {
                   const hasAnswer = card.answered || !!card.answer || !!card.answerFileUrl
-                  const normalized = data.map(q => ({
-                    ...q,
-                    askerAuthId: q.asker_auth_id
-                  }));
-                  setQuestionCards(normalized);
                   const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
 
                   return (
