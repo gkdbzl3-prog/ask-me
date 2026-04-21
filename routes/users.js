@@ -282,7 +282,7 @@ router.delete("/questions/:id", async (req, res) => {
       
       const {data: question, error: questionError } = await supabase
       .from("questions")
-      .select("id, asker_auth_id");
+      .select("id", asker_auth_id);
       .eq("id",id)
          .single();
       
