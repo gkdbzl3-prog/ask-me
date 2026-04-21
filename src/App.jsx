@@ -226,17 +226,15 @@ const handleLike = (id) => {
       });
 
       const result = await res.json();
+      console.log("delete question result:", result);
 
       if (!res.ok) {
         alert("질문 삭제 실패");
         return;
       }
 
-      if (routeUsername) {
-        await loadQuestionsByUsername(routeUsername)
-      } else {
-        setQuestionCards((prev) => prev.filter((card) => card.id !== questionId));
-      }
+
+      await loadQuestionsByUsername(routeUsername);
     } catch (error) {
       console.error("removeQuestion error:", error);
       alert("질문 삭제 중 오류 발생");
@@ -713,6 +711,7 @@ return (
                             <div className="answer-box">
                               <p className="answer-text">{card.answer}</p>
                               {card.answerFiles?.length > 0 && (
+                                
                                 <div className="answer-file-grid">
                                   {card.answerFiles.map((file, index) => (
                                     <div className="answer-file-item" key={index}>
