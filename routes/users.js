@@ -169,22 +169,18 @@ router.patch("/questions/:id/answer", async (req, res) => {
     const { id } = req.params;
     const {
      answer = "", 
-     answerFiles = [],
+       answerFiles = [],
+              fileUrl = "",
+       fileName = "",
     } = req.body || {};
 
     const trimmedAnswer = String(answer || "").trim();
 
-    if (!trimmedAnswer && !answerFileUrl) {
-     return res.status(400).json({
-        message: "텍스트 또는 이미지를 넣어주세요.",
-     });
-    }
+
 
     const updatePayload = {
        answer: trimmedAnswer,
-       answer_files: answerFiles || "",
-     answer_file_url: answerFileUrl || "",
-     answer_file_name: answerFileName || "",
+       answer_files: answerFiles || [],
      answered: true,
      answered_at: new Date().toISOString(),
     };
