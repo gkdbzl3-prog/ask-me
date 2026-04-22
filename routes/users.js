@@ -83,7 +83,10 @@ router.get("/users/:username/questions", async (req, res) => {
 router.post("/users/:username/questions", async (req, res) => {
  console.log("POST /api/users/:username/questions hit");
 
- try {
+   try {
+     console.log("req.params:", req.params);
+    console.log("req.body:", req.body);
+
     const { username } = req.params;
     const {
        text = "",
@@ -92,9 +95,19 @@ router.post("/users/:username/questions", async (req, res) => {
        askerAuthId = null,
     } = req.body || {};
 
+      console.log("parsed body:", {
+      username,
+      text,
+      isPrivate,
+      files,
+      askerAuthId,
+    });
+      
     const trimmedText = String(text || "").trim();
-
-    if (!trimmedText && files.length === 0 ) {
+console.log("trimmedText:", trimmedText);
+    console.log("files length:", Array.isArray(files) ? files.length : "not-array");
+      if (!trimmedText && files.length === 0) {
+        console.log("blocked: empty text and files");
      return res.status(400).json({
         message: "텍스트 또는 이미지를 넣어주세요.",
      });
@@ -105,6 +118,10 @@ router.post("/users/:username/questions", async (req, res) => {
      .eq("username", username)
      .single();
 
+      console.log("user lookup result:", user);
+    console.log("user lookup error:", userError);
+      
+      
     if (userError || !user) {
      return res.status(404).json({ message: "user not found" });
     }
@@ -121,12 +138,18 @@ router.post("/users/:username/questions", async (req, res) => {
        asker_auth_id: askerAuthId,
     };
 
+ console.log("insertPayload:", insertPayload);
+      
     const { data: inserted, error: insertError } = await supabase
      .from("questions")
      .insert(insertPayload)
      .select("*")
      .single();
    
+      
+      console.log("inserted:", inserted);
+    console.log("insertError:", insertError);
+      
     if (insertError) {
     return res.status(500).json({
         message: "question insert failed",

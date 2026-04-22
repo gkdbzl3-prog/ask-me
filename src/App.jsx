@@ -190,7 +190,11 @@ const handleLike = (id) => {
 
       
         if (!res.ok) {
-          alert(result.message || "질문 저장을 실패했습니다");
+           alert(
+    `질문 저장 실패: ${result.message || "알 수 없는 오류"}${
+      result.error ? "\n" + JSON.stringify(result.error) : ""
+    }`
+  );
           return;
         }
   
