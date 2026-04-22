@@ -582,21 +582,17 @@ return (
 
 
 
- <div className="mobile-topbar">
+<div className="mobile-tabs">
+  <button className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
+   onClick={() => setMobileTab("profile")}>
+    Profile
+  </button>
 
-          <button
-            type="button"
-            className={`topbar-btn topbar-left ${mobileTab === "profile" ? "active" : ""}`}
-            onClick={() => setMobileTab("profile")}>
-           Profile
-          </button>
 
-          <button
-            type="button"
-            className={`topbar-btn topbar-right ${mobileTab === "archive" ? "active" : ""}`}
-            onClick={() => setMobileTab("archive")}>
-          Archive
-          </button>
+  <button className={`nav-btn ${mobileTab === "archive" ? "active":""}`}
+    onClick={() => setMobileTab("archive")}>
+  Archive
+  </button>
   </div>
   </header>
 

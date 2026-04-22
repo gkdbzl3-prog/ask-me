@@ -169,17 +169,11 @@ flex-direction: column;
 }
 
 @media (max-width: 768px) {
-
-
  .app-shell {
   display: block;
-  width: 100%;
+  width: 90%;
   padding: 0 12px;
   box-sizing: border-box;
- }
-
- .ask-input-shell {
-  width: 80%;
  }
 
  .archive-panel {
@@ -197,68 +191,46 @@ flex-direction: column;
   margin: 0;
  }
 
-.top-bar {
-  position: sticky;
-  top: 0;
-  height: 108px;
-  overflow: visible;
-  padding: 14px 20px 0;
-  box-sizing: border-box;
-}
+        .mobile-tabs {
+          position: absolute;
+          top: 20px;
+          left: 0;
+          right: 0;
+          z-index: 60;
+          gap: 20px;
+          pointer-events: none;
+        }
+    
+        .mobile-tabs .nav-btn {
+          font-size: 18px;
+          position: absolute;
+          pointer-events: auto;
+        }
+    
+        .mobile-tabs .nav-btn:hover {
+          background: linear-gradient(180deg,
+              rgba(255, 255, 255, 0.94) 0%,
+              rgba(250, 245, 255, 0.84) 100%);
+    
+          transform: translateY(-1px);
+        }
+    
+        .mobile-tabs .nav-btn.active {
+          background: linear-gradient(190deg,
+              rgba(186, 148, 240, 0.42) 0%,
+              rgba(169, 120, 230, 0.3) 100%);
+          border-color: rgba(169, 120, 230, 0.52);
+        }
 
-.top-bar h1 {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
-  z-index: 2;
-}
+        .mobile-tabs .nav-btn:first-child {
+          left: 28px;
+        }
+
+        .mobile-tabs .nav-btn:last-child {
+          right: 28px;
+        }
 
 
-  .mobile-topbar {
-    display: flex;
-    position: absolute;
-    left: 20px;
-    right: 20px;
-    bottom: 10px;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 3;
-    gap: 12px;
-    padding: 0;
-  }
-
-  .topbar-btn {
-    font-size: 18px;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    padding: 0;
-    font-size: 18px;
-    color: rgba(90,60,130,0.75);
-  }
-
-  .topbar-btn:hover {
-  background: linear-gradient( 180deg,
-            rgba(255,255,255,0.94) 0%,
-            rgba(250,245,255,0.84) 100%);
-
-  transform: translateY(-1px);
- }
-
- .topbar-btn.active {
-  background: linear-gradient( 190deg,
-                rgba(186,148,240,0.42) 0%,
-                rgba(169,120,230,0.3) 100%);
-  border-color: rgba(169,120,230,0.52);
-}
-
-.topbar-left {
-  text-align: left;
-}
-
-.topbar-right {
-  text-align: right;
-}
 
 .question-bubble {
  overflow: visible;
@@ -277,9 +249,6 @@ flex-direction: column;
 
 }
 
-.mobile-topbar {
-  display: none;
-}
 
 .chat-panel {
  min-width: 0;
@@ -1122,16 +1091,6 @@ border-radius: 14px;
 
 
 
-
- .mobile-tabs {
- position:absolute;
- gap: 28px;
- right: 20px;
- top: 43px;
- display: none;
- gap: 14px;
- z-index: 3;
- }
 
 .desktop-nav {
  position: absolute;
