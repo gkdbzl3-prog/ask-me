@@ -975,6 +975,23 @@ border-radius: 14px;
  cursor: pointer;
 }
 
+
+
+.selected-file-remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  font-size: 13px;
+}
+
 .selected-file-grid {
   overflow: hidden;
   border-radius: 20px;
@@ -996,6 +1013,10 @@ border-radius: 14px;
 .selected-file-grid.is-single {
   display: block;
   width: 100%;
+}
+
+.selected-file-preview {
+  position: relative;
 }
 
 .selected-file-grid.is-single .selected-file-preview img {
@@ -1613,20 +1634,7 @@ align-items: center;
  background: transparent;
 }
 
-.inline-save-btn {
- border: none;
- background: rgba(255,255,255,0.42);
- color: #5a3d9a;
- border-radius: 12px;
- padding: 3px 5px;
- cursor: pointer;
- font-family: "myfont";
- font-size: 13px;
- width: 60px;
- gap: 10px;
- position: absolute;
- right: 45px;
-}
+
 
 .field-with-error {
  display: flex;

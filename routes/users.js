@@ -38,6 +38,7 @@ router.get("/users/:username/questions", async (req, res) => {
 
  try {
     const { username } = req.params;
+    const requesterAuthId = String(req.query.requesterAuthId || "");
 
     const { data: user, error: userError } = await supabase
      .from("users")
@@ -59,6 +60,25 @@ router.get("/users/:username/questions", async (req, res) => {
      return res.status(500).json({ message: "question load failed", error: questionError });
     }
 
+    let likedQuestionIds = new Set();
+
+    if (requesterAuthId && questions.length > 0) {
+       const questionIds = questions.map((q) => q.id);
+
+       const { data: likeRows, error: likeRowsError } = await supabase
+          .from("question_likes")
+          .select("question_id")
+          .in("question_id", questionIds)
+          .eq("liker_auth_id", requesterAuthId);
+
+       if (likeRowsError) {
+          console.error("like rows load error:", likeRowsError);
+       } else {
+          likedQuestionIds = new Set(likeRows.map((row) => row.question_id));
+       }
+    }
+
+
    return res.json(
     questions.map((q) => ({
        id: q.id,
@@ -72,6 +92,7 @@ router.get("/users/:username/questions", async (req, res) => {
        createdAtISO: q.created_at,
        answeredAtISO: q.answered_at,
        askerAuthId: q.asker_auth_id,
+       like: likedQuestionIds.has(q.id),
     }))
    );
  } catch (error) {
@@ -104,8 +125,7 @@ router.post("/users/:username/questions", async (req, res) => {
     });
       
     const trimmedText = String(text || "").trim();
-console.log("trimmedText:", trimmedText);
-    console.log("files length:", Array.isArray(files) ? files.length : "not-array");
+
       if (!trimmedText && files.length === 0) {
         console.log("blocked: empty text and files");
      return res.status(400).json({
@@ -118,8 +138,7 @@ console.log("trimmedText:", trimmedText);
      .eq("username", username)
      .single();
 
-      console.log("user lookup result:", user);
-    console.log("user lookup error:", userError);
+
       
       
     if (userError || !user) {
@@ -138,7 +157,7 @@ console.log("trimmedText:", trimmedText);
        asker_auth_id: askerAuthId,
     };
 
- console.log("insertPayload:", insertPayload);
+
       
     const { data: inserted, error: insertError } = await supabase
      .from("questions")
@@ -147,8 +166,7 @@ console.log("trimmedText:", trimmedText);
      .single();
    
       
-      console.log("inserted:", inserted);
-    console.log("insertError:", insertError);
+ 
       
     if (insertError) {
     return res.status(500).json({
@@ -394,6 +412,96 @@ router.patch("/questions/:id/answer/delete", async (req, res) => {
    }
 });
 
+router.post("/questions/:id/like", async (req, res) => {
+   try {
+      const { id } = req.params;
+      const { likerAuthId = "" } = req.body || {};
 
+      ir(!likerAuthId) {
+         return res.status(400).json({ message: "likerAuthId is required" });
+      }
+
+      const { data: existingLike, error: existingError } = await supabase
+         .from("question_likes")
+         .select("id")
+         .eq("question_id", id)
+         .maybeSingle();
+
+      if (existingError) {
+         console.error("like lookup error:", existingError);
+         return res.status(500).json({ message: "like lookup failed", error: existingError });
+      }
+
+      let liked;
+
+      if (existingLike) {
+         const { error: deleteLikeError } = await supabase
+            .from("question_likes")
+            .delete()
+            .eq("id", existingLike.id);
+         
+         if (deleteLikeError) {
+            console.error("like delete error:", deleteLikeError);
+            return res.status(500).json({ message: "like delete failed", error: deleteLikeError });
+         }
+
+         liked = false;
+      } else {
+         const { error: insertLikeError } = await supabase
+            .from("question_like")
+            .inser({
+               question_id: id,
+               liker_auth_id: likerAuthId,
+            });
+
+         if (insertLikeError) {
+            console.error("like insert error:", insertLikeError);
+            return res.status(500).json({
+               message: "like insert failde", error: insertLikeError
+            });
+         }
+
+         liked = true;
+      }
+
+      const { count, error: countError } = await supabase
+         .from("question_likes")
+         .select("*", { count: "exact", head: true })
+         .eq("question_id", id);
+      
+      if (countError) {
+         console.error("like count error:", countError);
+         return res.status(500).json({ message: "like count failed", error: countError });
+      }
+
+      const nextLikeCount = count || 0;
+
+      const { error: updateQuestionError } = await supabase
+         .from("questions")
+         .update({ like_count: nextLikeCount })
+         .eq("id", id);
+
+      if (updateQuestionError) {
+         console.error("question like_count update error:", updateQuestionError);
+         return res.status(500).json({
+            message: "question like_count update failed",
+            error: updateQuestionError,
+         });
+      }
+
+      return res.json({
+         ok: true,
+         liked,
+         likeCount: nextLikeCount,
+      });
+   } catch (error) {
+      console.error("POST /questions/:id/like error:", error);
+      return res.status(500).json({ message: "server error" });
+   }
+});
+         
+
+
+      
 
 export default router;

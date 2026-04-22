@@ -32,7 +32,9 @@ const [link1, setLink1] = useState(
 const [link2, setLink2] = useState(
   localStorage.getItem("link2") || "");
 const [theme, setTheme] = useState("purple");
-
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [didInitAutoSave, setDidInitAutoSave] = useState(false);
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState("");
 
 
   const [pendingOldAvatarUrl, setPendingOldAvatarUrl] = useState("");
@@ -94,6 +96,8 @@ const parseKoreanDateString = (dateString) => {
   async function saveProfileToDB() {
     if (!routeUsername) return;
 
+    setSaveStatus("saving");
+
     try {
       const res = await fetch(`/api/users/${routeUsername}/profile`, {
         method: "PATCH",
@@ -120,6 +124,7 @@ const parseKoreanDateString = (dateString) => {
       if (!res.ok) {
         console.error("profile save failed:", result);
         alert("프로필 저장 실패");
+        setSaveStatus("error");
         return;
       }
 
@@ -150,6 +155,7 @@ const parseKoreanDateString = (dateString) => {
       localStorage.setItem("profileImage", result.avatarUrl || "");
       localStorage.setItem("bgUrl", result.bgUrl || "");
     } catch (error) {
+      setSaveStatus("error");
       console.error("profile save error:", error);
       alert("프로필 저장 중 오류 발생");
     }
@@ -203,28 +209,7 @@ const parseKoreanDateString = (dateString) => {
     }
   }
 
-  function getStoragePathFromPublicUrl(url, bucketName = "profile-media") {
-    if (!url) return "";
 
-    const marker = `/storage/v1/object/public/${bucketName}/`;
-    const idx = url.indexOf(marker);
-
-    if (idx === -1) return "";
-    return url.slice(idx + marker.length);
-  }
-
-  async function removeImageFromStorage(publicUrl, bucketName = "profile-media") {
-    const filePath = getStoragePathFromPublicUrl(publicUrl, bucketName);
-    if (!filePath) return;
-
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .remove([filePath]);
-    
-    if (error) {
-      console.error("storage remove error:", error);
-    }
-  }
 
   async function clearBackground() {
     const oldBgUrl = bgUrl || "";
@@ -266,6 +251,16 @@ const parseKoreanDateString = (dateString) => {
   }
 
 
+  function getProfileSnapshot() {
+    return JSON.stringify({
+      displayName: editNickname || "",
+      bio: bio || "",
+      avatarUrl: profileImage || "",
+      bgUrl: bgUrl || "",
+    });
+  }
+
+
 useEffect(() => {
   localStorage.setItem("editNickname", editNickname);
 },[editNickname]);
@@ -286,7 +281,33 @@ useEffect(() => {
   localStorage.setItem("link2", link2);
 }, [link2]);
 
+useEffect(() => {
+  setEditNickname(nickname || "");
+},[nickname]);
 
+  useEffect(() => {
+    setBio(profileBio || "");
+  }, [profileBio]);
+
+  useEffect(() => {
+    if (viewMode !== "owner") return;
+
+    const currentSnapshot = getProfileSnapshot();
+
+    if (!didInitAutoSave) {
+      setLastSavedSnapshot(currentSnapshot);
+      setDidInitAutoSave(true);
+      return;
+    }
+
+    if (currentSnapshot === lastSavedSnapshot) return;
+
+    const timer = setTimeout(async () => {
+      await saveProfileToDB();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [editNickname, bio, profileImage, bgUrl, viewMode, didInitAutoSave, lastSavedSnapshot]);
 
 
 
@@ -532,13 +553,7 @@ return(
 
 
   
-              <button
-          type="button"
-          className="inline-save-btn"
-          onClick={saveProfileToDB}
-        >
-          저장
-              </button>
+
 
         </div>
       </div>

@@ -58,20 +58,40 @@ function dlog(msg) {
     return data.publicUrl;
   }
 
-const handleLike = (id) => {
+async function handleLike(questionId) {
+  try {
+    const res = await fetch(`api/questions/${questionId}/like`, {
+      method: "POST",
+      headers: {
+        "Comtent-Type": currentAuthUserId,
+      },
+      body: JSON.stringify({
+        likerAuthId: currentAuthUserId,
+      }),
+    });
+
+  const result = await res.json();
+  
+  if (!res.ok) {
+    alert(result.message || "좋아요 처리 실패");
+    return;
+  }
+
   setQuestionCards((prev) =>
     prev.map((card) =>
-      card.id === id
+      card.id === questionId
         ? {
             ...card,
-            liked: !card.liked,
-            likeCount: card.liked
-              ? Math.max((card.likeCount || 1) - 1, 0)
-              : (card.likeCount || 0) + 1,
+            liked: result.liked,
+            likeCount: result.likeCount,
           }
         : card
     )
   );
+} catch (error) {
+  console.error("handlLike error:", error);
+  alert("좋아요 처리 중 오류가 발생했습니다");
+}
 };
 
  const totalLikeCount = questionCards.reduce(
@@ -346,8 +366,9 @@ function getRecentAnswerText(questionCards) {
  const unansweredCount = questionCards.filter((card) => !card.answered).length;
 
   async function loadQuestionsByUsername(username) {
-  
-    const res = await fetch(`/api/users/${username}/questions`);
+    const requesterAuthId = currentAuthUserId || "";
+    const res = await fetch(
+      `/api/users/${username}/questions?requesterAuthId=${encodeURIComponent(requesterAuthId)}`);
    
   if (!res.ok) {
     throw new Error("questions load failed");
@@ -814,11 +835,25 @@ return (
                           <div className="selected-file-preview">
                             <img
                               src={URL.createObjectURL(file)}
-                              alt={`보낼 이미지 ${index + 1}`} />
-                          </div>              
+                              alt={`보낼 이미지 ${index + 1}`}
+                             />
+                                                                                              
+                            <button                        
+                              type="button"                        
+                              className="selected-file-remove-btn"                        
+                              onClick={() => {                          
+                                setSelectedFiles((prev) => prev.filter((_, i) => i !== index));                        
+                              }}>                                                          
+                              ×
+                            </button>
+
+                           
+                          </div> 
+
                         </div>
                        
                       ))}
+                      
                     </div>
                     
                       <div className="selected-file-preview-meta">
@@ -827,17 +862,7 @@ return (
                             ? selectedFiles[0].name
                             : `${selectedFiles.length}개의 이미지 선택됨`}
                           </span>
-                      
-                            <button
-                              type="button"
-                        onClick={(e) => {
-                                const files = Array.from(e.target.files || []);
-                          if (!files.length) return;   
-                          setSelectedFiles((prev) => [...prev, ...files]);              
-                              }}
-                            >
-                              삭제
-                            </button>
+
                     </div>
                </div>
                 )}
