@@ -17,6 +17,10 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname,"..");
 const distPath = path.join(rootDir, "dist");
 
+app.get('/healthz', (req, res) => {
+    res.status(200).send('ok');
+});
+
 app.use(cors({
  origin: true,
  credentials: true,
@@ -38,6 +42,6 @@ app.use((req,res) => {
 
 
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(process.env.PORT || 8080, '0.0.0.0', () => {
  console.log(`server running on port ${PORT}`);
 });
