@@ -24,7 +24,12 @@ function App() {
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
   const [questionCards, setQuestionCards] = useState([]);
+const [debugLogs, setDebugLogs] = useState([]);
 
+function dlog(msg) {
+  const line = typeof msg === "object" ? JSON.stringify(msg) : String(msg);
+  setDebugLogs(prev => [...prev.slice(-20), `${new Date().toLocaleTimeString()} ${line}`]);
+}
 
  const replyTargetCard = questionCards.find((card) => 
             card.id === replyTargetId);
@@ -200,6 +205,7 @@ const handleLike = (id) => {
 
       await loadQuestionsByUsername(routeUsername);      
     } catch (error) {
+      dlog(`handleSend error: ${error.message}`);
       console.error("handleSend error:", error);
       alert("전송 중 오류가 발생했습니다");
     } finally {
@@ -339,13 +345,18 @@ function getRecentAnswerText(questionCards) {
  const privateQuestionCount = questionCards.filter((card) => card.isPrivate).length;
  const unansweredCount = questionCards.filter((card) => !card.answered).length;
 
-async function loadQuestionsByUsername(username) {
-  const res = await fetch(`/api/users/${username}/questions`);
+  async function loadQuestionsByUsername(username) {
+  
+    const res = await fetch(`/api/users/${username}/questions`);
+    dlog(`GET questions: ${res.status}`);
   if (!res.ok) {
+   const errBody = await res.text();
+    dlog(`GET fail: ${errBody}`);
     throw new Error("questions load failed");
   }
 
-  const data = await res.json();
+    const data = await res.json();
+     dlog(`questions count: ${data.length}`);
   const normalized = Array.isArray(data)
     ? data
       .map((q) => ({
@@ -938,6 +949,21 @@ return (
  </aside>
  </div>
 </div>
+    {debugLogs.length > 0 && (
+  <div style={{
+    position: "fixed", bottom: 0, left: 0, right: 0,
+    background: "rgba(0,0,0,0.85)", color: "#0f0",
+    fontSize: "11px", padding: "8px", zIndex: 9999,
+    maxHeight: "200px", overflowY: "auto",
+    fontFamily: "monospace"
+  }}>
+    <button onClick={() => setDebugLogs([])}
+      style={{ color: "red", background: "none", border: "none", float: "right" }}>
+      ✕ 닫기
+    </button>
+    {debugLogs.map((log, i) => <div key={i}>{log}</div>)}
+  </div>
+)}
 </>
 );
 }
