@@ -64,12 +64,9 @@ router.get("/users/:username/questions", async (req, res) => {
        id: q.id,
        text: q.text,
        isPrivate: q.is_private,
-       files: q.files,
-       fileUrl: q.file_url,
-       fileName: q.file_name,
-       answerFiles: q.answer_files,
-       answerFileUrl: q.answer_file_url,
-       answerFileName: q.answer_file_name,
+       files: q.files || [],
+       answer: q.answer,
+       answerFiles: q.answer_files || [],
        answered: q.answered,
        likeCount: q.like_count,
        createdAtISO: q.created_at,
@@ -166,20 +163,22 @@ router.patch("/questions/:id/answer", async (req, res) => {
     const { id } = req.params;
     const {
      answer = "", 
-       answerFiles = [],
-              fileUrl = "",
-       fileName = "",
+     answerFiles = [],
     } = req.body || {};
 
     const trimmedAnswer = String(answer || "").trim();
 
-
+    if (!trimmedAnswer && answerFiles.length === 0) {
+       return res.status(400).json({
+          message: "텍스트 또는 이미지를 넣어주세요.",
+       }):
+    }
 
     const updatePayload = {
        answer: trimmedAnswer,
        answer_files: answerFiles || [],
-     answered: true,
-     answered_at: new Date().toISOString(),
+       answered: true,
+       answered_at: new Date().toISOString(),
     };
 
     console.log("updatePayload:", updatePayload);
@@ -202,19 +201,17 @@ router.patch("/questions/:id/answer", async (req, res) => {
     }
 
     return res.json({
-     id: updated.id,
-     text: updated.text,
-     isPrivate: updated.is_private,
-     fileUrl: updated.file_url,
-     fileName: updated.file_name,
-     answer: updated.answer,
-     answerFiles: updated.answer_files,
-     answerFileUrl: updated.answer_file_url,
-     answerFileName: updated.answer_file_name,
-     answered: updated.answered,
-     likeCount: updated.like_count,
-     createdAtISO: updated.created_at,
-     answeredAtISO: updated.answered_at,
+       id: updated.id,
+       text: updated.text,
+       isPrivate: updated.is_private,
+       files: updated.files || [],
+       answer: updated.answer,
+       answerFiles: updated.answer_files || [],
+       answered: updated.answered,
+       likeCount: updated.like_count,
+       createdAtISO: updated.created_at,
+       answeredAtISO: updated.answered_at,
+       askerAuthId: updated.asker_auth_id,
     });
  } catch (error) {
     console.error("PATCH /questions/:id/answer error:", error);
@@ -262,6 +259,7 @@ router.patch("/users/:username/profile", async (req, res) => {
          bgUrl: updated.bg_url,
          xUserId: updated.x_user_id,
          createdAtISO: updated.created_at,
+       askerAuthId: updated.asker_auth_id,         
       });
    } catch (error) {
       console.error("PATCH /users/:username/profile server error:", error);

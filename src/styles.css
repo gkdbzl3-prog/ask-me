@@ -268,8 +268,8 @@ flex-direction: column;
 
 .ask-input-shell {
  position: static;
- width: 500px;
- transform: translateX(10px);
+ width: 510px;
+ transform: translateX(-10px);
  left: auto;
  bottom: auto;
  display: flex;
@@ -768,7 +768,7 @@ flex-direction: column;
  color: #4f3c7a;
  font-size: 14px;
  line-height: 1.4;
-width: 76%;
+width: 82%;
 }
 
 .replying-bar-text {
