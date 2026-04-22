@@ -1917,3 +1917,18 @@ align-items: center;
   background: rgba(143,105,232,0.22);
   font-weight: 600;
 }
+
+.debug-panel {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 9999;
+  background: rgba(20, 20, 20, 0.9);
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
