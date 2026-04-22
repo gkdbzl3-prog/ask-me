@@ -837,7 +837,7 @@ return (
         className={`secret-toggle ${secret ? "on" : ""}`}
         onClick={() => setSecret(!secret)}
       >
-        ◎ Secret
+                      {secret ? "◉" : "◎"} Secret
       </button>)}
 
                 {viewMode === "owner" && replyTargetId !== null && (

@@ -139,19 +139,17 @@ router.post("/users/:username/questions", async (req, res) => {
     }
 
    return res.status(201).json({
-    id: inserted.id,
-    text: inserted.text,
-    isPrivate: inserted.is_private,
-    fileUrl: inserted.file_url,
-    fileName: inserted.file_name,
+      id: inserted.id,
+      text: inserted.text,
+      isPrivate: inserted.is_private,
+      files: inserted.files || [],
       answer: inserted.answer,
-    answerFiles: inserted.answer_files,
-    answerFileUrl: inserted.answer_file_url,
-    answerFileName: inserted.answer_file_name,
-    answered: inserted.answered,
-    likeCount: inserted.like_count,
-    createdAtISO: inserted.created_at,
-    answeredAtISO: inserted.answered_at,
+      answerFiles: inserted.answer_files || [],
+      answered: inserted.answered,
+      likeCount: inserted.like_count,
+      askerAuthId: inserted.asker_auth_id,
+      createdAtISO: inserted.created_at,
+      answeredAtISO: inserted.answered_at,
    });
  } catch (error) {
     console.error("POST /users/:username/questions error:", error);
