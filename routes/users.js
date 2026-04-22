@@ -92,7 +92,7 @@ router.get("/users/:username/questions", async (req, res) => {
        createdAtISO: q.created_at,
        answeredAtISO: q.answered_at,
        askerAuthId: q.asker_auth_id,
-       like: likedQuestionIds.has(q.id),
+       liked: likedQuestionIds.has(q.id),
     }))
    );
  } catch (error) {

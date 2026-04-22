@@ -1,3 +1,4 @@
+import { Navigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
@@ -10,9 +11,11 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl") || "");
   const pathParts = window.location.pathname.split("/");
-  const routeUsername =
+  const isLocalDev = window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";  
+  const rawUsername =
     pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
-  const isLocalDev = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const routeUsername = rawUsername || (isLocalDev ? "sample" : "");
   const [replyTargetId, setReplyTargetId] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [profileImage, setProfileImage] = useState(
@@ -25,8 +28,47 @@ function App() {
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
   const [questionCards, setQuestionCards] = useState([]);
   const [debugLogs, setDebugLogs] = useState([]);
-  const [likeDebug, setLikeDebug] = useState("");
+  const SAMPLE_QUESTIONS = [
+  {
+    id: "q1",
+    text: "요즘 뭐하고 지내?",
+    isPrivate: false,
+    files: [],
+    answer: "리액트 배우는 중!",
+    answerFiles: [],
+    answered: true,
+    likeCount: 2,
+    liked: false,
+    createdAtISO: new Date().toISOString(),
+    answeredAtISO: new Date().toISOString(),
+    askerAuthId: "sample-auth-1",
+  },
+  {
+    id: "q2",
+    text: "사진 첨부 테스트",
+    isPrivate: true,
+    files: [
+      {
+        fileUrl: "/images/sample1.jpg",
+        fileName: "sample1.jpg",
+      },
+    ],
+    answer: "",
+    answerFiles: [],
+    answered: false,
+    likeCount: 0,
+    liked: false,
+    createdAtISO: new Date().toISOString(),
+    answeredAtISO: null,
+    askerAuthId: "sample-auth-2",
+  },
+];
 
+  if (isLocalDev && !rawUsername) {
+    return <Navigate to="/u/sample" replace />;
+  }
+
+  
 function dlog(msg) {
   const line = typeof msg === "object" ? JSON.stringify(msg) : String(msg);
   setDebugLogs(prev => [...prev.slice(-20), `${new Date().toLocaleTimeString()} ${line}`]);
@@ -71,23 +113,8 @@ async function handleLike(questionId) {
       }),
     });
 
-  const result = await res
+  const result = await res.json();
   
-     setLikeDebug(
-      [
-        `status: ${res.status}`,
-        `questionId: ${questionId}`,
-        `likerAuthId: ${currentAuthUserId}`,
-        `message: ${result.message || ""}`,
-        `liked: ${String(result.liked)}`,
-        `likeCount: ${String(result.likeCount)}`,
-         `error: ${result.error ? JSON.stringify(result.error) : "none"}`,
-        `currentAuthUserId: ${currentAuthUserId}`,
-         `viewMode: ${viewMode}`,
-        `questionId: ${questionId}`,
-      ].join("\n")
-    );
-
   if (!res.ok) {
     alert(result.message || "좋아요 처리 실패");
     return;
@@ -106,8 +133,7 @@ async function handleLike(questionId) {
   );
 } catch (error) {
   console.error("handlLike error:", error);
-  // alert("좋아요 처리 중 오류가 발생했습니다");
- setLikeDebug(`catch error: ${String(error)}`);
+  alert("좋아요 처리 중 오류가 발생했습니다");
 }
 };
 
@@ -530,7 +556,7 @@ return (
       />
     </svg>
 
-    <h1>Ask me</h1>
+        <h1 onClick={() => setMobileTab("chat")}>Ask me</h1>
 
 <svg className="top-bar-wave right" viewBox="0 0 120 24" preserveAspectRatio="none">
     <path d="M0,12 C20,0 40,24 60,12 C80,0 100,24 120,12" 
@@ -554,39 +580,23 @@ return (
           </div>
         )}
 
- <div className="desktop-nav">
-    <button className={`nav-btn ${mobileTab === "profile" ? "active" :""}`}
-    onClick={() => setMobileTab("profile")}>
-      Profile
-    </button>
-
-    <button className={`nav-btn ${mobileTab === "chat" ? "active" : ""}`}
-      onClick={() => setMobileTab("chat")}>
-      Ask
-    </button>
-
-    <button className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
-     onClick={() => setMobileTab("archive")}>
-      Archive
-    </button>
-  </div>
 
 
- <div className="mobile-tabs">
-  <button className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
-   onClick={() => setMobileTab("profile")}>
-    Profile
-  </button>
+ <div className="mobile-topbar">
 
-    <button className={`nav-btn ${mobileTab === "chat" ? "active":""}`}
-      onClick={() => setMobileTab("chat")}>
-    Ask
-    </button>
+          <button
+            type="button"
+            className={`topbar-btn topbar-left ${mobileTab === "profile" ? "active" : ""}`}
+            onClick={() => setMobileTab("profile")}>
+           Profile
+          </button>
 
-  <button className={`nav-btn ${mobileTab === "archive" ? "active":""}`}
-    onClick={() => setMobileTab("archive")}>
-  Archive
-  </button>
+          <button
+            type="button"
+            className={`topbar-btn topbar-right ${mobileTab === "archive" ? "active" : ""}`}
+            onClick={() => setMobileTab("archive")}>
+          Archive
+          </button>
   </div>
   </header>
 
@@ -623,185 +633,146 @@ return (
                 <p>질문이 없음</p>
               ) : (
 
-                questionCards.map((card) => {
+                  questionCards.map((card) => {
+
                   const hasAnswer = !!card.answer ||
                     (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
                   const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
 
                   return (
-                    <article
-                      key={card.id}
-                      className={`qa-card ${card.isPrivate ? "private" : ""}
-            ${card.answered ? "answered" : ""}`}>
-                      <div className="qa-card-content">
-                  
-                        
-                          <div className="question-line">
-                            <div className="question-box-wrap">
-                              <div className="question-bubble">
+                    <React.Fragment key={card.id}>
 
-                                {card.isPrivate ? (
-                                  viewMode === "owner" ? (
-                                    <>
-                                      <p className="private-tag">🔐비공개 질문</p>
-                                      <p className="question-text">{card.text}</p>
-                                      <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
-                                    </>
-                                  ) : (
-                                    <span className="private-tag">🔐비공개된 질문입니다</span>
-                                  )
-                                ) : (
+                     
+                      <article className={`question-card-only ${card.isPrivate ? "private" : ""} ${hasAnswer ? "answered" : ""}`}>
+                        <div className="question-line">
+                          <div className="question-box-wrap">
+                            <div className="question-bubble">
+
+                              {card.isPrivate ? (
+                                viewMode === "owner" ? (
                                   <>
-                                    <p className="question-text"> {card.text}</p>
-                                      <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
+                                    <p className="private-tag">🔐비공개 질문</p>
+                                    <p className="question-text">{card.text}</p>
+                                    <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
                                   </>
-                                )}
+                                ) : (
+                                  <span className="private-tag">🔐비공개된 질문입니다</span>
+                                )
+                              ) : (
+                                <>
+                                  <p className="question-text">{card.text}</p>
+                                  <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
+                                </>
+                              )}
 
-                                {card.files?.length > 0 && (
-                                <div
-                                  className={`question-file-grid ${card.files.length === 1 ? "single" : "multi"}`}>
+                              {card.files?.length > 0 && (
+                                <div className={`question-file-grid ${card.files.length === 1 ? "single" : "multi"}`}>
                                   {card.files.map((file, index) => (
                                     <div className="question-file-item" key={index}>
-                                    <img src={file.fileUrl || file.url || ""}
+                                      <img src={file.fileUrl || file.url || ""}
                                         alt={file.fileName || `첨부이미지-${index + 1}`} />
-                                      </div>
+                                    </div>
                                   ))}
-                                </div>                                
-                                )}
-
-
+                                </div>
+                              )}
 
                             </div>
-                            
-
-
-
-
-
-
-
-                            
-                            </div>
-
-              
-                            <div className="question-actions">
-
-                                {viewMode === "owner" && (
-                                  <button
-                                    className="reply-btn"
-                                    onClick={() => {
-                                      setReplyTargetId(card.id);
-                                      setInput(card.answer || "");
-                                    }}>
-                                    {hasAnswer ? "답변수정" : "답변하기"}
-                                  </button>
-                                )}
-
-                            </div>
-      
-                                {hasAnswer && (
-                                  <div className="question-side check-side">
-                                    <span className="answered-mark">
-                                      <img
-                                        className="check-img"
-                                        src="/images/체크.png"
-                                        alt="읽음"
-                                      />
-                                    </span>
-                                  </div>
-                                )}
-
-           
-                                {canDeleteQuestion && (
-                                  <div className="question-side delete-side">
-                                    <button
-                                      className="question-delete-btn"
-                                      onClick={() => removeQuestion(card.id)}>
-                                      ×
-                                    </button>
-                                  </div>
-                                )}
-                 
-  
                           </div>
-                        
-                      </div>
-                        
-          
-                      {hasAnswer && (
-                        <div className="answer-line">
-    
 
-                          {viewMode === "owner" && (
-                            <button
-                              className="answer-delete-btn"
-                              onClick={() => removeAnswer(card.id)}
-                            >
-                              ×
-                            </button>
+
+                          <div className="question-actions">
+                            {viewMode === "owner" && (
+                              <button
+                                className="reply-btn"
+                                onClick={() => {
+                                  setReplyTargetId(card.id);
+                                  setInput(card.answer || "");
+                                }}>
+                                {hasAnswer ? "답변수정" : "답변하기"}
+                              </button>
+                            )}
+                          </div>
+
+                          {hasAnswer && (
+                            <div className="question-side check-side">
+                              <span className="answered-mark">
+                                <img className="check-img" src="/images/체크.png" alt="읽음" />
+                              </span>
+                            </div>
                           )}
 
-                          {viewMode === "guest" && (
-                            <div className="answer-side like-side">
+                          {canDeleteQuestion && (
+                            <div className="question-side delete-side">
                               <button
-                                className="like-btn"
-                                onClick={() => handleLike(card.id)}
-                              >
-                                {card.liked ? "❤️" : "🩶"}
+                                className="question-delete-btn"
+                                onClick={() => removeQuestion(card.id)}>
+                                ×
                               </button>
                             </div>
                           )}
 
+                        </div> {/* question-line */}
+                      </article> {/* question-card-only */}
 
+                     
+                      {hasAnswer && (
+                        <article className="answer-card-only">
+                          <div className="answer-line">
 
+                            {viewMode === "owner" && (
+                              <button
+                                className="answer-delete-btn"
+                                onClick={() => removeAnswer(card.id)}>
+                                ×
+                              </button>
+                            )}
 
-                          <div className="answer-box-wrap">
-                            <div className="answer-box">
-                              <p className="answer-text">{card.answer}</p>
-                              {card.answerFiles?.length > 0 && (                                
-                                <div className={`answer-file-grid ${card.answerFiles.length === 1
-                                  ? "single" : "multi"}`}>
-                                  {card.answerFiles.map((file, index) => (
-                                    <div className="answer-file-item" key={index}>
-                                  <img
-                                    src={file.fileUrl || file.url || ""}
-                                    alt={file.fileName || `첨부이미지-${index + 1}`}
-                                  />
-                                </div>
-                                  ))}
+                            {viewMode === "guest" && (
+                              <div className="answer-side like-side">
+                                <button
+                                  className="like-btn"
+                                  onClick={() => handleLike(card.id)}>
+                                  {card.liked ? "❤️" : "🩶"}
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="answer-box-wrap">
+                              <div className="answer-box">
+                                <p className="answer-text">{card.answer}</p>
+                                {card.answerFiles?.length > 0 && (
+                                  <div className={`answer-file-grid ${card.answerFiles.length === 1 ? "single" : "multi"}`}>
+                                    {card.answerFiles.map((file, index) => (
+                                      <div className="answer-file-item" key={index}>
+                                        <img
+                                          src={file.fileUrl || file.url || ""}
+                                          alt={file.fileName || `첨부이미지-${index + 1}`}
+                                        />
+                                      </div>
+                                    ))}
                                   </div>
-                              )}
-
-                              <p className="quoted-question">
-                                {card.isPrivate
-                                  ? "🔐 비공개된 질문입니다"
-                                  : getQuestionPreview(card)}
-                              </p>
+                                )}
+                                <p className="quoted-question">
+                                  {card.isPrivate
+                                    ? "🔐 비공개된 질문입니다"
+                                    : getQuestionPreview(card)}
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="answer-side avatar-side">
-                            <div className="card-avatar">
-                              <img src={profileImage || "/images/default-avatar.png"}
-                                alt="Profile"
-                                className="profile-avatar" />
-                              {viewMode === "owner" && (
-                                <input
-                                  id="profileImageInput"
-                                  type="file"
-                                  style={{ display: "none" }}
-                                  accept="image/*"                                
-                                  onChange={(e) => {
-                                    const files = Array.from(e.toarget.files || []);                                  
-                                    setProfileImage(files);
-                                  }}
-                                />
-                              )}
+                            <div className="answer-side avatar-side">
+                              <div className="card-avatar">
+                                <img src={profileImage || "/images/default-avatar.png"}
+                                  alt="Profile"
+                                  className="profile-avatar" />
+                              </div>
                             </div>
+
                           </div>
-                        </div>
+                        </article>
                       )}
-                    </article>
+
+                    </React.Fragment>
                   );
                 })
               )}
@@ -990,12 +961,7 @@ return (
  </aside>
  </div>
 </div>
-    
-{likeDebug && (
-  <pre className="debug-panel">
-    {likeDebug}
-  </pre>
-)}
+
 </>
 );
 }
