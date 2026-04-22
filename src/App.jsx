@@ -11,11 +11,9 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl") || "");
   const pathParts = window.location.pathname.split("/");
-  const isLocalDev = window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";  
-  const rawUsername =
+  const isLocalDev = import.meta.env.DEV;
+  const routeUsername =
     pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
-  const routeUsername = rawUsername || (isLocalDev ? "sample" : "");
   const [replyTargetId, setReplyTargetId] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [profileImage, setProfileImage] = useState(
@@ -28,6 +26,7 @@ function App() {
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
   const [questionCards, setQuestionCards] = useState([]);
   const [debugLogs, setDebugLogs] = useState([]);
+  const questionDraftKey = `questionDraft:${routeUsername}`;
   const SAMPLE_QUESTIONS = [
   {
     id: "q1",
@@ -64,9 +63,6 @@ function App() {
   },
 ];
 
-  if (isLocalDev && !rawUsername) {
-    return <Navigate to="/u/sample" replace />;
-  }
 
   
 function dlog(msg) {
@@ -250,7 +246,8 @@ async function handleLike(questionId) {
       console.log("POST status:", res.status);
       console.log("POST result:", result);
  
-      
+
+
         if (!res.ok) {
            alert(             
              `질문 저장 실패: ${result.message || "알 수 없는 오류"}${      
@@ -258,17 +255,18 @@ async function handleLike(questionId) {
              }`
            );
           return;
-        }
-  
+      }
+      
+
+      localStorage.removeItem(questionDraftKey);
+
       setInput("");
       setSecret(false);
       setSelectedFiles([]);
       setShowPreview(false);
       setReplyTargetId(null);
-
       await loadQuestionsByUsername(routeUsername);      
     } catch (error) {
-      dlog(`handleSend error: ${error.message}`);
       console.error("handleSend error:", error);
       alert("전송 중 오류가 발생했습니다");
     } finally {
@@ -532,6 +530,32 @@ useEffect(() => {
  );
 },[routeUsername]);
 
+  useEffect(() => {
+    if (!routeUsername) return;
+
+    const raw = localStorage.getItem(questionDraftKey);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      setInput(parsed.input || "");
+      setSecret(!!parsed.secret);
+    } catch (error) {
+      console.error("question draft parse error:", error);
+    }
+  }, [questionDraftKey, routeUsername]);
+
+  useEffect(() => {
+    if (!routeUsername) return;
+
+    localStorage.setItem(
+      questionDraftKey,
+      JSON.stringify({
+        input,
+        secret,
+      })
+    );
+  }, [questionDraftKey, routeUsername, input, secret]);
 
 
 return (

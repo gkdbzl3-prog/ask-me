@@ -35,8 +35,6 @@ const [theme, setTheme] = useState("purple");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [didInitAutoSave, setDidInitAutoSave] = useState(false);
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState("");
-
-
   const [pendingOldAvatarUrl, setPendingOldAvatarUrl] = useState("");
   const [pendingOldBgUrl, setPendingOldBgUrl] = useState("");
 const parseKoreanDateString = (dateString) => {
@@ -308,7 +306,6 @@ useEffect(() => {
 
     return () => clearTimeout(timer);
   }, [editNickname, bio, profileImage, bgUrl, viewMode, didInitAutoSave, lastSavedSnapshot]);
-
 
 
 
