@@ -169,11 +169,17 @@ flex-direction: column;
 }
 
 @media (max-width: 768px) {
+
+
  .app-shell {
   display: block;
-  width: 75%;
+  width: 100%;
   padding: 0 12px;
   box-sizing: border-box;
+ }
+
+ .ask-area-wrap {
+  width: 90%;
  }
 
  .archive-panel {
@@ -191,6 +197,20 @@ flex-direction: column;
   margin: 0;
  }
 
+.top-bar {
+  height: auto;
+  overflow: visible;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  justify-items: center;
+}
+
+.top-bar h1 {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+
   .mobile-topbar {
     display: flex;
     align-items: center;
@@ -198,6 +218,7 @@ flex-direction: column;
     z-index: 60;
     gap: 12px;
     padding: 14px 18px;
+    width: 100%;
   }
 
   .topbar-btn {
