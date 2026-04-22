@@ -178,9 +178,13 @@ flex-direction: column;
 
 
  .ask-input-shell {
-  width: 80%;
+  width: 370px;
  }
 
+ .question-line {
+  width: 80%;
+ }
+ 
  .archive-panel {
   display: none;
  }
@@ -570,7 +574,6 @@ flex-direction: column;
 .question-line {
  display: flex;
  align-items: sticky;
- justify-content: flex-start;
  width: 100%;
  min-width: 0;
  gap: 8px;
