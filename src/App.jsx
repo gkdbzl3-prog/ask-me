@@ -24,7 +24,8 @@ function App() {
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
   const [questionCards, setQuestionCards] = useState([]);
-const [debugLogs, setDebugLogs] = useState([]);
+  const [debugLogs, setDebugLogs] = useState([]);
+  const [likeDebug, setLikeDebug] = useState("");
 
 function dlog(msg) {
   const line = typeof msg === "object" ? JSON.stringify(msg) : String(msg);
@@ -70,8 +71,23 @@ async function handleLike(questionId) {
       }),
     });
 
-  const result = await res.json();
+  const result = await res
   
+     setLikeDebug(
+      [
+        `status: ${res.status}`,
+        `questionId: ${questionId}`,
+        `likerAuthId: ${currentAuthUserId}`,
+        `message: ${result.message || ""}`,
+        `liked: ${String(result.liked)}`,
+        `likeCount: ${String(result.likeCount)}`,
+         `error: ${result.error ? JSON.stringify(result.error) : "none"}`,
+        `currentAuthUserId: ${currentAuthUserId}`,
+         `viewMode: ${viewMode}`,
+        `questionId: ${questionId}`,
+      ].join("\n")
+    );
+
   if (!res.ok) {
     alert(result.message || "좋아요 처리 실패");
     return;
@@ -90,7 +106,8 @@ async function handleLike(questionId) {
   );
 } catch (error) {
   console.error("handlLike error:", error);
-  alert("좋아요 처리 중 오류가 발생했습니다");
+  // alert("좋아요 처리 중 오류가 발생했습니다");
+ setLikeDebug(`catch error: ${String(error)}`);
 }
 };
 
@@ -973,7 +990,12 @@ return (
  </aside>
  </div>
 </div>
-
+    
+{likeDebug && (
+  <pre className="debug-panel">
+    {likeDebug}
+  </pre>
+)}
 </>
 );
 }
