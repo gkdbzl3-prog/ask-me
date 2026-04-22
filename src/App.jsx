@@ -194,7 +194,7 @@ const handleLike = (id) => {
         const res = await fetch(`/api/users/${routeUsername}/questions`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             text: trimmedInput,

@@ -121,7 +121,6 @@ router.post("/users/:username/questions", async (req, res) => {
        asker_auth_id: askerAuthId,
     };
 
-    console.log("insertPayload:", insertPayload);
     const { data: inserted, error: insertError } = await supabase
      .from("questions")
      .insert(insertPayload)
