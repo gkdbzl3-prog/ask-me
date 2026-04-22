@@ -178,8 +178,8 @@ flex-direction: column;
   box-sizing: border-box;
  }
 
- .ask-area-wrap {
-  width: 90%;
+ .ask-input-shell {
+  width: 80%;
  }
 
  .archive-panel {
@@ -198,27 +198,33 @@ flex-direction: column;
  }
 
 .top-bar {
-  height: auto;
+  position: sticky;
+  top: 0;
+  height: 108px;
   overflow: visible;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  justify-items: center;
+  padding: 14px 20px 0;
+  box-sizing: border-box;
 }
 
 .top-bar h1 {
-  grid-column: auto;
-  grid-row: auto;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  z-index: 2;
 }
 
 
   .mobile-topbar {
     display: flex;
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 10px;
     align-items: center;
     justify-content: space-between;
-    z-index: 60;
+    z-index: 3;
     gap: 12px;
-    padding: 14px 18px;
-    width: 100%;
+    padding: 0;
   }
 
   .topbar-btn {
@@ -256,6 +262,7 @@ flex-direction: column;
 
 .question-bubble {
  overflow: visible;
+ gap: 10px;
 }
 
 .answer-box {
