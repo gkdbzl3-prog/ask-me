@@ -395,7 +395,7 @@ async function loadQuestionsByUsername(username) {
     
     let authId = localStorage.getItem("authId");
 
-    if (!authId || !uuidRegex.text(authId)) {
+    if (!authId || !uuidRegex.test(authId)) {
       authId =
         window.crypto?.randomUUID();
       localStorage.setItem("authId", authId);
