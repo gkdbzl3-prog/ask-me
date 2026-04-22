@@ -171,9 +171,14 @@ flex-direction: column;
 @media (max-width: 768px) {
  .app-shell {
   display: block;
-  width: 90%;
+  width: 100%;
   padding: 0 12px;
   box-sizing: border-box;
+ }
+
+
+ .ask-input-shell {
+  width: 80%;
  }
 
  .archive-panel {
@@ -193,7 +198,7 @@ flex-direction: column;
 
         .mobile-tabs {
           position: absolute;
-          top: 20px;
+          top: 52px;
           left: 0;
           right: 0;
           z-index: 60;
@@ -234,7 +239,6 @@ flex-direction: column;
 
 .question-bubble {
  overflow: visible;
- gap: 10px;
 }
 
 .answer-box {
