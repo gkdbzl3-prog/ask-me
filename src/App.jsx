@@ -711,9 +711,9 @@ return (
                           <div className="answer-box-wrap">
                             <div className="answer-box">
                               <p className="answer-text">{card.answer}</p>
-                              {card.answerFiles?.length > 0 && (
-                                
-                                <div className="answer-file-grid">
+                              {card.answerFiles?.length > 0 && (                                
+                                <div className={`answer-file-grid ${card.answerFiles.length === 1
+                                  ? "single" : "multi"}`}>
                                   {card.answerFiles.map((file, index) => (
                                     <div className="answer-file-item" key={index}>
                                   <img
