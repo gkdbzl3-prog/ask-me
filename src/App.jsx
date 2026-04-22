@@ -168,6 +168,8 @@ const handleLike = (id) => {
     }
 
 
+
+
   if (routeUsername) {
    try {
     const res = await fetch(`/api/users/${routeUsername}/questions`, {
@@ -187,7 +189,7 @@ const handleLike = (id) => {
 
   if (!res.ok) {
     console.error("question insert failed:", result);
-    alert("질문 저장에 실패했어요");
+    alert("질문 저장에 실패했습니다");
     return;
   }
 
@@ -391,12 +393,14 @@ async function loadQuestionsByUsername(username) {
 
 
   useEffect(() => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9af]{3}-[0-9a-f][12]$/i;
+    
     let authId = localStorage.getItem("authId");
 
-    if (!authId) {
+    if (!authId || !uuidRegex.text(authId)) {
       authId =
-        window.crypto?.randomUUID?.() ||
-        `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        window.crypto?.randomUUID();
       localStorage.setItem("authId", authId);
     }
 
