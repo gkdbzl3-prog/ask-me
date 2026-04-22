@@ -833,7 +833,9 @@ return (
                       
                             <button
                               type="button"
-                              onClick={() => {
+                        onClick={() => {
+                                const files = Array.from(e.target.files || []);
+                          if (!files.length) return;   
                           setSelectedFiles((prev) => [...prev, ...files]);              
                               }}
                             >
