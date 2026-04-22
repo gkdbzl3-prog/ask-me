@@ -1,3 +1,8 @@
+html, body {
+ overflow-x: hidden;
+ max-width: 100%;
+}
+
 body {
  margin: 0;
  font-family: "MyFont";
@@ -5,7 +10,6 @@ body {
  background-size: cover;
  background-position: center;
  background-repeat: no-repeat;
- background-attachment: fixed;
 }
 
 @font-face {
@@ -24,13 +28,15 @@ body {
  background-size: cover;
  background-position: center;
  background-repeat: no-repeat;
- background-attachment: fixed;
+ background-attachment: scroll;
+ width: 100%;
 }
 
 .app::before {
  content: "";
  position: fixed;
  inset: 0;
+ width: 100%;
  background: rgba(100, 100, 100, 0.26);
  backdrop-filter: blur(1px);
  -webkit-backdrop-filter: blur(1px);
@@ -153,8 +159,9 @@ flex-direction: column;
  flex-direction: column;
  gap: 12px;
  width: 500px;
- max-width: calc(100vw - 40px);
+ max-width: calc(100% - 40px);
  z-index: 50;
+ box-sizing: border-box;
 }
 
 .app-shell {
@@ -178,7 +185,9 @@ flex-direction: column;
 
 
  .ask-input-shell {
-  width: 370px !important;
+  width: 100% !important;
+  max-width: 370px;
+  box-sizing: border-box;
  }
 
  .question-line {
@@ -248,6 +257,15 @@ flex-direction: column;
 
 .answer-box {
  overflow: visible;
+ max-width: calc(100vw - 120px);
+ word-break: break-word;
+ overflow-wrap: break-word;
+}
+
+.answer-line {
+ max-width: 100%;
+ padding-right: 4px;
+ box-sizing: border-box;
 }
 
 .card-actions {
@@ -592,7 +610,11 @@ flex-direction: column;
  justify-content: flex-end;
  gap: 8px;
  width: 100%;
+ max-width: 100%;
  margin-top: 8px;
+ overflow: visible;
+ flex-wrap: nowrap;
+ box-sizing: border-box;
 }
 
 
@@ -611,7 +633,8 @@ flex-direction: column;
 
 
 .answer-box-wrap {
- flex-shrink: 0;
+ flex-shrink: 1;
+ min-width: 0;
  order: 2;
 }
 
