@@ -75,7 +75,6 @@ const handleLike = (id) => {
  const [isSending, setIsSending] = useState(false);
 
   async function handleSend() {
-
     const trimmedInput = (input || "").trim();
     const hasFiles = Array.isArray(selectedFiles) && selectedFiles.length > 0;
 
@@ -90,30 +89,26 @@ const handleLike = (id) => {
           return;
         }
 
-
       if (viewMode === "owner" && replyTargetId === null) {
         alert("먼저 질문을 선택해주세요");
         return;
       }
-  
-
-
+      
       console.log("handleSend start", {
-        input,
-        trimmedInput,
-        selectedFiles,
-        routeUsername,
-        viewMode,
-        secret,
-      });
-
-
+      input,
+      trimmedInput,
+      selectedFiles,
+      routeUsername,
+      viewMode,
+      secret,
+      currentAuthUserId,
+    });
 
       if (viewMode === "owner" && replyTargetId !== null) {
         let uploadedAnswerFiles = [];
 
       if (hasFiles) {
-        uploadedFiles = await Promise.all(
+        uploadedAnswerFiles = await Promise.all(
           selectedFiles.map(async (file) => {
             const fileUrl = await uploadImageToStorage(file, "answer-files");
             return {
@@ -136,8 +131,7 @@ const handleLike = (id) => {
         });
 
         const result = await res.json();
-        console.log("PATCH status:", res.status);
-        console.log("PATCH result:", result);
+
 
         if (!res.ok) {
           alert(result.message || "답변 저장을 실패했습니다");
@@ -187,14 +181,14 @@ const handleLike = (id) => {
       const result = await res.json();
       console.log("POST status:", res.status);
       console.log("POST result:", result);
-
+ 
       
         if (!res.ok) {
-           alert(
-    `질문 저장 실패: ${result.message || "알 수 없는 오류"}${
-      result.error ? "\n" + JSON.stringify(result.error) : ""
-    }`
-  );
+           alert(             
+             `질문 저장 실패: ${result.message || "알 수 없는 오류"}${      
+             result.error ? "\n" + JSON.stringify(result.error) : ""    
+             }`
+           );
           return;
         }
   
