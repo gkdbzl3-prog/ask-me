@@ -171,7 +171,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
     if (!trimmedAnswer && answerFiles.length === 0) {
        return res.status(400).json({
           message: "텍스트 또는 이미지를 넣어주세요.",
-       }):
+       })
     }
 
     const updatePayload = {
