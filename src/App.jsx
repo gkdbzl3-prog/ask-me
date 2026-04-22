@@ -76,140 +76,158 @@ const handleLike = (id) => {
 
   async function handleSend() {
 
- if (isSending) return;
+    const trimmedInput = (input || "").trim();
+    const hasFiles = Array.isArray(selectedFiles) && selectedFiles.length > 0;
 
- const trimmedInput = (input || "").trim();
- if (!trimmedInput && !selectedFiles) return;
+    if (isSending) return;
+    if (!trimmedInput && !hasFiles) return;
 
-  if (viewMode === "owner" && replyTargetId === null) {
-    alert("먼저 질문을 선택해주세요");
-    return;
-  }
-  
-  
- setIsSending(true);
+    setIsSending(true);
 
-
-    console.log("handleSend start", {
-      input,
-      trimmedInput,
-      selectedFiles,
-      routeUsername,
-      viewMode,
-      secret,
-    });
-
-
-
-  if (viewMode === "owner" && replyTargetId !== null) {
-    let uploadedAnswerFiles = [];
-
-    if (selectedFiles.length > 0) {
-      uploadedAnswerFiles = await Promise.all(
-        selectedFiles.map(async (file) => {
-          const fileUrl = await uploadImageToStorage(file, "answer-files");
-          return {
-            fileUrl,
-            fileName: file.name,
-          };
-        })
-      );
-    }
-   
-      if (!routeUsername) {
-        alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
+    try {
+      if (viewMode === "owner" && replyTargetId === null) {
+        alert("먼저 질문을 선택해주세요");
         return;
       }
+  
 
-      const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          answer: trimmedInput,
-          answerFiles: uploadedAnswerFiles,        
-        }),
+
+      console.log("handleSend start", {
+        input,
+        trimmedInput,
+        selectedFiles,
+        routeUsername,
+        viewMode,
+        secret,
       });
 
-      const result = await res.json();
-      console.log("PATCH status:", res.status);
-      console.log("PATCH result:", result);
 
-      if (!res.ok) {
-        alert("답변 저장을 실패했습니다");
+
+      if (viewMode === "owner" && replyTargetId !== null) {
+        let uploadedAnswerFiles = [];
+
+        if (selectedFiles.length > 0) {
+          uploadedAnswerFiles = await Promise.all(
+            selectedFiles.map(async (file) => {
+              const fileUrl = await uploadImageToStorage(file, "answer-files");
+              return {
+                fileUrl,
+                fileName: file.name,
+              };
+            })
+          );
+        }
+   
+        if (!routeUsername) {
+          alert("유저 페이지에서만 질문을 보낼 수 있습니다.");
+          return;
+        }
+
+        const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            answer: trimmedInput,
+            answerFiles: uploadedAnswerFiles,
+          }),
+        });
+
+        const result = await res.json();
+        console.log("PATCH status:", res.status);
+        console.log("PATCH result:", result);
+
+        if (!res.ok) {
+          alert("답변 저장을 실패했습니다");
+          return;
+        }
+
+        await loadQuestionsByUsername(routeUsername);
+
+        setInput("");
+        setReplyTargetId(null);
+        setSelectedFiles([]);
+        setSecret(false);
+        setShowPreview(false);
         return;
       }
-
-      await loadQuestionsByUsername(routeUsername);
-
-      setInput("");
-      setReplyTargetId(null);
-      setSelectedFiles([]);
-      setSecret(false);
-      setShowPreview(false);
-      return;
-    }
    
   
 
-  let uploadedFiles = [];
+      let uploadedFiles = [];
  
- if (selectedFiles.length > 0) {
-       uploadedFiles = await Promise.all(
-        selectedFiles.map(async (file) => {
-          const fileUrl = await uploadImageToStorage(file, "question-files");
-          return {
-            fileUrl,
-            fileName: file.name,
-          };
-        })
-      );
+      if (hasFiles) {
+        uploadedFiles = await Promise.all(
+          selectedFiles.map(async (file) => {
+            const fileUrl = await uploadImageToStorage(
+              file,
+              replyTargetId ? "answer-files" : "question-files"
+            );
+            return {
+              fileUrl,
+              fileName: file.name,
+            };
+          })
+        );
+      }
+
+      if (replyTargetId) {
+        const res = await fetch(`/api/questions/${replyTargetId}/answer`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": application / json",
+          },
+          body: JSON.stringify({
+            answer: trimmedInput,
+            answerFiles: uploadedFiles,
+          }),
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          alert(result.message || "답변 저장에 실패했습니다");
+          return;
+        }
+      } else {
+        const res = await fetch(`/api/users/${routeUsername}/questions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: trimmedInput,
+            isPrivate: secret,
+            files: uploadedFiles,
+            askerAuthId: currentAuthUserId,
+          }),
+        });
+        const result = await res.json();
+
+        if (!res.ok) {
+          alert(result.message || "질문 저장에 실패했습니다");
+          return;
+        }
+      }
+
+      setInput("");
+      setSecret(false);
+      setSelectedFiles([]);
+      setShowPreview(false);
+      setReplyTargetId(null);
+
+      if (routeUsername) {
+        await loadQuestionsByUsername(routeUsername);
+      }
+    } catch (error) {
+      console.error("handleSend error:", error);
+      alert("전송 중 오류가 발생했습니다");
+    } finally {
+      setIsSending(false);
     }
-
-
-
-
-  if (routeUsername) {
-   try {
-    const res = await fetch(`/api/users/${routeUsername}/questions`, {
-      method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: trimmedInput,
-          isPrivate: secret,
-          files: uploadedFiles,
-          askerAuthId: currentAuthUserId,
-        }),
-    });
-
-  const result = await res.json();
-
-  if (!res.ok) {
-    console.error("question insert failed:", result);
-    alert("질문 저장에 실패했습니다");
-    return;
   }
 
-  await loadQuestionsByUsername(routeUsername);
-
-  setInput("");
-  setSecret(false);
-  setSelectedFiles([]);
-  setShowPreview(false);
-  return;
-  } catch (error) {
-    console.error("question send error:", error);
-    alert("질문 전송 중 오류가 발생했어요.");
-    return;
-  }
- }
-
-
-
-}
 
   async function removeQuestion(questionId) {
     try {
