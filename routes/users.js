@@ -417,7 +417,7 @@ router.post("/questions/:id/like", async (req, res) => {
       const { id } = req.params;
       const { likerAuthId = "" } = req.body || {};
 
-      ir(!likerAuthId) {
+      if(!likerAuthId) {
          return res.status(400).json({ message: "likerAuthId is required" });
       }
 
