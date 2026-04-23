@@ -210,8 +210,8 @@ flex-direction: column;
 
 .ask-input-shell {
  position: static;
- width: 510px;
- transform: translateX(-10px);
+ width: 480px;
+ transform: translateX(-30px);
  left: auto;
  bottom: auto;
  display: flex;
@@ -685,14 +685,14 @@ flex-direction: column;
   
   .app-shell {
     display: block;
-    width: 450px;
-    margin-left: 10px;
+    width: 100%;
     box-sizing: border-box;
   }
   
 
   .ask-input-shell {
-    width: 100%;
+    width: 330px;
+    margin-left: 25px;
   }
 
   .question-line {
@@ -707,12 +707,18 @@ flex-direction: column;
     display: none;
   }
 
-  .chat-panel {
+  .chat-panel.guest-view {
     display: block;
-    width: 100%;
-    min-width: 0;
-    margin: 0;
+    margin: 0 10px 0 10px;
+    width: 420px;
   }
+
+    .chat-panel.owner-view {
+    display: block;
+    margin-left: 10px;
+    width: 340px;
+  }
+
 
   .mobile-tabs {
     position: absolute;
