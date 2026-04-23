@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 
@@ -27,6 +27,35 @@ function App() {
   const [questionCards, setQuestionCards] = useState([]);
   const [debugLogs, setDebugLogs] = useState([]);
   const questionDraftKey = `questionDraft:${routeUsername}`;
+  const [zoomedImages, setZoomedImages] = useState([]);
+  const [zoomedIndex, setZoomedIndex] = useState(0);
+  const [showImageZoom, setShowImageZoom] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+  const [pinchStartDistance, setPinchStartDistance] = useState(null);
+  const [pinchStartScale, setPinchStartScale] = useState(1);
+  const [isPinching, setIsPinching] = useState(false);
+  const [dragStartX, setDragStartX] = useState(null);
+  const [dragStartY, setDragStartY] = useState(null);
+  const [panStartX, setPanStartX] = useState(0);
+  const [panStartY, setPanStartY] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [isDraggingZoom, setIsDraggingZoom] = useState(false);
+  const [mouseStartX, setMouseStartX] = useState(0);
+  const [mouseStartY, setMouseStartY] = useState(0);
+  const [mousePanStartX, setMousePanStartX] = useState(0);
+  const [mousePanStartY, setMousePanStartY] = useState(0);
+  const zoomModalRef = useRef(null);
+  const [isEditingAnswer, setIsEditingAnswer] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
+  const [existingAnswerFiles, setExistingAnswerFiles] = useState([]);
+  const [removedExistingFileUrls, setRemovedExistingFileUrls] = useState([]);
+  const answerInputRef = useRef(null);
+  const replyEditorRef = useRef(null);
+  const [justEditedAnswerId, setJustEditedAnswerId] = useState(null);
   const SAMPLE_QUESTIONS = [
   {
     id: "q1",
@@ -64,11 +93,6 @@ function App() {
 ];
 
 
-  
-function dlog(msg) {
-  const line = typeof msg === "object" ? JSON.stringify(msg) : String(msg);
-  setDebugLogs(prev => [...prev.slice(-20), `${new Date().toLocaleTimeString()} ${line}`]);
-}
 
  const replyTargetCard = questionCards.find((card) => 
             card.id === replyTargetId);
@@ -99,10 +123,10 @@ function dlog(msg) {
 
 async function handleLike(questionId) {
   try {
-    const res = await fetch(`api/questions/${questionId}/like`, {
+    const res = await fetch(`/api/questions/${questionId}/like`, {
       method: "POST",
       headers: {
-        "Comtent-Type": currentAuthUserId,
+        "Content-Type": currentAuthUserId,
       },
       body: JSON.stringify({
         likerAuthId: currentAuthUserId,
@@ -457,6 +481,331 @@ function getRecentAnswerText(questionCards) {
     }
   }
 
+  function openImageZoom(images, startIndex = 0) {
+    setZoomedImages(images);
+    setZoomedIndex(startIndex);
+    setShowImageZoom(true);
+  }
+
+  function closeImageZoom() {
+    setShowImageZoom(false);
+    setZoomedImages([]);
+    setZoomedIndex(0);
+  }
+
+  function goPrevZoomImage() {
+    setZoomedIndex((prev) => prev === 0 ? zoomedImages.length - 1 : prev - 1
+    );
+  }
+
+  function goNextZoomImage() {
+    setZoomedIndex((prev) =>
+      prev === zoomedImages.length - 1 ? 0 : prev + 1
+    );
+  }
+
+  function handleZoomTouchStart(e) {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  }
+
+  function handleZoomTouchMove(e) {
+    setTouchEndX(e.targetTouches[0].clientX);
+  }
+
+  function handleZoomTouchEnd() {
+    if (zoomedImages.length <= 1) return;
+    if (touchStartX === null || touchEndX === null) return;
+
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      goNextZoomImage();
+    } else if (distance < -minSwipeDistance) {
+      goPrevZoomImage();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  }
+
+  function getTouchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function resetZoomState() {
+    setZoomScale(1);
+    setPanX(0);
+    setPanY(0);
+    setPinchStartDistance(null);
+    setPinchStartScale(1);
+    setIsPinching(false);
+    setDragStartX(null);
+    setDragStartY(null);
+    setPanStartX(0);
+    setPanStartY(0);
+    setTouchStartX(null);
+    setTouchEndX(null);
+    setIsDraggingZoom(false);
+    setMouseStartX(0);
+    setMouseStartY(0);
+    setMousePanStartX(0);
+    setMousePanStartY(0);
+  }
+
+  function openImageZoom(images, startIndex = 0) {
+    setZoomedImages(images);
+    setZoomedIndex(startIndex);
+    setShowImageZoom(true);
+    resetZoomState();
+  }
+
+  function closeImageZoom() {
+    setShowImageZoom(false);
+    setZoomedImages([]);
+    setZoomedIndex(0);
+    resetZoomState();
+  }
+
+  function goPrevZoomImage() {
+    setZoomedIndex((prev) =>
+      prev === 0 ? zoomedImages.length - 1 : prev - 1
+    );
+    resetZoomState();
+  }
+
+  function goNextZoomImage() {
+    setZoomedIndex((prev) =>
+      prev === zoomedImages.length - 1 ? 0 : prev + 1
+    );
+    resetZoomState();
+  }
+
+  function handleZoomTouchStart(e) {
+    if (e.touches.length === 2) {
+      const distance = getTouchDistance(e.touches);
+      setIsPinching(true);
+      setPinchStartDistance(distance);
+      setPinchStartScale(zoomScale);
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+
+      if (zoomScale > 1) {
+        setDragStartX(touch.clientX);
+        setDragStartY(touch.clientY);
+        setPanStartX(panX);
+        setPanStartY(panY);
+      } else {
+        setTouchEndX(null);
+        setTouchStartX(touch.clientX);
+      }
+    }
+  }
+
+  function handleZoomTouchMove(e) {
+    if (e.touches.length === 2 && pinchStartDistance) {
+      const newDistance = getTouchDistance(e.touches);
+      const nextScale = (newDistance / pinchStartDistance) * pinchStartScale;
+
+      const clampedScale = Math.max(1, Math.min(nextScale, 4));
+
+      if (clampedScale <= 1) {
+        setPanX(0);
+        setPanY(0);
+      }
+
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+
+      if (zoomScale > 1 && dragStartX !== null && dragStartY !== null) {
+        const dx = touch.clientX - dragStartX;
+        const dy = touch.clientY - dragStartY;
+
+        setPanX(panStartX + dx);
+        setPanY(panStartY + dy)
+      } else {
+        setTouchEndX(touch.clientX);
+      }
+    }
+  }
+
+
+  function handleZoomTouchEnd() {
+    if (isPinching) {
+      setIsPinching(false);
+      setPinchStartDistance(null);
+      return;
+    }
+
+    if (zoomScale > 1) {
+      setDragStartX(null);
+      setDragStartY(null);
+      return;
+    }
+    
+    if (zoomedImages.length <= 1) return;
+    if (touchStartX === null || touchEndX === null) return;
+
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
+
+    if (distance > minSwipeDistance) {
+      goNextZoomImage();
+    } else if (distance < -minSwipeDistance) {
+      goPrevZoomImgae();
+    }
+
+    setTouchStartX(null);
+    setTouchEndX(null);
+  }
+
+
+
+  function handleZoomWheel(e) {
+    if (e.ctrlKey) return;
+
+    const delta = e.deltaY;
+    const zoomStep = 0.2;
+    setZoomScale((prev) => {
+      const next = delta < 0 ? prev + zoomStep : prev - zoomStep;
+      const clamped = Math.max(1, Math.min(next, 4));
+
+      if (clamped <= 1) {
+        setPanX(0);
+        setPanY(0);
+      }
+    
+      return clamped;
+    });
+  }
+
+  function handleZoomMouseDown(e) {
+    if (zoomScale <= 1) return;
+
+    e.preventDefault();
+    setIsDraggingZoom(true);
+    setMouseStartX(e.clientX);
+    setMouseStartY(e.clientY);
+    setMousePanStartX(panX);
+    setMousePanStartY(panY);
+  }
+
+  function handleZoomMouseMove(e) {
+    if (!isDraggingZoom) return;
+
+    const dx = e.clientX - mouseStartX;
+    const dy = e.clientY - mouseStartY;
+
+    setPanX(mousePanStartX + dx);
+    setPanY(mousePanStartY + dy);
+  }
+
+  function handleZoomMouseUp() {
+    setIsDraggingZoom(false);
+  } 
+
+  function handleZoomMouseLeave() {
+    setIsDraggingZoom(false);
+  }
+
+  function startEditAnswer(card) {
+    setIsEditingAnswer(true);
+    setEditingQuestionId(card.id);
+    setInput(card.answer || "");
+    setExistingAnswerFiles(card.answerFiles || []);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+  }
+
+  function removeExistingAnswerFile(fileId) {
+    SETrEMOVEDeXISTINGfileUrls((prev) => [...prev, fileId]);
+  }
+
+  function resetAnswerEditState() {
+    setIsEditingAnswer(false);
+    setEditingQuestionId(nul);
+    setInput("");
+    setExistingAnswerFiles([]);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+  }
+
+  function resetReplyEditState() {
+    setReplyTargetId(null);
+    setInput("");
+    setExistingAnswerFiles([]);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+  }
+
+  function startReply(card) {
+    setReplyTargetId(card.id);
+    setInput("");
+    setExistingAnswerFiles([]);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+    requestAnimationFrame(() => {
+      answerInputRef.current?.focus();
+      answerInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+  }
+
+  function startEditReply(card) {
+    setReplyTargetId(card.id);
+    setInput(card.answer || "");
+    setExistingAnswerFiles(card.answerFiles || []);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+    requestAnimationFrame(() => {
+      answerInputRef.current?.focus();
+      answerInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    });
+  }
+
+  function resetReplyEditState() {
+    setReplyTargetId(null);
+    setInput("");
+    setExistingAnswerFiles([]);
+    setSelectedFiles([]);
+    setRemovedExistingFileUrls([]);
+  }
+
+
+
+  useEffect(() => {
+    if (showImageZoom) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showImageZoom]);
+
+
+  useEffect(() => {
+    if (!showImageZoom) return;
+    setZoomScale(1);
+    setPanX(0);
+    setPanY(0);
+  }, [zoomedIndex, showImageZoom]);
 
 
   useEffect(() => {
@@ -465,11 +814,18 @@ function getRecentAnswerText(questionCards) {
     
     let authId = localStorage.getItem("authId");
 
-    if (!authId || !uuidRegex.test(authId)) {
-      authId =
-        window.crypto?.randomUUID();
-      localStorage.setItem("authId", authId);
-    }
+const createFallbackId = () =>
+  `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+if (!authId || !uuidRegex.test(authId)) {
+  authId =
+    typeof window.crypto?.randomUUID === "function"
+      ? window.crypto.randomUUID()
+      : createFallbackId();
+
+  localStorage.setItem("authId", authId);
+}
+
 
     setCurrentAuthUserId(authId);
   }, []);
@@ -518,13 +874,14 @@ useEffect(() => {
 }, [isLocalDev, routeUsername]);
 
 
+ 
   
   useEffect(() => {
     if (!routeUsername) {
-    setQuestionCards([]);
-    return;
-  }
-    
+      setQuestionCards(SAMPLE_QUESTIONS);
+      return;
+    }
+  
  loadQuestionsByUsername(routeUsername).catch((err) =>
   console.error("questions fetch error:", err)
  );
@@ -557,6 +914,55 @@ useEffect(() => {
     );
   }, [questionDraftKey, routeUsername, input, secret]);
 
+
+  useEffect(() => {
+    const el = zoomModalRef.current;
+    if (!el || !showImageZoom) return;
+
+    function onWheel(e) {
+      if (e.ctrlKey) return;
+      e.preventDefault();
+
+      const delta = e.deltaY;
+      const zoomStep = 0.2;
+
+      setZoomScale((prev) => {
+        const next = delta < 0 ? prev + zoomStep : prev - zoomStep;
+        const clamped = Math.maz(1, Math.min(next, 4));
+
+        if (clamped <= 1) {
+          setPanX(0);
+          setPanY(0);
+        }
+
+        return clamped;
+      });
+    }
+
+    el.addEventListener("whell", onWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener("whell", onWheel);
+    };
+  }, [showImageZoom]);
+
+
+  useEffect(() => {
+    if (replyTargetId === null) return;
+
+    function handleDocumentClick(e) {
+      if (!replyEditorRef.current) return;
+      if (replyEditorRef.current.contains(e.target)) return;
+
+      resetReplyEditState();
+    }
+
+    document.addEventListener("mousedown", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentClick);
+    };
+  }, [replyTargetId]);
 
 return (
   <>
@@ -646,14 +1052,14 @@ return (
 
 
 <main className={`chat-panel ${viewMode}-view`}>
-{mobileTab === "chat" &&(
+          {mobileTab === "chat" && (
 
-    <section className={`card-list ${viewMode}-view`}>
+            <section className={`card-list ${viewMode}-view`}>
               {questionCards.length === 0 ? (
                 <p>질문이 없음</p>
               ) : (
 
-                  questionCards.map((card) => {
+                questionCards.map((card) => {
 
                   const hasAnswer = !!card.answer ||
                     (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
@@ -690,7 +1096,9 @@ return (
                                   {card.files.map((file, index) => (
                                     <div className="question-file-item" key={index}>
                                       <img src={file.fileUrl || file.url || ""}
-                                        alt={file.fileName || `첨부이미지-${index + 1}`} />
+                                        alt={file.fileName || `첨부이미지-${index + 1}`}
+                                        onClick={() => openImageZoom(card.files, index)}
+                                      />
                                     </div>
                                   ))}
                                 </div>
@@ -701,17 +1109,7 @@ return (
 
 
                           <div className="question-actions">
-                            {viewMode === "owner" && (
-                              <button
-                                className="reply-btn"
-                                onClick={() => {
-                                  setReplyTargetId(card.id);
-                                  setInput(card.answer || "");
-                                }}>
-                                {hasAnswer ? "답변수정" : "답변하기"}
-                              </button>
-                            )}
-                          </div>
+
 
                           {hasAnswer && (
                             <div className="question-side check-side">
@@ -720,6 +1118,31 @@ return (
                               </span>
                             </div>
                           )}
+
+                            {viewMode === "owner" && (
+                              <button
+                                className="reply-btn"
+                                onClick={() => {
+                                  setReplyTargetId(card.id);
+                                  setInput("");
+                                  setExistingAnswerFiles([]);                                  
+                                  setRemovedExistingFileUrls([]);
+                                  setSelectedFiles([]);
+                                  requestAnimationFrame(() => {
+                                    answerInputRef.current?.focus();
+                                    answerInputRef.current?.scrollIntoView({
+                                      behavior: "smooth",
+                                      block: "center",
+                                    });
+                                  });
+                                }}>
+                                답변하기
+                              </button>
+                            )}
+                          </div>                         
+
+
+
 
                           {canDeleteQuestion && (
                             <div className="question-side delete-side">
@@ -731,13 +1154,35 @@ return (
                             </div>
                           )}
 
-                        </div> {/* question-line */}
-                      </article> {/* question-card-only */}
+                        </div> 
+                      </article> 
 
-                     
+                    
                       {hasAnswer && (
                         <article className="answer-card-only">
                           <div className="answer-line">
+
+                                {viewMode === "owner" && hasAnswer && (
+                                  <button
+                                    className="answer-edit-btn"
+                                    onClick={() => {
+                                      setReplyTargetId(card.id);
+                                      setInput(card.answer || "");
+                                      setExistingAnswerFiles(card.answerFiles || []);
+                                      setSelectedFiles([]);
+                                      setRemovedExistingFileUrls([]);
+                                      requestAnimationFrame(() => {
+                                        answerInputRef.current?.focus();
+                                        answerInputRef.current?.scrollIntoView({
+                                          behavior: "smooth",
+                                          block: "center",
+                                        });
+                                      });
+                                    }}>
+                                    답변수정
+                                  </button>
+                                )}                           
+                            
 
                             {viewMode === "owner" && (
                               <button
@@ -757,9 +1202,14 @@ return (
                               </div>
                             )}
 
+
+
+
+
                             <div className="answer-box-wrap">
                               <div className="answer-box">
                                 <p className="answer-text">{card.answer}</p>
+
                                 {card.answerFiles?.length > 0 && (
                                   <div className={`answer-file-grid ${card.answerFiles.length === 1 ? "single" : "multi"}`}>
                                     {card.answerFiles.map((file, index) => (
@@ -767,6 +1217,7 @@ return (
                                         <img
                                           src={file.fileUrl || file.url || ""}
                                           alt={file.fileName || `첨부이미지-${index + 1}`}
+                                          onClick={() => openImageZoom(card.answerFiles, index)}
                                         />
                                       </div>
                                     ))}
@@ -777,6 +1228,9 @@ return (
                                     ? "🔐 비공개된 질문입니다"
                                     : getQuestionPreview(card)}
                                 </p>
+                                {justEditedAnswerId === card.id && (
+                                  <span className="edited-badge">수정됨</span>
+                                )}
                               </div>
                             </div>
 
@@ -798,38 +1252,107 @@ return (
               )}
  
         
-      {showPreview && selectedFiles.length > 0 && (
-      <div className="preview-modal" onClick={() => setShowPreview(false)}>
+              {showPreview && selectedFiles.length > 0 && (
+                <div className="preview-modal" onClick={() => setShowPreview(false)}>
                   <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
                     
-                      <div className={selectedFiles.length > 1
-                        ? "preview-grid is-multi"
-                        : "preview-grid is-single"}>                      
+                    <div className={selectedFiles.length > 1
+                      ? "preview-grid is-multi"
+                      : "preview-grid is-single"}>
                       {selectedFiles.map((file, index) => (
                         <div className="preview-grid-item" key={`${file.name}-${index}`}>
                           <img src={URL.createObjectURL(file)} alt={`선택한 이미지 ${index + 1}`} />
-                          </div>
-                      ))}
                         </div>
+                      ))}
+                    </div>
                     
-        <div className="preview-modal-actions">
-          <button type="button" onClick={() => setShowPreview(false)}>
-            확인
-          </button>
+                    <div className="preview-modal-actions">
+                      <button type="button" onClick={() => setShowPreview(false)}>
+                        확인
+                      </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedFiles([]);
-              setShowPreview(false);
-            }}>
-            취소
-          </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFiles([]);
+                          setShowPreview(false);
+                        }}>
+                        취소
+                      </button>
                      
-              </div>
-            </div>
-          </div>          
-            )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showImageZoom && zoomedImages.length > 0 && (
+                <div className="image-zoom-modal" onClick={closeImageZoom}>
+                  <div
+                    ref={zoomModalRef}
+                    className="image-zoom-medal-content"
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={handleZoomTouchStart}
+                    onTouchMove={handleZoomTouchMove}
+                    onTouchEnd={handleZoomTouchEnd}
+                    onWheel={handleZoomWheel}
+                    onMouseDown={handleZoomMouseDown}
+                    onMouseUp={handleZoomMouseUp}
+                    onMouseLeave={handleZoomMouseLeave}>
+                    <button
+                      type="button"
+                      className="image-zoom-close"
+                      onClick={closeImageZoom}>
+                      ×
+                    </button>
+                    
+                
+                    <img src={zoomedImages[zoomedIndex]?.fileUrl || zoomedImages[zoomedIndex]?.url || ""}
+                      alt={zoomedImages[zoomedIndex]?.fileName || `확대 이미지 ${zoomedIndex + 1}`}
+                      className={[
+                        "zoom-img",
+                        zoomScale > 1 ? "zoomed" : "",
+                        isDraggingZoom ? "dragging" : "",
+                      ].join(" ").trim()}
+                      style={{
+                        transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
+                        transition: isPinching || isDraggingZoom ? "none" : "transform 0.18s ease",
+                        cursor: zoomScale > 1 ? (isDraggingZoom ? "grabbing" : "grab") : "zoom-in",
+                      }}                  
+                      onTouchStart={handleZoomTouchStart}
+                      onTouchMove={handleZoomTouchMove}
+                      onTouchEnd={handleZoomTouchEnd}
+                    />
+
+
+                    {zoomedImages.length > 1 && (
+                      <button
+                        type="button"
+                        className="image-zoom-nav prev"
+                        onClick={goPrevZoomImage}>
+                      
+                        ‹
+                      </button>
+                    )}
+
+                  
+
+                    {zoomedImages.length > 1 && (
+                      <button
+                        type="button"
+                        className="image-zoom-nav next"
+                        onClick={goNextZoomImage}>
+                    ›
+                  </button>
+                    )}
+                    
+
+                    <div className="image-zoom-counter">
+                      {zoomedIndex + 1} / {zoomedImages.length}
+                      </div>
+                  </div>                  
+                </div>
+          )}
+
 
     <div className="ask-area-wrap">
   
@@ -855,11 +1378,8 @@ return (
                               ×
                             </button>
 
-                           
                           </div> 
-
                         </div>
-                       
                       ))}
                       
                     </div>
@@ -874,7 +1394,7 @@ return (
                     </div>
                </div>
                 )}
-
+                <div ref={replyEditorRef}>
     <div className="ask-input-shell">
       {viewMode === "guest" && (
       <button
@@ -899,6 +1419,41 @@ return (
                      취소
                     </button>
                   </div>
+                  )}
+
+                  {replyTargetId !== null && existingAnswerFiles.length > 0 && (
+                    <div className="existing-answer-files">
+                      {existingAnswerFiles
+                        .filter((file) => !removedExistingFileUrls.includes(file.fileUrl || file.url))
+                        .map((file) => (
+                          <div className="existing-answer-file-item" key={file.fileUrl || file.url}>
+                            <img src={file.url || file.fileUrl} alt={file.name || file.fileName || "기존 첨부"} />
+                            <button
+                              type="button"
+                              onClick={() => removeExistingAnswerFile(file.fileUrl || file.url)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {selectedFiles.length > 0 && (
+                    <div className="new-answer-files">
+                      {selectedFiles.map((file, index) => (
+                        <div className="new-answer-file-item" key={`${file.name}-${index}`}>
+                          <img src={URL.createObjectURL(file)} alt={file.name || `새 첨부 ${index + 1}`} />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+                            }}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
 
 
@@ -934,20 +1489,22 @@ return (
                         }}          
                       />
 
-          <input
-            className="message-input"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-            }}
-            placeholder={
-              viewMode === "owner"
-                ? (replyTargetId !== null ? "답변을 입력하세요" : "질문에 답할 시간✨")
-                : `${nickname}님에게 하고 싶은 말을 적어보세요!`}/>
+                      <input
+                        ref={answerInputRef}
+                        value={input}                
+                       className="message-input"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSend();
+                          }
+                        }}
+                        placeholder={
+                          viewMode === "owner"
+                            ? (replyTargetId !== null ? "답변을 입력하세요" : "질문에 답할 시간✨")
+                            : `${nickname}님에게 하고 싶은 말을 적어보세요!`} />
 
           
                 </div>
@@ -963,15 +1520,9 @@ return (
         </button>
       </section>
 
-
-
-
-
-
-
-        </div>
-        </div>
-
+                    </div>
+                </div>
+              </div>
   </section>
 )}
 </main>
