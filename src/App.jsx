@@ -55,7 +55,6 @@ function App() {
   const [removedExistingFileUrls, setRemovedExistingFileUrls] = useState([]);
   const answerInputRef = useRef(null);
   const replyEditorRef = useRef(null);
-  const [justEditedAnswerId, setJustEditedAnswerId] = useState(null);
   const SAMPLE_QUESTIONS = [
   {
     id: "q1",
@@ -81,13 +80,13 @@ function App() {
         fileName: "sample1.jpg",
       },
     ],
-    answer: "",
+    answer: "바보",
     answerFiles: [],
-    answered: false,
+    answered: true,
     likeCount: 0,
     liked: false,
     createdAtISO: new Date().toISOString(),
-    answeredAtISO: null,
+    answeredAtISO: new Date().toISOString(),
     askerAuthId: "sample-auth-2",
   },
 ];
@@ -1224,6 +1223,8 @@ return (
                               <div className="answer-box">
                                 <p className="answer-text">{card.answer}</p>
 
+                               
+
                                 {card.answerFiles?.length > 0 && (
                                   <div className={`answer-file-grid ${card.answerFiles.length === 1 ? "single" : "multi"}`}>
                                     {card.answerFiles.map((file, index) => (
@@ -1242,12 +1243,10 @@ return (
                                     ? "🔐 비공개된 질문입니다"
                                     : getQuestionPreview(card)}
                                 </p>
-                                {justEditedAnswerId === card.id && (
-                                  <span className="edited-badge">수정됨</span>
-                                )}
-                              </div>
+
                             </div>
 
+                              </div>
                             <div className="answer-side avatar-side">
                               <div className="card-avatar">
                                 <img src={profileImage || "/images/default-avatar.png"}
@@ -1422,22 +1421,11 @@ return (
                       <div className={`replying-bar ${isEditingAnswer ? "is-editing" : ""}`}>
                         <span className="replying-bar-text">
                           {replyTargetCard && (isEditingAnswer
-                            ? `"${replyTargetCard.text}"답변 수정중`
+                            ? `"${replyTargetCard.text}" 수정 중`
                             : `"${replyTargetCard.text}"에 답하는 중`)}
                         </span>
 
-                        <button
-                          className="reply-cancel-btn"
-                          onClick={() => {
-                            setReplyTargetId(null);
-                            setIsEditingAnswer(false);
-                            setInput("");
-                            setExistingAnswerFiles([]);
-                            setSelectedFiles([]);
-                            setRemovedExistingFileUrls([]);
-                          }}>
-                          취소
-                        </button>
+
                       </div>
                     )}
                   

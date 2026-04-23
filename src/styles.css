@@ -676,6 +676,10 @@ flex-direction: column;
  border-radius: 18px 18px 18px 4px;
 }
 
+.mobile-tabs {
+  display: none;
+}
+
 
 @media (max-width: 768px) {
   .top-bar{
