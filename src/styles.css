@@ -710,13 +710,13 @@ flex-direction: column;
   .chat-panel.guest-view {
     display: block;
     margin: 0 10px 0 10px;
-    width: 420px;
+    width: 450px;
   }
 
     .chat-panel.owner-view {
     display: block;
     margin-left: 10px;
-    width: 340px;
+    width: 365px;
   }
 
 
@@ -2095,3 +2095,20 @@ align-items: center;
   border-radius: 30px;
 }
 
+.replying-bar.is-editing {
+  background: rgba(255,245,252,0.92);
+  border: 1px solid rgba(196,150,228,0.28);
+}
+
+.editied-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(196,150,228,0.22);
+  color: rgba(110,84,160,0.82);
+  font-size: 12px;
+  line-height: 1;
+}

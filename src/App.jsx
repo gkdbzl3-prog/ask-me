@@ -226,8 +226,20 @@ async function handleLike(questionId) {
           return;
         }
 
+        if (isEditingAnswer) {
+          setJustEditedAnswerId(replyTargetId);
+          setTimeout(() => {
+            setJustEditedAnswerId(null);
+          }, 2500);
+        }
+
+
         await loadQuestionsByUsername(routeUsername);
 
+    
+        setRemovedExistingFileUrls([]);
+        setIsEditingAnswer(false);
+        setExistingAnswerFiles([]);
         setInput("");
         setReplyTargetId(null);
         setSelectedFiles([]);
@@ -1124,6 +1136,7 @@ return (
                                 className="reply-btn"
                                 onClick={() => {
                                   setReplyTargetId(card.id);
+                                  setIsEditingAnswer(false);
                                   setInput("");
                                   setExistingAnswerFiles([]);                                  
                                   setRemovedExistingFileUrls([]);
@@ -1167,6 +1180,7 @@ return (
                                     className="answer-edit-btn"
                                     onClick={() => {
                                       setReplyTargetId(card.id);
+                                      setIsEditingAnswer(true);
                                       setInput(card.answer || "");
                                       setExistingAnswerFiles(card.answerFiles || []);
                                       setSelectedFiles([]);
@@ -1404,22 +1418,29 @@ return (
                       {secret ? "◉" : "◎"} Secret
       </button>)}
 
-                {viewMode === "owner" && replyTargetId !== null && (
-                    <div className="replying-bar">
-                    <span className="replying-bar-text">
-                  {replyTargetCard && `"${replyTargetCard.text}"에 답하는 중`}
-                    </span>
+                    {viewMode === "owner" && replyTargetId !== null && (
+                      <div className={`replying-bar ${isEditingAnswer ? "is-editing" : ""}`}>
+                        <span className="replying-bar-text">
+                          {replyTargetCard && (isEditingAnswer
+                            ? `"${replyTargetCard.text}"답변 수정중`
+                            : `"${replyTargetCard.text}"에 답하는 중`)}
+                        </span>
 
-                    <button
-                     className="reply-cancel-btn"
-                     onClick={() => {
-                      setReplyTargetId(null);
-                      setInput("");
-                    }}>
-                     취소
-                    </button>
-                  </div>
-                  )}
+                        <button
+                          className="reply-cancel-btn"
+                          onClick={() => {
+                            setReplyTargetId(null);
+                            setIsEditingAnswer(false);
+                            setInput("");
+                            setExistingAnswerFiles([]);
+                            setSelectedFiles([]);
+                            setRemovedExistingFileUrls([]);
+                          }}>
+                          취소
+                        </button>
+                      </div>
+                    )}
+                  
 
                   {replyTargetId !== null && existingAnswerFiles.length > 0 && (
                     <div className="existing-answer-files">
