@@ -103,7 +103,10 @@ router.get("/hashtags", async (req,res) => {
 
  
 
- const xJson = await xRes.json();
+console.log("xRes.ok:", xRes.ok, "status:", xRes.status);
+
+const xJson = await xRes.json();
+console.log("xJson:", JSON.stringify(xJson, null, 2));
 
 
  if (xRes.ok) {
@@ -151,6 +154,9 @@ router.get("/hashtags", async (req,res) => {
     rawPostCount: rawPosts.length,
     hashtags: groupedHashtags,
   });
+   console.log("archive ownerId:", ownerId);
+console.log("archive username:", username);
+console.log("has accessToken:", !!accessToken);
  } catch (error) {
   console.error("archive hashtags error:", error);
   return res.status(500).json({ message: "archive hashtags error", error: String(error), });

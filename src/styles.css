@@ -227,8 +227,8 @@ flex-direction: column;
 
 .ask-input-shell {
  position: static;
- width: 480px;
- transform: translateX(-30px);
+ width: 520px;
+ transform: translateX(-20px);
  left: auto;
  bottom: auto;
  display: flex;
