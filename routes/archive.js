@@ -3,7 +3,7 @@ import {
   loadArchivePosts,
   saveArchivePosts,
   mergeArchivePosts,
-} from ".../data/archiveStore.js";
+} from "../data/archiveStore.js";
 
 const router = express.Router();
 
