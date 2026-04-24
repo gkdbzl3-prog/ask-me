@@ -96,7 +96,7 @@ router.get("/hashtags", async (req, res) => {
     return res.json({
       ownerId,
       username,
-      source "db",
+      source: "db",
       rawPostCount: rawPosts.length,
       hashtags: groupedHashtags,
     });
