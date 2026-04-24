@@ -74,94 +74,96 @@ function buildHashtagGroups(rawPosts) {
 }
 
 
-router.get("/hashtags", async (req,res) => {
- try {
+router.get("/hashtags", async (req, res) => {
+  try {
 
 
-  const ownerId = req.query.ownerId || "";
-  const username = req.query.username || "";
-  const accessToken = req.cookies.x_access_token;
+    const ownerId = req.query.ownerId || "";
+    const username = req.query.username || "";
+    const accessToken = req.cookies.x_access_token;
 
-  if (!ownerId || !username) {
-    return res.status(400).json({
-      message: "ownerId 또는 username 없음",
-    });
-  }
+    if (!ownerId || !username) {
+      return res.status(400).json({
+        message: "ownerId 또는 username 없음",
+      });
+    }
  
- let rawPosts = [];
- let source ="mock";
+    let rawPosts = [];
+    let source = "mock";
 
- if (accessToken) {
-  const xRes = await fetch(
-`https://api.x.com/2/users/${ownerId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
-  {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  }
- );
+    if (accessToken) {
+      const xRes = await fetch(
+        `https://api.x.com/2/users/${ownerId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
  
 
-console.log("xRes.ok:", xRes.ok, "status:", xRes.status);
+      console.log("xRes.ok:", xRes.ok, "status:", xRes.status);
 
-const xJson = await xRes.json();
-console.log("xJson:", JSON.stringify(xJson, null, 2));
+      const xJson = await xRes.json();
+      console.log("xJson:", JSON.stringify(xJson, null, 2));
 
 
- if (xRes.ok) {
-  rawPosts = mapXPostsToRawPosts(
-    xJson.data,
-    xJson.includes,
-    username
-  );
-  source = "x";
- } else {
-  console.log("X API 실패, mock fallback 사용");
-  console.log("X API error payload:", xJson);
- }
+      if (xRes.ok) {
+        rawPosts = mapXPostsToRawPosts(
+          xJson.data,
+          xJson.includes,
+          username
+        );
+        source = "x";
+      } else {
+        console.log("X API 실패, mock fallback 사용");
+        console.log("X API error payload:", xJson);
+      }
 
- if (rawPosts.length === 0) {
-  rawPosts = [
-    {
-    id: "1001",
-    text: "오늘의 다꾸 #날이_좋은_날 #루틴",
-    images: ["/images/sample1.jpg", "/images/sample2.jpg"],
-    postUrl: "#",
-    },
-    {
-    id: "1002",
-    text: "공부끝 #공부기록 #루틴",
-    images: ["/images/sample3.jpg"],
-    postUrl:"#",
-    },
-    {
-    id: "1003",
-    text: "정리중 #공부기록",
-    images: ["/images/sample4.jpg","/images/sample5.jpg"],
-    postUrl: "#",
-    },
-  ];
-  source = "mock";
- }
+      if (rawPosts.length === 0) {
+        rawPosts = [
+          {
+            id: "1001",
+            text: "오늘의 다꾸 #날이_좋은_날 #루틴",
+            images: ["/images/sample1.jpg", "/images/sample2.jpg"],
+            postUrl: "#",
+          },
+          {
+            id: "1002",
+            text: "공부끝 #공부기록 #루틴",
+            images: ["/images/sample3.jpg"],
+            postUrl: "#",
+          },
+          {
+            id: "1003",
+            text: "정리중 #공부기록",
+            images: ["/images/sample4.jpg", "/images/sample5.jpg"],
+            postUrl: "#",
+          },
+        ];
+        source = "mock";
+      }
 
- const groupedHashtags = buildHashtagGroups(rawPosts);
+      const groupedHashtags = buildHashtagGroups(rawPosts);
 
-  return res.json({
-    ownerId,
-    username,
-    source,
-    rawPostCount: rawPosts.length,
-    hashtags: groupedHashtags,
-  });
-   console.log("archive ownerId:", ownerId);
-console.log("archive username:", username);
-console.log("has accessToken:", !!accessToken);
- } catch (error) {
-  console.error("archive hashtags error:", error);
-  return res.status(500).json({ message: "archive hashtags error", error: String(error), });
- }
-});
+      return res.json({
+        ownerId,
+        username,
+        source,
+        rawPostCount: rawPosts.length,
+        hashtags: groupedHashtags,
+      });
+      console.log("archive ownerId:", ownerId);
+      console.log("archive username:", username);
+      console.log("has accessToken:", !!accessToken);
+    } catch (error) {
+      console.error("archive hashtags error:", error);
+      return res.status(500).json({ message: "archive hashtags error", error: String(error), });
+    }
+  }};
+
+
 
 
 export default router;
