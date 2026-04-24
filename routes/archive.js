@@ -121,7 +121,7 @@ console.log("xJson:", JSON.stringify(xJson, null, 2));
   console.log("X API error payload:", xJson);
  }
 
- if (rawPosts.length === 0)
+ if (rawPosts.length === 0) {
   rawPosts = [
     {
     id: "1001",
