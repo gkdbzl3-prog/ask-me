@@ -76,8 +76,6 @@ function buildHashtagGroups(rawPosts) {
 
 router.get("/hashtags", async (req, res) => {
   try {
-
-
     const ownerId = req.query.ownerId || "";
     const username = req.query.username || "";
     const accessToken = req.cookies.x_access_token;
@@ -120,50 +118,50 @@ router.get("/hashtags", async (req, res) => {
         console.log("X API 실패, mock fallback 사용");
         console.log("X API error payload:", xJson);
       }
-
-      if (rawPosts.length === 0) {
-        rawPosts = [
-          {
-            id: "1001",
-            text: "오늘의 다꾸 #날이_좋은_날 #루틴",
-            images: ["/images/sample1.jpg", "/images/sample2.jpg"],
-            postUrl: "#",
-          },
-          {
-            id: "1002",
-            text: "공부끝 #공부기록 #루틴",
-            images: ["/images/sample3.jpg"],
-            postUrl: "#",
-          },
-          {
-            id: "1003",
-            text: "정리중 #공부기록",
-            images: ["/images/sample4.jpg", "/images/sample5.jpg"],
-            postUrl: "#",
-          },
-        ];
-        source = "mock";
-      }
-
-      const groupedHashtags = buildHashtagGroups(rawPosts);
-
-      return res.json({
-        ownerId,
-        username,
-        source,
-        rawPostCount: rawPosts.length,
-        hashtags: groupedHashtags,
-      });
-      console.log("archive ownerId:", ownerId);
-      console.log("archive username:", username);
-      console.log("has accessToken:", !!accessToken);
-    } catch (error) {
-      console.error("archive hashtags error:", error);
-      return res.status(500).json({ message: "archive hashtags error", error: String(error), });
     }
-  }}
+
+    if (rawPosts.length === 0) {
+      rawPosts = [
+        {
+          id: "1001",
+          text: "오늘의 다꾸 #날이_좋은_날 #루틴",
+          images: ["/images/sample1.jpg", "/images/sample2.jpg"],
+          postUrl: "#",
+        },
+        {
+          id: "1002",
+          text: "공부끝 #공부기록 #루틴",
+          images: ["/images/sample3.jpg"],
+          postUrl: "#",
+        },
+        {
+          id: "1003",
+          text: "정리중 #공부기록",
+          images: ["/images/sample4.jpg", "/images/sample5.jpg"],
+          postUrl: "#",
+        },
+      ];
+      source = "mock";
+    }
+
+    const groupedHashtags = buildHashtagGroups(rawPosts);
+
+    return res.json({
+      ownerId,
+      username,
+      source,
+      rawPostCount: rawPosts.length,
+      hashtags: groupedHashtags,
+    });
+    console.log("archive ownerId:", ownerId);
+    console.log("archive username:", username);
+    console.log("has accessToken:", !!accessToken);
+  } catch (error) {
+    console.error("archive hashtags error:", error);
+    return res.status(500).json({ message: "archive hashtags error", error: String(error), });
+  }
+}
 );
-  
 
 
 
