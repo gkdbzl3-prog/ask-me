@@ -91,7 +91,7 @@ router.get("/hashtags", async (req, res) => {
 
     if (accessToken) {
       const xRes = await fetch(
-        `https://api.x.com/2/users/${ownerId}/tweets?max_results=20&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
+        `https://api.x.com/2/users/${ownerId}/tweets?max_results=100&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -112,6 +112,15 @@ router.get("/hashtags", async (req, res) => {
           xJson.data,
           xJson.includes,
           username
+        );
+        console.log(
+          "rawPosts normalized:",
+          rawPosts.map((post) => ({
+            id: post.id,
+            text: post.text,
+            imageCount: post.images.length,
+            images: post.images,
+          }))
         );
         source = "x";
       } else {
