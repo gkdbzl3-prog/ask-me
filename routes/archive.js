@@ -161,7 +161,10 @@ router.get("/hashtags", async (req, res) => {
       console.error("archive hashtags error:", error);
       return res.status(500).json({ message: "archive hashtags error", error: String(error), });
     }
-  }};
+  }}
+);
+  
+
 
 
 
