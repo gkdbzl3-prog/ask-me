@@ -42,7 +42,7 @@ router.get("/x/login", (req,res) => {
   sameSite: "lax",
  });
 
- const scope = ["tweet.read", "users.read"].join(" ");
+  const scope = "tweet.read users.read offline.access";
 
  const authUrl =
   `https://twitter.com/i/oauth2/authorize` +
@@ -129,6 +129,18 @@ router.get("/x/callback", async (req,res) => {
  }
 
  res.cookie("x_access_token", tokenData.access_token, {
+   httpOnly: true,
+   secure: isProduction,
+   sameSite: "lax",
+ });
+   
+   res.cookie("x_refresh_token", tokenJson.refresh_toke,  {
+   httpOnly: true,
+   secure: isProduction,
+   sameSite: "lax",
+   });
+   
+   res.cookie("x_toke_expires_at", Date.now() + tokenJson.expires_in * 1000,  {
    httpOnly: true,
    secure: isProduction,
    sameSite: "lax",

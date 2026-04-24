@@ -391,7 +391,7 @@ function getQuestionPreview(question) {
         <div key={group.hashtag} className="archive-card">
          <div className="archive-head">
           <p className="archive-hashtag">#{group.hashtag}</p>
-          <span className="archive-count">게시글 {group.count}개</span>
+          <span className="archive-count">총{group.count}개</span>
          </div>
 
         <div className={`archive-images image-count-${Math.min(group.images.length, 4)}`}

@@ -1905,8 +1905,12 @@ align-items: center;
 }
 
 .archive-count {
-  margin: 0;
-}
+  position: absolute;      
+  right: 150px;      
+  font-size: 12px;      
+  font-weight: 550;
+      }
+
 
 .account-connect-block {
  margin-top: 12px;
@@ -2133,3 +2137,9 @@ align-items: center;
   font-size: 12px;
   line-height: 1;
 }
+
+.archive-head {
+  display: flex;
+  gap: 10px;
+}
+
