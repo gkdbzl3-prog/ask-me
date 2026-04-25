@@ -232,7 +232,7 @@ router.post("/sync", async (req, res) => {
 router.patch("/posts/:postId/visibility", async (req, res) => {
   try {
     const { postId } = req.params;
-    const hidden = !!req.body.hidden === true;
+    const hidden = req.body.hidden === true;
 
     const posts = loadArchivePosts();
 

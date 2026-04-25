@@ -1609,7 +1609,7 @@ return (
             posts={archivePosts}
             source={archiveSource}
             viewMode={viewMode}
-            onToggleVisibility={toggleArchivePostVisibiliy} />
+            onToggleVisibility={toggleArchivePostVisibility} />
  </aside>
  </div>
 </div>
