@@ -130,20 +130,23 @@ router.get("/x/callback", async (req,res) => {
 
  res.cookie("x_access_token", tokenData.access_token, {
    httpOnly: true,
-   secure: isProduction,
+   secure: true,
    sameSite: "lax",
+   maxAge: tokenData.expires_in * 1000,
  });
    
-   res.cookie("x_refresh_token", tokenJson.refresh_toke,  {
+   res.cookie("x_refresh_token", tokenData.refresh_toke,  {
    httpOnly: true,
-   secure: isProduction,
+   secure: true,
    sameSite: "lax",
+   maxAge: 30 * 24 * 60 * 60 * 1000,
    });
    
-   res.cookie("x_toke_expires_at", Date.now() + tokenJson.expires_in * 1000,  {
-   httpOnly: true,
-   secure: isProduction,
-   sameSite: "lax",
+   res.cookie("x_toke_expires_at", Date.now() + tokenData.expires_in * 1000,  {  
+     httpOnly: true, 
+     secure: true,
+     sameSite: "lax",
+     maxAge: tokenData.expires_in * 1000,
  });
 
 await supabase
