@@ -261,7 +261,7 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
     const includeHidden = req.query.includeHidden === "true";
 
     const visiblePosts = nextPosts.filter((post) => {
-      if (includeHidden) return ture;
+      if (includeHidden) return true;
       return post.hidden !== true;
     });
 
@@ -277,7 +277,7 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
   } catch (error) {
     console.error("archive visibility error:", error);
     return res.status(500).json({
-      message: "archive visibility error:"
+      message: "archive visibility error:",
       error: String(error),
     });
   }
