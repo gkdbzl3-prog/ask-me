@@ -41,33 +41,43 @@ function mapXPostsToRawPosts(xData,xIncludes, username = "") {
 function buildHashtagGroups(rawPosts) {
  const hashtagMap = {};
 
- rawPosts.forEach((post) => {
-  const text = post?.text || "";
-  const matches = text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
+  rawPosts.forEach((post) => {
+    const text = post?.text || "";
+    const matches = text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
+    const hasImages = Array.isArray(post.images) && post.images.length > 0;
+    if (!hasImages || matches.length === 0) return;
 
     matches.forEach((tag) => {
-      const cleanTag = tag.replace("#","");
+      const cleanTag = tag.replace("#", "");
 
       if (!hashtagMap[cleanTag]) {
         hashtagMap[cleanTag] = {
           hashtag: cleanTag,
+          tag: `#${cleanTag}`,
           count: 0,
           images: [],
           postUrls: [],
+          posts: [],
         };
       }
 
       hashtagMap[cleanTag].count += 1;
+      hashtagMap[cleanTag].images.push(...post.images);
 
-      if (Array.isArray(post.images)) {
-        hashtagMap[cleanTag].images.push(...post.images);
-      }
 
       if (post.postUrl) {
         hashtagMap[cleanTag].postUrls.push(post.postUrl);
       }
+
+      hashtagMap[cleanTag].posts.push({
+        id: post.id,
+        text: post.text || "",
+        images: post.images || [],
+        postUrl: post.postUrl || "#",
+        hidden: post.hidden === true,
+      });
     });
- });
+  });
 
   return Object.values(hashtagMap)
     .map((item) => ({
@@ -79,10 +89,12 @@ function buildHashtagGroups(rawPosts) {
 }
 
 
+
 router.get("/hashtags", async (req, res) => {
   try {
     const ownerId = req.query.ownerId || "";
     const username = req.query.username || "";
+    const includeHidden = req.query.includeHidden === "true";
 
     if (!ownerId || !username) {
       return res.status(400).json({
@@ -90,7 +102,11 @@ router.get("/hashtags", async (req, res) => {
       });
     }
  
-    const rawPosts = loadArchivePosts();
+    const rawPosts = loadArchivePosts().filter((post) => {
+      if (includeHidden) return true;
+      return post.hidden !== true;
+    });
+    
     const groupedHashtags = buildHashtagGroups(rawPosts);
 
     return res.json({
@@ -182,6 +198,10 @@ router.post("/sync", async (req, res) => {
       text: post.text,
       imageCount: post.images.length,
       images: post.images,
+      postUrl: post.postUrl,
+      hidden: false,
+      savedAt: "...",
+      updatedAt:"..."
     }))
   );
   
@@ -209,7 +229,59 @@ router.post("/sync", async (req, res) => {
 }
 });
   
+router.patch("/posts/:postId/visibility", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const hidden = !!req.body.hidden === true;
 
+    const posts = loadArchivePosts();
+
+    let found = false;
+
+    const nextPosts = posts.map((post) => {
+      if (post.id !== postId) return post;
+      
+      found = true;
+      
+      return {
+        ...post,
+        hidden,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    if (!found) {
+      return res.status(404).json({
+        message: "archive post 없음",
+        postId,
+      });
+    }
+  
+    saveArchivePosts(nextPosts);
+    const includeHidden = req.query.includeHidden === "true";
+
+    const visiblePosts = nextPosts.filter((post) => {
+      if (includeHidden) return ture;
+      return post.hidden !== true;
+    });
+
+    const groupedHashtags = buildHashtagGroups(visiblePosts);
+
+    return res.json({
+      ok: true,
+      postId,
+      hidden,
+      rawPostCount: visiblePosts.length,
+      hashtags: groupedHashtags,
+    });
+  } catch (error) {
+    console.error("archive visibility error:", error);
+    return res.status(500).json({
+      message: "archive visibility error:"
+      error: String(error),
+    });
+  }
+});
 
 
 

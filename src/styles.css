@@ -1850,9 +1850,29 @@ align-items: center;
 }
 
 .archive-image-wrap {
+  position: relative;
  overflow: hidden;
  border-radius: 12px;
  background: rgba(255,255,255,0.35);
+}
+
+.archive-image-wrap.is-hidden {
+  opacity: 0.42;
+  filter: grayscale(0.4);
+}
+
+.archive-hide-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  border: 0;
+  border-radius: 20px;
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.82);
+  color: rgba(92,62,150,0.9);
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
 }
 
 .archive-image-wrap img {

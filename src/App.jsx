@@ -20,7 +20,8 @@ function App() {
    localStorage.getItem("profileImage") || "");
   const [mobileTab, setMobileTab] = useState("chat");
   const [devViewMode, setDevViewMode] = useState("guest");
-  const connectedXId = localStorage.getItem("connectedXId") || "";
+  const [connectedXId, setConnectedXid] = useState("idmulluhaeyadae");
+  const [connectedXUserId, setConnectedXUserId] = useState("1324178327326748672");
   const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [currentAuthUserId, setCurrentAuthUserId] = useState("");
@@ -55,6 +56,10 @@ function App() {
   const [removedExistingFileUrls, setRemovedExistingFileUrls] = useState([]);
   const answerInputRef = useRef(null);
   const replyEditorRef = useRef(null);
+  const [archivePosts, setArchivePosts] = useState([]);
+  const [archiveSource, setArchiveSource] = useState("");
+
+ 
   const SAMPLE_QUESTIONS = [
   {
     id: "q1",
@@ -375,7 +380,12 @@ function getQuestionPreview(question) {
  return "(내용없음)";
 }
 
- function ArchiveGallery({posts, source}) {
+  function ArchiveGallery({
+    posts,
+    source,
+    viewMode,
+    onToggleVisibility,
+  }) {
 
   return (
     <section className="archive-box">
@@ -387,31 +397,57 @@ function getQuestionPreview(question) {
     </div>
 
      <div className="archive-grid">
-      {posts.map((group) => (
+        {posts.map((group) => {
+        const archiveImages =
+            group.posts
+              ?.flatMap((post) =>
+                (post.images || []).map((image, imageIndex) => ({
+                  post,
+                  images,
+                  imageIndex,
+        }))
+      )
+        .slice(0, 4) || [];
+
+        return (
         <div key={group.hashtag} className="archive-card">
          <div className="archive-head">
           <p className="archive-hashtag">#{group.hashtag}</p>
           <span className="archive-count">총{group.count}개</span>
          </div>
 
-        <div className={`archive-images image-count-${Math.min(group.images.length, 4)}`}
-          >
-          {group.images.slice(0, 4).map((image,imageIndex) => (
-            <div className="archive-image-wrap"
-            key={`${group.hashtag}-${imageIndex}`}>
-              <img src={image} alt={`archive-${group.hashtag}-${imageIndex}`} />
-            </div>
-          ))}
+        <div className={`archive-images image-count-${Math.min(archiveImages.length, 4)}`}>
+            {archiveImages.map(({ post, image, imageIndex }) => (
+              <div
+                className={`archive-image-wrap ${post.hidden ? "is-hidden" : ""}`}
+                key={`${post.id}-${imageIndex}`}>
+                <img
+                  src={image}
+                  alt={post.text || `archive-${group.hashtag}`}
+                />
+
+                {viewMode === "owner" && imageIndex === 0 && (
+                  <button
+                    type="button"
+                    className="archive-hide-btn"
+                    onClick={() =>
+                      onToggleVisibility(post.id, !post.hidden)
+                    }
+                  >
+                    {post.hidden ? "show" : "hide"}
+                  </button>
+                )}
+              </div>
+            ))}
         </div>
       </div>
-      ))}
+        );
+      })}
       </div>
     </section>
   );
  }
 
-const [archivePosts, setArchivePosts] = useState([]);
-const [archiveSource, setArchiveSource] = useState("");
 
 function getRecentAnswerText(questionCards) {
  const answeredCards = Array.isArray(questionCards)
@@ -796,6 +832,54 @@ function getRecentAnswerText(questionCards) {
     setRemovedExistingFileUrls([]);
   }
 
+    async function loadArchiveHashtags() {
+      if (!connectedXUserId || !connectedXId) return;
+      
+      const params = new URLSearchParams({
+          ownerId: connectedXUserId,
+          username: connectedXId,
+        });
+
+        if (viewMode === "owner") {
+          params.set("includeHidden", "true");
+      }
+      
+      const res = await fetch(`/archive/hashtags?${params.toString()}`);
+      
+      if (!res.ok) {
+        console.error("archive load failed:", await res.text());
+        return;
+      }
+        const data = await res.json();
+
+            setArchiveGroups(data.hashtags || []);
+          setArchiveSource(data.source || "");
+  }
+
+  async function toggleArchivePostVisibility(postId, hidden) {
+    const res = await fetch(
+      `/archive/posts/${encodeURIComponent(postId)}/visibility?includeHidden=true`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "appiication/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ hidden }),
+      }
+    );
+
+    if (!res.ok) {
+      console.error("archive visibility failed:", await res.text());
+      return;
+    }
+
+    await loadArchiveHashtags();
+  }
+
+
+
+
 
 
   useEffect(() => {
@@ -841,27 +925,11 @@ if (!authId || !uuidRegex.test(authId)) {
     setCurrentAuthUserId(authId);
   }, []);
 
+  useEffect(() => {
+    loadArchiveHashtags();
+  }, [connectedXUserId, connectedXId, viewMode]);
 
-
-useEffect(() => {
-  const loadArchiveHashtags = async () => {
-    try {
-      const connectedXUserId = localStorage.getItem("connectedXUserId") || "";
-
-      const res = await fetch(
-        `/archive/hashtags?ownerId=${encodeURIComponent(connectedXUserId)}&username=${encodeURIComponent(connectedXId)}`
-      );
-
-      const data = await res.json();
-      setArchivePosts(data.hashtags || []);
-      setArchiveSource(data.source || "");
-      } catch (error) {
-        console.error("아카이브 불러오기 실패", error);
-      }
-    };
-
-  loadArchiveHashtags();
-    },[]);
+ 
 
 
 useEffect(() => {
@@ -1537,7 +1605,11 @@ return (
 </main>
 
  <aside className="archive-panel">
-  <ArchiveGallery posts={archivePosts} source={archiveSource} />
+          <ArchiveGallery
+            posts={archivePosts}
+            source={archiveSource}
+            viewMode={viewMode}
+            onToggleVisibility={toggleArchivePostVisibiliy} />
  </aside>
  </div>
 </div>
