@@ -35,7 +35,7 @@ export function loadArchivePosts() {
     try {
         const raw = fs.readFileSync(archiveFilePath, "utf-8");
 
-        ir(!raw.trim()) {
+        if(!raw.trim()) {
             saveArchivePosts([]);
             return [];
         }
