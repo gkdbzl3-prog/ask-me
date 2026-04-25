@@ -11,23 +11,46 @@ function ensureArchiveFile() {
     }
 
     if (!fs.existsSync(archiveFilePath)) {
-        fs.writeFileSync(archiveFilePath, JSON.stringify({ posts: [] }, null, 2));
+        fs.writeFileSync(archiveFilePath, JSON.stringify({ posts: [] }, null, 2),
+            "utf-8"
+        );
+        return;
+    }
+    
+    const raw = fs.readFileSync(archiveFilePath, "utf-8");
+
+    if (!raw.trim()) {
+        fs.writeFileSync(
+            archiveFilePath,
+            JSON.stringify({ pots: [] }, null, 2),
+            "utf-8"
+        );
     }
 }
+
 
 export function loadArchivePosts() {
     ensureArchiveFile();
 
     try {
         const raw = fs.readFileSync(archiveFilePath, "utf-8");
-        const parsed = JSON.parse(raw);
 
+        ir(!raw.trim()) {
+            saveArchivePosts([]);
+            return [];
+        }
+
+        const parsed = JSON.parse(raw);
         return Array.isArray(parsed.posts) ? parsed.posts : [];
     } catch (error) {
         console.error("loadArchivePosts error:", error);
+
+        saveArchivePosts([]);
+
         return [];
     }
 }
+
 
 export function saveArchivePosts(posts) {
     ensureArchiveFile();
