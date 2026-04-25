@@ -852,8 +852,9 @@ function getRecentAnswerText(questionCards) {
       }
         const data = await res.json();
 
-            setArchiveGroups(data.hashtags || []);
-          setArchiveSource(data.source || "");
+       
+      setArchivePosts(data.hashtags || []);    
+      setArchiveSource(data.source || "");
   }
 
   async function toggleArchivePostVisibility(postId, hidden) {
