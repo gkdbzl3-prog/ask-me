@@ -2,7 +2,7 @@ import express from "express";
 import {
   loadArchivePosts,
   saveArchivePosts,
-  mergeArchivePosts,
+  updateArchivePostVisibility
 } from "../data/archiveStore.js";
 
 const router = express.Router();
@@ -102,17 +102,13 @@ router.get("/hashtags", async (req, res) => {
       });
     }
  
-    const rawPosts = loadArchivePosts().filter((post) => {
-      if (includeHidden) return true;
-      return post.hidden !== true;
-    });
-    
+    const rawPosts = await loadArchivePosts(ownerId, includeHidden);
     const groupedHashtags = buildHashtagGroups(rawPosts);
 
     return res.json({
       ownerId,
       username,
-      source: "db",
+      source: "supabase",
       rawPostCount: rawPosts.length,
       hashtags: groupedHashtags,
     });
@@ -205,8 +201,9 @@ router.post("/sync", async (req, res) => {
     }))
   );
   
-
-  const groupedHshtags = buildHashtagGroups(archivePosts);
+    const savedRows = await saveArchivePosts(ownerId, username, archivePosts);
+    const rawPostsFromDb = await loadArchivePosts(ownerId, true);
+    const groupedHashtags = buildHashtagGroups(rawPostsFromDb);
 
   return res.json({
     ok: true,
@@ -215,8 +212,9 @@ router.post("/sync", async (req, res) => {
     username,
     fetchedCount: rawPosts.length,
     savedCandidateCount: archivePosts.length,
-    totalSavedCount: mergedPosts.length,
-    hashtags: groupedHshtags,
+    totalSavedCount: rawPostsFromDb.length,
+    savedRowsCount: savedRows.length,
+    hashtags: groupedHashtags,
   });
 
 } catch (error) {
@@ -233,55 +231,38 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
   try {
     const { postId } = req.params;
     const hidden = req.body.hidden === true;
-
-    const posts = loadArchivePosts();
-
-    let found = false;
-
-    const nextPosts = posts.map((post) => {
-      if (post.id !== postId) return post;
-      
-      found = true;
-      
-      return {
-        ...post,
-        hidden,
-        updatedAt: new Date().toISOString(),
-      };
-    });
-
-    if (!found) {
-      return res.status(404).json({
-        message: "archive post 없음",
-        postId,
-      });
-    }
-  
-    saveArchivePosts(nextPosts);
+    const ownerId = req.query.ownerId || "";
+    const username = req.query.username || "";
     const includeHidden = req.query.includeHidden === "true";
 
-    const visiblePosts = nextPosts.filter((post) => {
-      if (includeHidden) return true;
-      return post.hidden !== true;
-    });
+    if (!ownerId || !username) {
+      return res.status(400).json({
+        message: "ownerId 또는 username 없음",
+      });
+    }
 
-    const groupedHashtags = buildHashtagGroups(visiblePosts);
+    const updatedPost = await updateArchivePostVisibility(postId, hidden);
+    const rawPosts = await loadArchivePosts(ownerId, includeHidden);
+    const groupedHshtags = buildHashtagGroups(rawPosts);
 
     return res.json({
       ok: true,
       postId,
       hidden,
-      rawPostCount: visiblePosts.length,
+      updatedPost,
+      rawPostCount: rawPosts, length,
       hashtags: groupedHashtags,
     });
   } catch (error) {
     console.error("archive visibility error:", error);
+
     return res.status(500).json({
-      message: "archive visibility error:",
+      message: "archive visibility error",
       error: String(error),
     });
   }
 });
+
 
 
 

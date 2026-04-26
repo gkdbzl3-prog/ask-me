@@ -1,86 +1,99 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 
-const archiveFilePath = path.join(process.cwd(), "data", "archive.json");
 
-function ensureArchiveFile() {
-    const dir = path.dirname(archiveFilePath);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-
-    if (!fs.existsSync(archiveFilePath)) {
-        fs.writeFileSync(archiveFilePath, JSON.stringify({ posts: [] }, null, 2),
-            "utf-8"
-        );
-        return;
-    }
-    
-    const raw = fs.readFileSync(archiveFilePath, "utf-8");
-
-    if (!raw.trim()) {
-        fs.writeFileSync(
-            archiveFilePath,
-            JSON.stringify({ pots: [] }, null, 2),
-            "utf-8"
-        );
-    }
+if (!supabaseUrl || !supabaseServiceRoldKey) {
+    console.warn("Supabase env missing: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
 }
 
+export const supabase = createClient(
+    supabaseUrl,
+    supabaseServiceKey,
+    {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+    }
+);
 
-export function loadArchivePosts() {
-    ensureArchiveFile();
+export async function loadArchivePosts(ownerId, includeHidden = false) {
+    let query = supabase
+        .from("archive_posts")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .order("saved_at", { ascending: false });
 
-    try {
-        const raw = fs.readFileSync(archiveFilePath, "utf-8");
+    if (!includeHidden) {
+        query = query.neq("hidden", true);
+    }
 
-        if(!raw.trim()) {
-            saveArchivePosts([]);
-            return [];
-        }
+    const { data, error } = await query;
 
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed.posts) ? parsed.posts : [];
-    } catch (error) {
-        console.error("loadArchivePosts error:", error);
-
-        saveArchivePosts([]);
-
+    if (error) {
+        console.error("loadArchivePosts supabase error:", error);
         return [];
     }
+
+    return (data || []).map((row) => ({
+        id: row.id,
+        ownerId: row.owner_id,
+        username: row.username,
+        text: row.text || "",
+        images: row.images || [],
+        postUrl: row.post_url || "#",
+        hidden: row.hidden === true,
+        createdAt: row.created_at,
+        savedAt: row.saved_at,
+        updatedAt: row.updated_at,
+    }));
 }
 
+export async function saveArchivePosts(ownerId, username, posts) {
+    const rows = posts.map((post) => ({
+        id: post.id,
+        owner_id: ownerId,
+        username,
+        text: post.text || "",
+        images: post.images || [],
+        post_url: post.postUrl || "#",
+        hidden: post.hidden === true,
+        created_at: post.createdAt || null,
+        updated_at: new Date().toISOString(),
+    }));
 
-export function saveArchivePosts(posts) {
-    ensureArchiveFile();
+    if (rows.length === 0) return [];
 
-    fs.writeFileSync(
-        archiveFilePath,
-        JSON.stringify({ posts }, null, 2),
-        "utf-8"
-    );
+    const { data, error } = await supabase
+        .from("archive_posts")
+        .upsert(rows, { onConflict: "id" })
+        .select();
+    
+    if (error) {
+        console.error("ssaveArchivePosts supabase error:", error);
+        throw error;
+    }
+
+    return data || [];
 }
 
-export function mergeArchivePosts(oldPosts, newPosts) {
-    const map = new Map();
-
-    for (const post of oldPosts) {
-        if (!post.id, post);
+export async function updateArchivePostVisibility(postId, hidden) {
+    const { data, error } = await supabase
+        .from("archive_posts")
+        .update({
+            hidden,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", postId)
+        .select()
+        .single();
+    
+    if (error) {
+        console.error("updateArchivePostVisibility supabase error:", error);
+        throw error;
     }
 
-    for (const post of newPosts) {
-        if (!post?.id) continue;
-
-        map.set(post.id, {
-            ...map.get(post.id),
-            ...post,
-            savedAt: map.get(post.id)?.savedAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        });
-    }
-
-    return [...map.values()].sort((a, b) => {
-        return String(b.id).localeCompare(String(a.id));
-    });
+    return data;
 }

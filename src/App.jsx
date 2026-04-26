@@ -836,15 +836,21 @@ function getRecentAnswerText(questionCards) {
       if (!connectedXUserId || !connectedXId) return;
       
       const params = new URLSearchParams({
-          ownerId: connectedXUserId,
-          username: connectedXId,
+        ownerId: connectedXUserId,      
+        username: connectedXId,        
+        includeHidden: "true",
         });
 
-        if (viewMode === "owner") {
-          params.set("includeHidden", "true");
-      }
-      
-      const res = await fetch(`/archive/hashtags?${params.toString()}`);
+      const res = await fetch(`/archive/posts/${encodeURIComponent(postId)}/visibility?${params.toString()}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSPM.stringify({ hidden }),
+        }
+      );
       
       if (!res.ok) {
         console.error("archive load failed:", await res.text());
