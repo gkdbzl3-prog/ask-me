@@ -181,7 +181,7 @@ router.post("/sync", async (req, res) => {
   });
     
     const oldPosts = loadArchivePosts();
-    
+
   console.log(
     "sync archivePosts:",
     archivePosts.map((post) => ({
@@ -237,15 +237,15 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
     }
 
     const updatedPost = await updateArchivePostVisibility(postId, hidden);
-    const rawPosts = await loadArchivePosts(ownerId, includeHidden);
-    const groupedHshtags = buildHashtagGroups(rawPosts);
+    const postsForResponse = await loadArchivePosts(ownerId, includeHidden);
+    const groupedHashtags = buildHashtagGroups(postsForResponse);
 
     return res.json({
       ok: true,
       postId,
       hidden,
       updatedPost,
-      rawPostCount: rawPosts, length,
+      rawPostCount: postsForResponse, length,
       hashtags: groupedHashtags,
     });
   } catch (error) {
