@@ -2,7 +2,7 @@ import express from "express";
 import {
   loadArchivePosts,
   saveArchivePosts,
-  updateArchivePostVisibility
+  updateArchivePostVisibility,
 } from "../data/archiveStore.js";
 
 const router = express.Router();
@@ -53,7 +53,6 @@ function buildHashtagGroups(rawPosts) {
       if (!hashtagMap[cleanTag]) {
         hashtagMap[cleanTag] = {
           hashtag: cleanTag,
-          tag: `#${cleanTag}`,
           count: 0,
           images: [],
           postUrls: [],

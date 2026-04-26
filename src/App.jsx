@@ -403,7 +403,7 @@ function getQuestionPreview(question) {
               ?.flatMap((post) =>
                 (post.images || []).map((image, imageIndex) => ({
                   post,
-                  images,
+                  image,
                   imageIndex,
         }))
       )
@@ -417,7 +417,8 @@ function getQuestionPreview(question) {
          </div>
 
         <div className={`archive-images image-count-${Math.min(archiveImages.length, 4)}`}>
-            {archiveImages.map(({ post, image, imageIndex }) => (
+              {archiveImages.map(({ post, image, imageIndex }) => (
+              console.log("archive post:", post);                
               <div
                 className={`archive-image-wrap ${post.hidden ? "is-hidden" : ""}`}
                 key={`${post.id}-${imageIndex}`}>
@@ -864,8 +865,19 @@ function getRecentAnswerText(questionCards) {
   }
 
   async function toggleArchivePostVisibility(postId, hidden) {
+    if (!postId) {
+      console.error("postId 없음", { postId, hidden })
+      return;
+    }
+
+    const params = new URLSearchAParams({
+      ownerId: connectedXUserId,
+      username: connectedXId,
+      includeHidden: "true",
+    });
+
     const res = await fetch(
-      `/archive/posts/${encodeURIComponent(postId)}/visibility?includeHidden=true`,
+      `/archive/posts/${encodeURIComponent(postId)}/visibility?${params.toString()}`,
       {
         method: "PATCH",
         headers: {
