@@ -181,12 +181,7 @@ router.post("/sync", async (req, res) => {
   });
     
     const oldPosts = loadArchivePosts();
-    const mergedPosts = mergeArchivePosts(oldPosts, archivePosts);
-
-    saveArchivePosts(mergedPosts);
-
-    const groupedHashtags = buildHashtagGroups(mergedPosts);
-
+    
   console.log(
     "sync archivePosts:",
     archivePosts.map((post) => ({
