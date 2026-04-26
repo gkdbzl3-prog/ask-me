@@ -244,7 +244,7 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
       postId,
       hidden,
       updatedPost,
-      rawPostCount: postsForResponse, length,
+      rawPostCount: postsForResponse.length,
       hashtags: groupedHashtags,
     });
   } catch (error) {

@@ -417,29 +417,32 @@ function getQuestionPreview(question) {
          </div>
 
         <div className={`archive-images image-count-${Math.min(archiveImages.length, 4)}`}>
-              {archiveImages.map(({ post, image, imageIndex }) => (
-              console.log("archive post:", post);                
-              <div
-                className={`archive-image-wrap ${post.hidden ? "is-hidden" : ""}`}
-                key={`${post.id}-${imageIndex}`}>
-                <img
-                  src={image}
-                  alt={post.text || `archive-${group.hashtag}`}
-                />
+              {archiveImages.map(({ post, image, imageIndex }) => {
+                console.log("archive post:", post);
+                
+                return (
+                  <div
+                    className={`archive-image-wrap ${post.hidden ? "is-hidden" : ""}`}
+                    key={`${post.id}-${imageIndex}`}>
+                    <img
+                      src={image}
+                      alt={post.text || `archive-${group.hashtag}`}
+                    />
 
-                {viewMode === "owner" && imageIndex === 0 && (
-                  <button
-                    type="button"
-                    className="archive-hide-btn"
-                    onClick={() =>
-                      onToggleVisibility(post.id, !post.hidden)
-                    }
-                  >
-                    {post.hidden ? "show" : "hide"}
-                  </button>
-                )}
-              </div>
-            ))}
+                    {viewMode === "owner" && imageIndex === 0 && (
+                      <button
+                        type="button"
+                        className="archive-hide-btn"
+                        onClick={() =>
+                          onToggleVisibility(post.id, !post.hidden)
+                        }
+                      >
+                        {post.hidden ? "show" : "hide"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
         </div>
       </div>
         );
@@ -865,7 +868,7 @@ function getRecentAnswerText(questionCards) {
       return;
     }
 
-    const params = new URLSearchAParams({
+    const params = new URLSearchParams({
       ownerId: connectedXUserId,
       username: connectedXId,
       includeHidden: "true",
