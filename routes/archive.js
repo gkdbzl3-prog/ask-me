@@ -140,8 +140,8 @@ router.post("/sync", async (req, res) => {
     });
   }
 
-    let rawPosts = [];
-        let allRawPosts = [];
+    let rawPosts = [];    
+    let allRawPosts = [];
     let paginationToken = null;
     let page = 0;
     const maxPages = 10;
@@ -155,11 +155,11 @@ router.post("/sync", async (req, res) => {
       });
 
       if (paginationToken) {
-        params.set("pagination_token", painationToken);
+        params.set("pagination_token", paginationToken);
       }
 
       const xRes = await fetch(
-      `https://api.x.com/2/usrs/${ownerId}/tweets?${params.toString()}`,
+      `https://api.x.com/2/users/${ownerId}/tweets?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -181,7 +181,7 @@ router.post("/sync", async (req, res) => {
         });
       }
 
-      allRawPosts.pusth(
+      allRawPosts.push(
         ...mapXPostsToRawPosts(xJson.data, xJson.includes, username)
       );
     

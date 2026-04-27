@@ -11,7 +11,12 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [bgUrl, setBgUrl] = useState(localStorage.getItem("bgUrl") || "");
   const pathParts = window.location.pathname.split("/");
-  const isLocalDev = import.meta.env.DEV;
+  const isLocalDev =
+    import.meta.env.DEV ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname.startsWith("192.168.");
+
   const routeUsername =
     pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
   const [replyTargetId, setReplyTargetId] = useState(null);
@@ -394,8 +399,10 @@ function getQuestionPreview(question) {
     <section className="archive-box">
      <div className="archive-title-row">
         <h3 className="archive-title">Archive</h3>
-        <div className="archive-title-actions">
-      {source ===  "mock" && (
+        
+          {(source === "mock" || viewMode === "owner") && (
+        <div className="archive-title-actions">  
+          {source === "mock" && (
         <p className="archive-source-badge">sample</p>
         )}
         
@@ -407,7 +414,8 @@ function getQuestionPreview(question) {
             {isArchiveEditing ? "완료" : "편집"}
           </button>
           )}
-          </div>
+        </div>
+          )}
     </div>
 
      <div className="archive-grid">
