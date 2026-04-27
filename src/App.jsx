@@ -451,49 +451,42 @@ function getQuestionPreview(question) {
           <span className="archive-count">총{group.count}개</span>
          </div>
 
-        <div className={`archive-images image-count-${Math.min(archiveImages.length, 10)}`}>
-              {archiveImages.map(({ post, image, imageIndex }) => {
-                console.log("archive post:", post);
-                
-                return (
-                  {
-                    archiveImages.map(({ post, image, imageIndex, isHiddoenTile }) => (
-                      <div
-                        className={`archive-image-wrap ${post.hidden ? "is-hidden is-cooapsed" : ""}`}
-                        key={`${post.id}-${imageIndex}`}
-                        onClick={() => {
-                          if (!post.hidden && post.postUrl) {
-                            window.open(post.postUrl, "_blank", "noopener,noreferrer");
-                          }
-                        }}>
-                        {post.hidden ? (
-                          <div className="archive-hidden-tile">
-                            <span>접기</span>
-                          </div>
-                        ) : (
-                          <img
-                            src={image}
-                            alt={post.text || `archive-${group.hashtag}`}
-                          />
-                        )}
-
-                        {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
-                          <button
-                            type="button"
-                            className="archive-hide-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onToggleVisibility(post.id, !post.hidden);
-                            }}
-                          >
-                            {post.hidden ? "show" : "hide"}
-                          </button>
-                        )}
-                      </div>
-                    ))
-                  }
-                );
-              })}
+        <div className={`archive-images image-count-${Math.min(archiveImages.length, 10)}`}>                  
+              {archiveImages.map(({ post, image, imageIndex, isHiddoenTile }) => (                    
+                <div                        
+                  className={`archive-image-wrap ${post.hidden ? "is-hidden is-cooapsed" : ""}`}                        
+                  key={`${post.id}-${imageIndex}`}                      
+                  onClick={() => {                          
+                    if (!post.hidden && post.postUrl) {                            
+                      window.open(post.postUrl, "_blank", "noopener,noreferrer");                          
+                    }                        
+                  }}>                        
+                  {post.hidden ? (
+                    <div className="archive-hidden-tile">
+                      <span>접기</span>
+                    </div>
+                  ) : (
+                      <img
+                        src={image}
+                        alt={post.text || `archive-${group.hashtag}`}
+                      />
+                  )}
+                  
+                  {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
+                    <button
+                      type="button"                    
+                      className="archive-hide-btn"                  
+                      onClick={(e) => {                    
+                        e.stopPropagation();                    
+                        onToggleVisibility(post.id, !post.hidden);                    
+                      }}                    
+                    >                    
+                      {post.hidden ? "show" : "hide"}                    
+                    </button>                                    
+                  )}                  
+                </div>                
+              ))                  
+              }
         </div>
       </div>
         );
