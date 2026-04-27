@@ -901,7 +901,7 @@ function getRecentAnswerText(questionCards) {
       {
         method: "PATCH",
         headers: {
-          "Content-Type": "appiication/json",
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({ hidden }),
@@ -1648,6 +1648,7 @@ return (
             posts={archivePosts}
             source={archiveSource}
             viewMode={viewMode}
+            isArchiveEditing={isArchiveEditing}
             onToggleEdit={() => setIsArchiveEditing((prev) => !prev)}
             onToggleVisibility={toggleArchivePostVisibility} />
  </aside>
