@@ -58,6 +58,7 @@ function App() {
   const replyEditorRef = useRef(null);
   const [archivePosts, setArchivePosts] = useState([]);
   const [archiveSource, setArchiveSource] = useState("");
+  const [isArchiveEditing, setIsArchiveEditing] = useState(false);
 
  
   const SAMPLE_QUESTIONS = [
@@ -384,16 +385,29 @@ function getQuestionPreview(question) {
     posts,
     source,
     viewMode,
+    isArchiveEditing,
+    onToggleEdit,
     onToggleVisibility,
   }) {
 
   return (
     <section className="archive-box">
      <div className="archive-title-row">
-      <h3 className="archive-title">Archive</h3>
+        <h3 className="archive-title">Archive</h3>
+        <div className="archive-title-actions">
       {source ===  "mock" && (
         <p className="archive-source-badge">sample</p>
-      )}
+        )}
+        
+        {viewMode === "owner" && (
+          <button
+            type="button"
+            className={`archive-edit-toggle ${isArchiveEditing ? "active" : ""}`}
+            onClick={onToggleEdit}>
+            {isArchiveEditing ? "완료" : "편집"}
+          </button>
+          )}
+          </div>
     </div>
 
      <div className="archive-grid">
@@ -429,7 +443,7 @@ function getQuestionPreview(question) {
                       alt={post.text || `archive-${group.hashtag}`}
                     />
 
-                    {viewMode === "owner" && imageIndex === 0 && (
+                    {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
                       <button
                         type="button"
                         className="archive-hide-btn"
@@ -1626,6 +1640,7 @@ return (
             posts={archivePosts}
             source={archiveSource}
             viewMode={viewMode}
+            onToggleEdit={() => setIsArchiveEditing((prev) => !prev)}
             onToggleVisibility={toggleArchivePostVisibility} />
  </aside>
  </div>

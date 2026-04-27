@@ -140,36 +140,57 @@ router.post("/sync", async (req, res) => {
     });
   }
 
-  let rawPosts = [];
+    let rawPosts = [];
+        let allRawPosts = [];
+    let paginationToken = null;
+    let page = 0;
+    const maxPages = 10;
 
-  const xRes = await fetch(
-    `https://api.x.com/2/users/${ownerId}/tweets?max_results=100&expansions=attachments.media_keys&tweet.fields=attachments,text&media.fields=url,type`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    }
-  );
+    do {
+      const params = new URLSearchParams({
+        max_results: "100";
+        expansions: "attachments.media_keys",
+        "tweet.fields": "attachments,text,created_at",
+        "media.fields": "url,type",
+      });
+
+      if (paginationToken) {
+        params.set("pagination_token", painationToken);
+      }
+
+      const xRes = await fetch(
+      `https://api.x.com/2/usrs/${ownerId}/tweets?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
   
 
-  console.log("sync xRes.ok:", xRes.ok, "status:", xRes.status);
+      console.log("sync xRes.ok:", xRes.ok, "status:", xRes.status);
 
-  const xJson = await xRes.json();
-  console.log("sync xJson:", JSON.stringify(xJson, null, 2));
+      const xJson = await xRes.json();
+      console.log("sync xJson:", JSON.stringify(xJson, null, 2));
 
 
-  if (!xRes.ok) {
-    return res.status(xRes.status).json({
-      message: "X API sync 실패",
-      error: xJson,
-    });
-  }
+      if (!xRes.ok) {
+        return res.status(xRes.status).json({
+          message: "X API sync 실패",
+          error: xJson,
+        });
+      }
 
-  rawPosts = mapXPostsToRawPosts(
-    xJson.data,
-    xJson.includes,
-    username
-  );
+      allRawPosts.pusth(
+        ...mapXPostsToRawPosts(xJson.data, xJson.includes, username)
+      );
+    
+      paginationToken = xJson.meta?.next_token || null;
+      page += 1;
+    } while (paginationToken && page < maxPages);
+
+    rawPosts = allRawPosts;
+
   
 
   const archivePosts = rawPosts.filter((post) => {
