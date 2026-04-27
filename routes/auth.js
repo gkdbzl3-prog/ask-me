@@ -130,25 +130,38 @@ router.get("/x/callback", async (req,res) => {
 
  res.cookie("x_access_token", tokenData.access_token, {
    httpOnly: true,
-   secure: true,
+   secure: isProduction,
    sameSite: "lax",
    maxAge: tokenData.expires_in * 1000,
  });
    
-   res.cookie("x_refresh_token", tokenData.refresh_toke,  {
-   httpOnly: true,
-   secure: true,
-   sameSite: "lax",
-   maxAge: 30 * 24 * 60 * 60 * 1000,
-   });
-   
-   res.cookie("x_toke_expires_at", Date.now() + tokenData.expires_in * 1000,  {  
-     httpOnly: true, 
-     secure: true,
-     sameSite: "lax",
-     maxAge: tokenData.expires_in * 1000,
- });
+   if (tokenData.refresh_token) {
+     res.cookie("x_refresh_token", tokenData.refresh_toke, {
+       httpOnly: true,
+       secure: isProduction,
+       sameSite: "lax",
+       path: "/",
+       maxAge: 30 * 24 * 60 * 60 * 1000,
+     });
+   }
 
+   res.cookie("x_toke_expires_at", (Date.now() + tokenData.expires_in * 1000),
+     {  
+       httpOnly: true, 
+       secure: isProduction,
+       sameSite: "lax",
+       path: "/",     
+       maxAge: tokenData.expires_in * 1000,
+     });
+   
+console.log("tokenData ok:", {
+  token_type: tokenData.token_type,
+  expires_in: tokenData.expires_in,
+  scope: tokenData.scope,
+  has_access_token: !!tokenData.access_token,
+  has_refresh_token: !!tokenData.refresh_token,
+});
+   
 await supabase
   .from("users")
   .update({ x_user_id: userData.data.id })

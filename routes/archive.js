@@ -123,16 +123,23 @@ router.get("/hashtags", async (req, res) => {
 });
 
 router.post("/sync", async (req, res) => {
+  
   try {
-  const ownerId = req.query.ownerId || req.body.ownerId || "";
-  const username = req.query.username || req.body.username || "";
-  const accessToken = req.cookies.x_access_token;
+    const ownerId = req.query.ownerId || req.body.ownerId || "";
+    const username = req.query.username || req.body.username || "";
+    const accessToken = req.cookies.x_access_token;
+    const refreshToken = req.cookies.x_refresh_token;
 
   if (!ownerId || !username) {
     return res.status(400).json({
       message: "ownerId 또는 username 없음",
     });
-  }
+    }
+    
+    if (!accessToken && refreshToken) {
+      accessToken = await refreshXAccessToken(refreshToken, res);
+    }
+  
 
   if (!accessToken) {
     return res.status(401).json({
@@ -145,6 +152,8 @@ router.post("/sync", async (req, res) => {
     let paginationToken = null;
     let page = 0;
     const maxPages = 32;
+
+
 
     do {
       const params = new URLSearchParams({
@@ -190,7 +199,14 @@ router.post("/sync", async (req, res) => {
     } while (paginationToken && page < maxPages);
 
     rawPosts = allRawPosts;
-
+    
+    const hashtagPosts = rawPosts.filter((post) =>
+      /#([A-Za-z09가-힣_]+)/g.test(post.text || "")
+    );
+    
+    const imagePosts = rawPosts.filter(
+      (post) => Array.isArray(post.images) && post.images.length > 0
+    );
   
 
   const archivePosts = rawPosts.filter((post) => {
@@ -226,12 +242,14 @@ router.post("/sync", async (req, res) => {
     ownerId,
     username,
     fetchedCount: rawPosts.length,
+    hashtagPostCount: hashtagPosts.length,
+    imagePostCount: imagePosts.length,
     savedCandidateCount: archivePosts.length,
     totalSavedCount: rawPostsFromDb.length,
     savedRowsCount: savedRows.length,
     hashtags: groupedHashtags,
   });
-
+console.log("sync page:", page + 1, "ok:", xRes.ok, "status:", xRes.status);
 } catch (error) {
   console.error("archive sync error:", error);
   
@@ -278,7 +296,60 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
   }
 });
 
+async function refreshXAccessToken(refreshToken, res) {
+  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-wwww-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh-token",
+      refresh_token: refreshToken,
+      client_id: process.env.X_CLIENT_ID,
+    }),
+  });
 
+  const tokenData = await tokenRes.json();
+
+  if (!tokenRes.ok) {
+    console.log("X refresh 실패:", toeknData);
+    return null;
+  }
+
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.cookie("x_access_token", tokenData.access_token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+    path: "/",
+    maxAge: tokenData.expires_in * 1000,
+  });
+
+  if (tokenData.refresh_token) {
+    res.cookie("x_refresh_token", tokenData.refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  res.cookie(
+    "x_token_expires_at",
+    String(Date.now() + tokenData.expires_in * 1000),
+    {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: tokenData.expires_in * 1000,
+    }
+  );
+
+  return tokenData.access_token;
+}
 
 
 export default router;
