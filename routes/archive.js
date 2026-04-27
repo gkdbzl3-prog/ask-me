@@ -148,7 +148,7 @@ router.post("/sync", async (req, res) => {
 
     do {
       const params = new URLSearchParams({
-        max_results: "100";
+        max_results: "100",
         expansions: "attachments.media_keys",
         "tweet.fields": "attachments,text,created_at",
         "media.fields": "url,type",
