@@ -211,7 +211,7 @@ router.post("/sync", async (req, res) => {
   
 
     const archivePosts = rawPosts.filter((post) => {
-      const text = typeof post.text === "string" ? post.text || "";
+      const text = post.text || "";
 
     const hasImages = Array.isArray(post.images) && post.images.length > 0;
       const hasHashtags = /#([A-Za-z0-9가-힣_]+)/g.test(text);
