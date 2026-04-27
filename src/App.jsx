@@ -420,16 +420,29 @@ function getQuestionPreview(question) {
 
      <div className="archive-grid">
         {posts.map((group) => {
-        const archiveImages =
+          const MAX_THUMBS = 10;
+          const archiveImages =
             group.posts
-              ?.flatMap((post) =>
-                (post.images || []).map((image, imageIndex) => ({
+              ?.flatMap((post) => {
+                if (post.hidden) {
+                  return [
+                    {
+                      post,
+                      image: post.images?.[0] || "",
+                      imageIndex: 0,
+                      isHiddenTile: true,
+                    },
+                  ];
+                }
+
+                return (post.images || []).map((image, imageIndex) => ({
                   post,
                   image,
                   imageIndex,
-        }))
-      )
-        .slice(0, 4) || [];
+                  isHiddenTile: false,
+                }));
+              })
+              .slice(0, MAX_THUMBS) || [];
 
         return (
         <div key={group.hashtag} className="archive-card">
@@ -438,31 +451,47 @@ function getQuestionPreview(question) {
           <span className="archive-count">총{group.count}개</span>
          </div>
 
-        <div className={`archive-images image-count-${Math.min(archiveImages.length, 4)}`}>
+        <div className={`archive-images image-count-${Math.min(archiveImages.length, 10)}`}>
               {archiveImages.map(({ post, image, imageIndex }) => {
                 console.log("archive post:", post);
                 
                 return (
-                  <div
-                    className={`archive-image-wrap ${post.hidden ? "is-hidden" : ""}`}
-                    key={`${post.id}-${imageIndex}`}>
-                    <img
-                      src={image}
-                      alt={post.text || `archive-${group.hashtag}`}
-                    />
+                  {
+                    archiveImages.map(({ post, image, imageIndex, isHiddoenTile }) => (
+                      <div
+                        className={`archive-image-wrap ${post.hidden ? "is-hidden is-cooapsed" : ""}`}
+                        key={`${post.id}-${imageIndex}`}
+                        onClick={() => {
+                          if (!post.hidden && post.postUrl) {
+                            window.open(post.postUrl, "_blank", "noopener,noreferrer");
+                          }
+                        }}>
+                        {post.hidden ? (
+                          <div className="archive-hidden-tile">
+                            <span>접기</span>
+                          </div>
+                        ) : (
+                          <img
+                            src={image}
+                            alt={post.text || `archive-${group.hashtag}`}
+                          />
+                        )}
 
-                    {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
-                      <button
-                        type="button"
-                        className="archive-hide-btn"
-                        onClick={() =>
-                          onToggleVisibility(post.id, !post.hidden)
-                        }
-                      >
-                        {post.hidden ? "show" : "hide"}
-                      </button>
-                    )}
-                  </div>
+                        {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
+                          <button
+                            type="button"
+                            className="archive-hide-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleVisibility(post.id, !post.hidden);
+                            }}
+                          >
+                            {post.hidden ? "show" : "hide"}
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  }
                 );
               })}
         </div>
@@ -890,6 +919,16 @@ function getRecentAnswerText(questionCards) {
       return;
     }
 
+    setArchivePosts((prev) =>
+      prev.map((group) => ({
+        ...group,
+        posts:
+          group.posts?.map((post) =>
+            post.id === postId ? { ...post, hidden } : post
+          ) || [],
+      }))
+    );
+
     const params = new URLSearchParams({
       ownerId: connectedXUserId,
       username: connectedXId,
@@ -910,6 +949,7 @@ function getRecentAnswerText(questionCards) {
 
     if (!res.ok) {
       console.error("archive visibility failed:", await res.text());
+      await loadArchiveHashtags();
       return;
     }
 

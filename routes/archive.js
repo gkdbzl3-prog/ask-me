@@ -158,6 +158,7 @@ router.post("/sync", async (req, res) => {
     do {
       const params = new URLSearchParams({
         max_results: "100",
+        exclude: "retweets.replies",
         expansions: "attachments.media_keys",
         "tweet.fields": "attachments,text,created_at",
         "media.fields": "url,type",
@@ -209,28 +210,20 @@ router.post("/sync", async (req, res) => {
     );
   
 
-  const archivePosts = rawPosts.filter((post) => {
-    const hasImages = Array.isArray(post.images) && post.images.length > 0;
-    const hasHashtags = /#([A-Za-z0-9가-힣_]+)/g.test(post.text || "");
+    const archivePosts = rawPosts.filter((post) => {
+      const text = typeof post.text === "string" ? post.text || "";
 
-    return hasImages && hasHashtags;
+    const hasImages = Array.isArray(post.images) && post.images.length > 0;
+      const hasHashtags = /#([A-Za-z0-9가-힣_]+)/g.test(text);
+
+      const isRetweet = text.startsWith("RT @");
+      const isReply = text.startsWith("@");
+
+      return hasImages && hasHashtags && !isRetweet && !isReply;
   });
     
     const oldPosts = loadArchivePosts();
 
-  console.log(
-    "sync archivePosts:",
-    archivePosts.map((post) => ({
-      id: post.id,
-      text: post.text,
-      imageCount: post.images.length,
-      images: post.images,
-      postUrl: post.postUrl,
-      hidden: false,
-      savedAt: "...",
-      updatedAt:"..."
-    }))
-  );
   
     const savedRows = await saveArchivePosts(ownerId, username, archivePosts);
     const rawPostsFromDb = await loadArchivePosts(ownerId, true);
