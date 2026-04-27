@@ -144,7 +144,7 @@ router.post("/sync", async (req, res) => {
     let allRawPosts = [];
     let paginationToken = null;
     let page = 0;
-    const maxPages = 10;
+    const maxPages = 32;
 
     do {
       const params = new URLSearchParams({
