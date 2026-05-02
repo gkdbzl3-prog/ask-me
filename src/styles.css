@@ -309,7 +309,7 @@ flex-direction: column;
  height: 52px;
  border:none;
  border-radius: 16px;
- background: #8f69e8ef;
+ background: var(--main);
  display: flex;
  align-items: center;
  justify-content: center;
@@ -1290,7 +1290,7 @@ border-radius: 14px;
 .profile-public {
  padding: clamp(18px, 2vw, 28px);
  border-radius: 28px;
- background: rgb(225 220 229 / 56%);
+ background: var(--card-bg);
  backdrop-filter: blur(18px);
  -webkit-backdrop-filter: blur(18px);
  position: relative;
@@ -1495,6 +1495,40 @@ align-items: center;
  margin: 0 0 12px;
  color: #3d2768;
 }
+
+.theme-purple {
+  --main: #8f69e8;
+  --main-soft: rgba(143,105,232,0.18);
+  --card-bg: rgba(225,220,229,0.56);
+}
+
+.theme-blue {
+  --main: #5b8def;
+  --main-soft: rgba(91,141,239,0.18);
+  --card-bg: rgba(220,230,245,0.58);
+}
+
+.theme-green {
+  --main: #5fbf9f;
+  --main-soft: rgba(95,191,159,0.18);
+  --card-bg: rgba(222,241,232,0.58);
+}
+
+.theme-pink {
+  --main: #e879b9;
+  --main-soft: rgba(232,121,185,0.18);
+  --card-bg: rgba(248,224,239,0.58);
+}
+
+.theme-yellow {
+  --main: #d7a928;;
+  --main-soft: rgba(215,169,40,0.18);
+  --card-bg: rgba(249,239,210,0.58);
+}
+
+
+
+
 
 .background-select-text {
  text-align: flex-start;
@@ -1794,7 +1828,7 @@ align-items: center;
 .archive-box {
  padding: 18px;
  border-radius: 24px;
- background: #e1dce5c9;
+ background: var(--card-bg);
  backdrop-filter: blur(16px);
  -webkit-backdrop-filter: blur(16px);
  box-shadow: 0 10px 28px rgba(94,74,155,0.1);
@@ -1830,8 +1864,8 @@ align-items: center;
   backdrop-filter: blur(8px);
 }
 
-.archive-dit-toggle.active {
-  background: rgba(160,116,230,0.18);
+.archive-edit-toggle.active {
+  background: var(--main-soft);;
   border-color: rgba(153, 118, 210, 0.38);
 }
 
@@ -2033,6 +2067,10 @@ grid-template-columns: repeat(2, minmax(0, 1fr));
 
 .archive-images.image-count-10 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.archive-images.image-count-1 {
+  grid-template-columns: 1fr;
 }
 
 .archive-images.image-count-3 .archive-image-wrap:first-child {

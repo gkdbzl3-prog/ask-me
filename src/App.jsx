@@ -16,7 +16,7 @@ function App() {
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1" ||
     window.location.hostname.startsWith("192.168.");
-
+  const [theme, setTheme] = useState("purple");
   const routeUsername =
     pathParts[1] === "u" ? decodeURIComponent(pathParts[2] || "") : "";
   const [replyTargetId, setReplyTargetId] = useState(null);
@@ -64,6 +64,21 @@ function App() {
   const [archivePosts, setArchivePosts] = useState([]);
   const [archiveSource, setArchiveSource] = useState("");
   const [isArchiveEditing, setIsArchiveEditing] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("notificationSettings")) || {
+        newQuestion: true,
+        newAnswer: true,
+        archiveSync: false,
+      };
+    } catch {
+      return {
+        newQuestion: true,
+        newAnswer: true,
+        archiveSync: false,
+      };
+    }
+  });
 
  
   const SAMPLE_QUESTIONS = [
@@ -421,24 +436,32 @@ function getQuestionPreview(question) {
      <div className="archive-grid">
         {posts.map((group) => {
           const MAX_THUMBS = 10;
-          const archiveImages =
+          const archiveMedia =
             group.posts
               ?.flatMap((post) => {
+                const items = post.media?.length
+                ? post.media
+                : (post.images || []).map((url) => ({
+                  type: "photo",
+                  url,
+                  previewUrl: url,
+                }));
+
                 if (post.hidden) {
                   return [
                     {
                       post,
-                      image: post.images?.[0] || "",
-                      imageIndex: 0,
+                      item: items[0] || null,
+                      mediaIndex: 0,
                       isHiddenTile: true,
                     },
                   ];
                 }
 
-                return (post.images || []).map((image, imageIndex) => ({
+                return items.map((item, mediaIndex) => ({
                   post,
-                  image,
-                  imageIndex,
+                  item,
+                  mediaIndex,
                   isHiddenTile: false,
                 }));
               })
@@ -466,10 +489,20 @@ function getQuestionPreview(question) {
                       <span>접기</span>
                     </div>
                   ) : (
+                    {item?.type === "video" || item?.type === "animated_gif" ? (
+                      <video
+                      src={item.url}
+                      poster={item.previewUrl}
+                      controls
+                      muted
+                      playsInline
+                      />
+                    ) : (
                       <img
-                        src={image}
+                        src={item?.url}
                         alt={post.text || `archive-${group.hashtag}`}
                       />
+                    )}
                   )}
                   
                   {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
@@ -951,8 +984,17 @@ function getRecentAnswerText(questionCards) {
 
 
 
+  useEffect(() => {
+    localStorage.setItem(
+      "notificationSettings",
+      JSON.stringify(notificationSettings)
+    );
+  }, [notificationSettings]);
 
 
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme])
 
   useEffect(() => {
     if (showImageZoom) {
@@ -1119,7 +1161,7 @@ return (
   <>
     
     
-  <div className="app"
+  <div className={`app theme-${theme}`}
     style={bgUrl ? { backgroundImage: `url(${bgUrl})`}:{}}> 
 
   <header className="top-bar">

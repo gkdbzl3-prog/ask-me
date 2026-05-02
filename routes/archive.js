@@ -21,22 +21,47 @@ function mapXPostsToRawPosts(xData,xIncludes, username = "") {
  return posts.map((post) => {
   const mediaKeys = post.attachments?.media_keys || [];
 
- const images = mediaKeys
+ const mediaItems = mediaKeys
   .map((key) => mediaMap.get(key))
   .filter(Boolean)
-  .filter((media) => media.type === "photo" && media.url)
-  .map((media) => media.url);
+  .map((media) => {
+    if (media.type === "photo") {     
+      return {
+        type: "photo",
+        url: media.url,
+        previewUrl: media.url,
+      };
+    }
 
- return {
-  id: post.id,
-  text: post.text || "",
-  images: [...new Set(images)].slice(0,8),
-  postUrl: username
+    if (media.type === "video" || media.type === "animated_gif") {
+      const mp4 = media.variants
+      ?.filter((v) => v.content_type === "video/mp4" && v.url)
+      ?.sort((a,b) => (b.bit_rate || 0) - (a.bit_rate || 0))[0];
+
+      return {
+        type: media.type,
+        url: mp4?.url || "",
+        previewUrl: media.preview_image_url || "",
+      };
+    }
+
+    return null;
+  })
+  .filter(Boolean);
+
+  return {    
+    id: post.id,
+    text: post.text || "",
+    media: mediaItems.slice(0,8),
+    images: mediaItems
+    .filter((item) => item.type === "photo")
+    .map((item) => item.url)
+    .slice(0,8),
+    postUrl: username
     ? `https://x.com/${username}/status/${post.id}`
     : `https://x.com/i/web/status/${post.id}`,
   };
- });
-}
+
 
 function buildHashtagGroups(rawPosts) {
  const hashtagMap = {};
@@ -161,7 +186,7 @@ router.post("/sync", async (req, res) => {
         exclude: "retweets.replies",
         expansions: "attachments.media_keys",
         "tweet.fields": "attachments,text,created_at",
-        "media.fields": "url,type",
+        "media.fields": "url,type.preview_image_url,variants,duration_ms,width,height",
       });
 
       if (paginationToken) {
@@ -213,13 +238,15 @@ router.post("/sync", async (req, res) => {
     const archivePosts = rawPosts.filter((post) => {
       const text = post.text || "";
 
-    const hasImages = Array.isArray(post.images) && post.images.length > 0;
+    const hasMedia =
+    Array.isArray(post.media) && post.media.length > 0;
+
       const hasHashtags = /#([A-Za-z0-9가-힣_]+)/g.test(text);
 
       const isRetweet = text.startsWith("RT @");
       const isReply = text.startsWith("@");
 
-      return hasImages && hasHashtags && !isRetweet && !isReply;
+      return hasMedia && hasHashtags && !isRetweet && !isReply;
   });
     
     const oldPosts = loadArchivePosts();

@@ -20,6 +20,10 @@ export default function ProfileHeader({
   routeUsername,
   setNickname,
   setProfileBio,
+  theme={theme},
+  setTheme={setTheme},
+  notificationSttings={notificationSettings}
+  setNotificationSettings={setNotificationSettings}
     }) {
 
 
@@ -31,7 +35,6 @@ const [link1, setLink1] = useState(
   localStorage.getItem("link1") || "");
 const [link2, setLink2] = useState(
   localStorage.getItem("link2") || "");
-const [theme, setTheme] = useState("purple");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [didInitAutoSave, setDidInitAutoSave] = useState(false);
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState("");
