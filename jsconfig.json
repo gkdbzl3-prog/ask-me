@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "jsx": "react-jsx",
+    "checkJs": true,
+    "strict": false
+  },
+  "include": ["src/**/*", "routes/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

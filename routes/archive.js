@@ -7,7 +7,7 @@ import {
 
 const router = express.Router();
 
-function mapXPostsToRawPosts(xData,xIncludes, username = "") {
+function mapXPostsToRawPosts(xData, xIncludes, username = "") {
   const mediaMap = new Map();
 
   if (Array.isArray(xIncludes?.media)) {
@@ -16,103 +16,125 @@ function mapXPostsToRawPosts(xData,xIncludes, username = "") {
     }
   }
 
- const posts = Array.isArray(xData) ? xData : [];
+  const posts = Array.isArray(xData) ? xData : [];
 
- return posts.map((post) => {
-  const mediaKeys = post.attachments?.media_keys || [];
+  return posts.map((post) => {
+    const mediaKeys = post.attachments?.media_keys || [];
 
- const mediaItems = mediaKeys
-  .map((key) => mediaMap.get(key))
-  .filter(Boolean)
-  .map((media) => {
-    if (media.type === "photo") {     
-      return {
-        type: "photo",
-        url: media.url,
-        previewUrl: media.url,
-      };
-    }
+    const mediaItems = mediaKeys
+      .map((key) => mediaMap.get(key))
+      .filter(Boolean)
+      .map((media) => {
+        if (media.type === "photo") {
+          return {
+            type: "photo",
+            url: media.url,
+            previewUrl: media.url,
+          };
+        }
 
-    if (media.type === "video" || media.type === "animated_gif") {
-      const mp4 = media.variants
-      ?.filter((v) => v.content_type === "video/mp4" && v.url)
-      ?.sort((a,b) => (b.bit_rate || 0) - (a.bit_rate || 0))[0];
+        if (media.type === "video" || media.type === "animated_gif") {
+          const mp4 = media.variants
+            ?.filter((v) => v.content_type === "video/mp4" && v.url)
+            ?.sort((a, b) => (b.bit_rate || 0) - (a.bit_rate || 0))[0];
 
-      return {
-        type: media.type,
-        url: mp4?.url || "",
-        previewUrl: media.preview_image_url || "",
-      };
-    }
+          return {
+            type: media.type,
+            url: mp4?.url || "",
+            previewUrl: media.preview_image_url || "",
+          };
+        }
 
-    return null;
-  })
-  .filter(Boolean);
+        return null;
+      })
+      .filter(Boolean)
+      .filter((item) => item.url || item.previewUrl);
 
-  return {    
-    id: post.id,
-    text: post.text || "",
-    media: mediaItems.slice(0,8),
-    images: mediaItems
-    .filter((item) => item.type === "photo")
-    .map((item) => item.url)
-    .slice(0,8),
-    postUrl: username
-    ? `https://x.com/${username}/status/${post.id}`
-    : `https://x.com/i/web/status/${post.id}`,
-  };
-
-
-function buildHashtagGroups(rawPosts) {
- const hashtagMap = {};
-
-  rawPosts.forEach((post) => {
-    const text = post?.text || "";
-    const matches = text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
-    const hasImages = Array.isArray(post.images) && post.images.length > 0;
-    if (!hasImages || matches.length === 0) return;
-
-    matches.forEach((tag) => {
-      const cleanTag = tag.replace("#", "");
-
-      if (!hashtagMap[cleanTag]) {
-        hashtagMap[cleanTag] = {
-          hashtag: cleanTag,
-          count: 0,
-          images: [],
-          postUrls: [],
-          posts: [],
-        };
-      }
-
-      hashtagMap[cleanTag].count += 1;
-      hashtagMap[cleanTag].images.push(...post.images);
-
-
-      if (post.postUrl) {
-        hashtagMap[cleanTag].postUrls.push(post.postUrl);
-      }
-
-      hashtagMap[cleanTag].posts.push({
-        id: post.id,
-        text: post.text || "",
-        images: post.images || [],
-        postUrl: post.postUrl || "#",
-        hidden: post.hidden === true,
-      });
-    });
+    return {
+      id: post.id,
+      text: post.text || "",
+      media: mediaItems.slice(0, 8),
+      images: mediaItems
+        .filter((item) => item.type === "photo")
+        .map((item) => item.url)
+        .slice(0, 8),
+      postUrl: username
+        ? `https://x.com/${username}/status/${post.id}`
+        : `https://x.com/i/web/status/${post.id}`,
+      createdAt: post.created_at || null,
+    };
   });
-
-  return Object.values(hashtagMap)
-    .map((item) => ({
-    ...item,
-    images: item.images.slice(0, 8),
-    postUrls: item.postUrls.slice(0, 8),
-    }))
-    .sort((a, b) => b.count - a.count);
 }
+  
+
+    function buildHashtagGroups(rawPosts) {
+      const hashtagMap = {};
+
+      rawPosts.forEach((post) => {
+        const text = post?.text || "";
+        const matches = text.match(/#([A-Za-z0-9가-힣_]+)/g) || [];
+
+        const media = post.media?.length
+          ? post.media
+          : (post.images || []).map((url) => ({
+            type: "photo",
+            url,
+            previewUrl: url,
+          }));
+        
+        const hasMedia = Array.isArray(media) && media.length > 0;
+
+        if (!hasMedia || matches.length === 0) return;
+
+        matches.forEach((tag) => {
+          const cleanTag = tag.replace("#", "");
+
+          if (!hashtagMap[cleanTag]) {
+            hashtagMap[cleanTag] = {
+              hashtag: cleanTag,
+              count: 0,
+              images: [],
+              media: [],
+              postUrls: [],
+              posts: [],
+            };
+          }
+
+          hashtagMap[cleanTag].count += 1;
+          hashtagMap[cleanTag].media.push(...media);
+          hashtagMap[cleanTag].images.push(
+            ...media
+              .filter((item) => item.type === "photo")
+              .map((item) => item.url)
+          );
 
 
+          if (post.postUrl) {
+            hashtagMap[cleanTag].postUrls.push(post.postUrl);
+          }
+
+          hashtagMap[cleanTag].posts.push({
+            id: post.id,
+            text: post.text || "",
+            media,
+            images: post.images || [],
+            postUrl: post.postUrl || "#",
+            hidden: post.hidden === true,
+          });
+        });
+      });
+
+      return Object.values(hashtagMap)
+        .map((item) => ({
+          ...item,
+          images: item.images.slice(0, 8),
+          media: item.media.slice(0, 8),
+          postUrls: item.postUrls.slice(0, 8),
+        }))
+        .sort((a, b) => b.count - a.count);
+    }
+
+  
 
 router.get("/hashtags", async (req, res) => {
   try {
@@ -152,7 +174,7 @@ router.post("/sync", async (req, res) => {
   try {
     const ownerId = req.query.ownerId || req.body.ownerId || "";
     const username = req.query.username || req.body.username || "";
-    const accessToken = req.cookies.x_access_token;
+    let accessToken = req.cookies.x_access_token;
     const refreshToken = req.cookies.x_refresh_token;
 
   if (!ownerId || !username) {
@@ -269,7 +291,6 @@ router.post("/sync", async (req, res) => {
     savedRowsCount: savedRows.length,
     hashtags: groupedHashtags,
   });
-console.log("sync page:", page + 1, "ok:", xRes.ok, "status:", xRes.status);
 } catch (error) {
   console.error("archive sync error:", error);
   
@@ -320,7 +341,7 @@ async function refreshXAccessToken(refreshToken, res) {
   const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-wwww-form-urlencoded",
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       grant_type: "refresh-token",

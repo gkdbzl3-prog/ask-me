@@ -136,7 +136,7 @@ router.get("/x/callback", async (req,res) => {
  });
    
    if (tokenData.refresh_token) {
-     res.cookie("x_refresh_token", tokenData.refresh_toke, {
+     res.cookie("x_refresh_token", tokenData.refresh_token, {
        httpOnly: true,
        secure: isProduction,
        sameSite: "lax",

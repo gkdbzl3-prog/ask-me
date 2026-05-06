@@ -3,6 +3,135 @@ import React, { useState, useEffect, useRef } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 
+function ArchiveGallery({
+    posts,
+    source,
+    viewMode,
+    isArchiveEditing,
+    onToggleEdit,
+    onToggleVisibility,
+  }) {
+
+  return (
+    <section className="archive-box">
+     <div className="archive-title-row">
+        <h3 className="archive-title">Archive</h3>
+
+          {(source === "mock" || viewMode === "owner") && (
+        <div className="archive-title-actions">
+          {source === "mock" && (
+        <p className="archive-source-badge">sample</p>
+        )}
+
+        {viewMode === "owner" && (
+          <button
+            type="button"
+            className={`archive-edit-toggle ${isArchiveEditing ? "active" : ""}`}
+            onClick={onToggleEdit}>
+            {isArchiveEditing ? "완료" : "편집"}
+          </button>
+          )}
+        </div>
+          )}
+    </div>
+
+     <div className="archive-grid">
+        {posts.map((group) => {
+          const MAX_THUMBS = 10;
+          const archiveMedia =
+            group.posts
+              ?.flatMap((post) => {
+                const items = post.media?.length
+                ? post.media
+                : (post.images || []).map((url) => ({
+                  type: "photo",
+                  url,
+                  previewUrl: url,
+                }));
+
+                if (post.hidden) {
+                  return [
+                    {
+                      post,
+                      item: items[0] || null,
+                      mediaIndex: 0,
+                      isHiddenTile: true,
+                    },
+                  ];
+                }
+
+                return items.map((item, mediaIndex) => ({
+                  post,
+                  item,
+                  mediaIndex,
+                  isHiddenTile: false,
+                }));
+              })
+              .slice(0, MAX_THUMBS) || [];
+
+        return (
+        <div key={group.hashtag} className="archive-card">
+         <div className="archive-head">
+          <p className="archive-hashtag">#{group.hashtag}</p>
+          <span className="archive-count">총{group.count}개</span>
+         </div>
+
+        <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
+              {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => (
+                <div
+                  className={`archive-image-wrap ${isHiddenTile ? "is-hidden is-collapsed" : ""
+                    }`}
+                  key={`${post.id}-${mediaIndex}`}
+                  onClick={() => {
+                    if (!isHiddenTile && post.postUrl) {
+                      window.open(post.postUrl, "_blank", "noopener,noreferrer");
+                    }
+                  }}>
+                  {isHiddenTile ? (
+                    <div className="archive-hidden-tile">
+                      <span>접기</span>
+                    </div>
+                  ) :
+                    item?.type === "video" || item?.type === "animated_gif" ? (
+                      <video
+                        src={item.url}
+                        poster={item.previewUrl}
+                        controls
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <img
+                        src={item?.url}
+                        alt={post.text || `archive-${group.hashtag}`}
+                      />
+                    )}
+
+
+                  {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
+                    <button
+                      type="button"
+                      className="archive-hide-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleVisibility(post.id, !post.hidden);
+                      }}
+                    >
+                      {post.hidden ? "show" : "hide"}
+                    </button>
+                  )}
+                </div>
+              ))}
+
+        </div>
+      </div>
+        );
+      })}
+      </div>
+    </section>
+  );
+ }
+
 function App() {
   const [input, setInput] = useState("");
   const [nickname, setNickname] = useState("날");
@@ -29,7 +158,6 @@ function App() {
   const [connectedXUserId, setConnectedXUserId] = useState("1324178327326748672");
   const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
-  const [currentAuthUserId, setCurrentAuthUserId] = useState("");
   const [questionCards, setQuestionCards] = useState([]);
   const [debugLogs, setDebugLogs] = useState([]);
   const questionDraftKey = `questionDraft:${routeUsername}`;
@@ -64,6 +192,7 @@ function App() {
   const [archivePosts, setArchivePosts] = useState([]);
   const [archiveSource, setArchiveSource] = useState("");
   const [isArchiveEditing, setIsArchiveEditing] = useState(false);
+  const [justEditedAnswerId, setJustEditedAnswerId] = useState(null);
   const [notificationSettings, setNotificationSettings] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("notificationSettings")) || {
@@ -118,8 +247,8 @@ function App() {
 ];
 
 
-
- const replyTargetCard = questionCards.find((card) => 
+  const activeQuestionCards = routeUsername ? questionCards : SAMPLE_QUESTIONS;
+  const replyTargetCard = questionCards.find((card) => 
             card.id === replyTargetId);
 
   async function uploadImageToStorage(file, folder = "question-files") {
@@ -401,136 +530,17 @@ function getQuestionPreview(question) {
  return "(내용없음)";
 }
 
-  function ArchiveGallery({
-    posts,
-    source,
-    viewMode,
-    isArchiveEditing,
-    onToggleEdit,
-    onToggleVisibility,
-  }) {
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
-  return (
-    <section className="archive-box">
-     <div className="archive-title-row">
-        <h3 className="archive-title">Archive</h3>
-        
-          {(source === "mock" || viewMode === "owner") && (
-        <div className="archive-title-actions">  
-          {source === "mock" && (
-        <p className="archive-source-badge">sample</p>
-        )}
-        
-        {viewMode === "owner" && (
-          <button
-            type="button"
-            className={`archive-edit-toggle ${isArchiveEditing ? "active" : ""}`}
-            onClick={onToggleEdit}>
-            {isArchiveEditing ? "완료" : "편집"}
-          </button>
-          )}
-        </div>
-          )}
-    </div>
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+    }, 60 * 1000);
 
-     <div className="archive-grid">
-        {posts.map((group) => {
-          const MAX_THUMBS = 10;
-          const archiveMedia =
-            group.posts
-              ?.flatMap((post) => {
-                const items = post.media?.length
-                ? post.media
-                : (post.images || []).map((url) => ({
-                  type: "photo",
-                  url,
-                  previewUrl: url,
-                }));
-
-                if (post.hidden) {
-                  return [
-                    {
-                      post,
-                      item: items[0] || null,
-                      mediaIndex: 0,
-                      isHiddenTile: true,
-                    },
-                  ];
-                }
-
-                return items.map((item, mediaIndex) => ({
-                  post,
-                  item,
-                  mediaIndex,
-                  isHiddenTile: false,
-                }));
-              })
-              .slice(0, MAX_THUMBS) || [];
-
-        return (
-        <div key={group.hashtag} className="archive-card">
-         <div className="archive-head">
-          <p className="archive-hashtag">#{group.hashtag}</p>
-          <span className="archive-count">총{group.count}개</span>
-         </div>
-
-        <div className={`archive-images image-count-${Math.min(archiveImages.length, 10)}`}>                  
-              {archiveImages.map(({ post, image, imageIndex, isHiddoenTile }) => (                    
-                <div                        
-                  className={`archive-image-wrap ${post.hidden ? "is-hidden is-cooapsed" : ""}`}                        
-                  key={`${post.id}-${imageIndex}`}                      
-                  onClick={() => {                          
-                    if (!post.hidden && post.postUrl) {                            
-                      window.open(post.postUrl, "_blank", "noopener,noreferrer");                          
-                    }                        
-                  }}>                        
-                  {post.hidden ? (
-                    <div className="archive-hidden-tile">
-                      <span>접기</span>
-                    </div>
-                  ) : (
-                    {item?.type === "video" || item?.type === "animated_gif" ? (
-                      <video
-                      src={item.url}
-                      poster={item.previewUrl}
-                      controls
-                      muted
-                      playsInline
-                      />
-                    ) : (
-                      <img
-                        src={item?.url}
-                        alt={post.text || `archive-${group.hashtag}`}
-                      />
-                    )}
-                  )}
-                  
-                  {viewMode === "owner" && isArchiveEditing && imageIndex === 0 && (
-                    <button
-                      type="button"                    
-                      className="archive-hide-btn"                  
-                      onClick={(e) => {                    
-                        e.stopPropagation();                    
-                        onToggleVisibility(post.id, !post.hidden);                    
-                      }}                    
-                    >                    
-                      {post.hidden ? "show" : "hide"}                    
-                    </button>                                    
-                  )}                  
-                </div>                
-              ))                  
-              }
-        </div>
-      </div>
-        );
-      })}
-      </div>
-    </section>
-  );
- }
-
-
-function getRecentAnswerText(questionCards) {
+    return () => clearInterval(timer);
+  }, []);
+  
+function getRecentAnswerText(questionCards, nowMs) {
  const answeredCards = Array.isArray(questionCards)
   ? questionCards.filter((card) => card.answered)
   : [];
@@ -544,7 +554,7 @@ function getRecentAnswerText(questionCards) {
 
  if (!latestAnswered) return "답변 없음";
 
- const diffMs = Date.now() - new Date(latestAnswered).getTime();
+ const diffMs = nowMs - new Date(latestAnswered).getTime();
  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
  if (diffDays <= 0) return "최근 답변 오늘";
@@ -552,11 +562,11 @@ function getRecentAnswerText(questionCards) {
  return `최근 답변 ${diffDays}일 전`;
 }
 
- const recentAnswerText = getRecentAnswerText(questionCards);
- const totalCards = questionCards.length;
- const answeredCount = questionCards.filter((card) => card.answered).length;
- const privateQuestionCount = questionCards.filter((card) => card.isPrivate).length;
- const unansweredCount = questionCards.filter((card) => !card.answered).length;
+ const recentAnswerText = getRecentAnswerText(activeQuestionCards, nowMs);
+ const totalCards = activeQuestionCards.length;
+ const answeredCount = activeQuestionCards.filter((card) => card.answered).length;
+ const privateQuestionCount = activeQuestionCards.filter((card) => card.isPrivate).length;
+ const unansweredCount = activeQuestionCards.filter((card) => !card.answered).length;
 
   async function loadQuestionsByUsername(username) {
     const requesterAuthId = currentAuthUserId || "";
@@ -607,55 +617,6 @@ function getRecentAnswerText(questionCards) {
       console.error(`${key} parse error:`, error);
       return fallbackValue;
     }
-  }
-
-  function openImageZoom(images, startIndex = 0) {
-    setZoomedImages(images);
-    setZoomedIndex(startIndex);
-    setShowImageZoom(true);
-  }
-
-  function closeImageZoom() {
-    setShowImageZoom(false);
-    setZoomedImages([]);
-    setZoomedIndex(0);
-  }
-
-  function goPrevZoomImage() {
-    setZoomedIndex((prev) => prev === 0 ? zoomedImages.length - 1 : prev - 1
-    );
-  }
-
-  function goNextZoomImage() {
-    setZoomedIndex((prev) =>
-      prev === zoomedImages.length - 1 ? 0 : prev + 1
-    );
-  }
-
-  function handleZoomTouchStart(e) {
-    setTouchEndX(null);
-    setTouchStartX(e.targetTouches[0].clientX);
-  }
-
-  function handleZoomTouchMove(e) {
-    setTouchEndX(e.targetTouches[0].clientX);
-  }
-
-  function handleZoomTouchEnd() {
-    if (zoomedImages.length <= 1) return;
-    if (touchStartX === null || touchEndX === null) return;
-
-    const distance = touchStartX - touchEndX;
-    const minSwipeDistance = 50;
-
-    if (distance > minSwipeDistance) {
-      goNextZoomImage();
-    } else if (distance < -minSwipeDistance) {
-      goPrevZoomImage();
-    }
-
-    setTouchStartX(null);
-    setTouchEndX(null);
   }
 
   function getTouchDistance(touches) {
@@ -789,7 +750,7 @@ function getRecentAnswerText(questionCards) {
     if (distance > minSwipeDistance) {
       goNextZoomImage();
     } else if (distance < -minSwipeDistance) {
-      goPrevZoomImgae();
+      goPrevZoomImage();
     }
 
     setTouchStartX(null);
@@ -855,12 +816,12 @@ function getRecentAnswerText(questionCards) {
   }
 
   function removeExistingAnswerFile(fileId) {
-    SETrEMOVEDeXISTINGfileUrls((prev) => [...prev, fileId]);
-  }
+    setRemovedExistingFileUrls((prev) => [...prev, fileId]);
+  } 
 
   function resetAnswerEditState() {
     setIsEditingAnswer(false);
-    setEditingQuestionId(nul);
+    setEditingQuestionId(null);
     setInput("");
     setExistingAnswerFiles([]);
     setSelectedFiles([]);
@@ -905,15 +866,10 @@ function getRecentAnswerText(questionCards) {
     });
   }
 
-  function resetReplyEditState() {
-    setReplyTargetId(null);
-    setInput("");
-    setExistingAnswerFiles([]);
-    setSelectedFiles([]);
-    setRemovedExistingFileUrls([]);
-  }
 
-    async function loadArchiveHashtags() {
+
+  const loadArchiveHashtags = React.useCallback(async () => {
+
       if (!connectedXUserId || !connectedXId) return;
       
       const params = new URLSearchParams({
@@ -937,7 +893,7 @@ function getRecentAnswerText(questionCards) {
        
       setArchivePosts(data.hashtags || []);    
       setArchiveSource(data.source || "");
-  }
+  }, [connectedXUserId, connectedXId, viewMode]);
 
   async function toggleArchivePostVisibility(postId, hidden) {
     if (!postId) {
@@ -1009,39 +965,36 @@ function getRecentAnswerText(questionCards) {
   }, [showImageZoom]);
 
 
-  useEffect(() => {
-    if (!showImageZoom) return;
-    setZoomScale(1);
-    setPanX(0);
-    setPanY(0);
-  }, [zoomedIndex, showImageZoom]);
 
+  function handleToggleArchiveEdit() {
+    setIsArchiveEditing((prev) => !prev);
+  }
 
-  useEffect(() => {
+  const [currentAuthUserId, setCurrentAuthUserId] = useState(() => {
     const uuidRegex =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9af]{3}-[0-9a-f][12]$/i;
     
     let authId = localStorage.getItem("authId");
 
-const createFallbackId = () =>
-  `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const createFallbackId = () =>
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-if (!authId || !uuidRegex.test(authId)) {
-  authId =
-    typeof window.crypto?.randomUUID === "function"
-      ? window.crypto.randomUUID()
-      : createFallbackId();
+    if (!authId || !uuidRegex.test(authId)) {
+      authId =
+        typeof window.crypto?.randomUUID === "function"
+          ? window.crypto.randomUUID()
+          : createFallbackId();
 
-  localStorage.setItem("authId", authId);
-}
+      localStorage.setItem("authId", authId);
+    }
 
-
-    setCurrentAuthUserId(authId);
-  }, []);
+    return authId;
+  });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadArchiveHashtags();
-  }, [connectedXUserId, connectedXId, viewMode]);
+  }, [loadArchiveHashtags]);
 
  
 
@@ -1052,11 +1005,11 @@ useEffect(() => {
   fetch(`/api/users/${routeUsername}`)
     .then((res) => res.json())
     .then((data) => {
-  
-   setNickname(data.displayName || data.username || "이름없음");
-   setProfileBio(data.bio || "");
-   setProfileImage(data.avatarUrl || "");
-   setBgUrl(data.bgUrl || "");
+      setNickname(data.displayName || data.username || "이름없음");
+      setProfileBio(data.bio || "");
+      setProfileImage(data.avatarUrl || "");
+      setBgUrl(data.bgUrl || "");
+      setTheme(data.theme || "purple");
 
   localStorage.setItem("editNickname", data.displayName || "");
   localStorage.setItem("bio", data.bio || "");
@@ -1070,11 +1023,8 @@ useEffect(() => {
  
   
   useEffect(() => {
-    if (!routeUsername) {
-      setQuestionCards(SAMPLE_QUESTIONS);
-      return;
-    }
-  
+    if (!routeUsername) return;
+    
  loadQuestionsByUsername(routeUsername).catch((err) =>
   console.error("questions fetch error:", err)
  );
@@ -1085,14 +1035,16 @@ useEffect(() => {
 
     const raw = localStorage.getItem(questionDraftKey);
     if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw);
-      setInput(parsed.input || "");
-      setSecret(!!parsed.secret);
-    } catch (error) {
-      console.error("question draft parse error:", error);
-    }
+    
+    queueMicrotask(() => {
+      try {
+        const parsed = JSON.parse(raw);
+        setInput(parsed.input || "");
+        setSecret(!!parsed.secret);
+      } catch (error) {
+        console.error("question draft parse error:", error);
+      }
+    });
   }, [questionDraftKey, routeUsername]);
 
   useEffect(() => {
@@ -1121,7 +1073,7 @@ useEffect(() => {
 
       setZoomScale((prev) => {
         const next = delta < 0 ? prev + zoomStep : prev - zoomStep;
-        const clamped = Math.maz(1, Math.min(next, 4));
+        const clamped = Math.max(1, Math.min(next, 4));
 
         if (clamped <= 1) {
           setPanX(0);
@@ -1239,6 +1191,8 @@ return (
             routeUsername={routeUsername}
             setNickname={setNickname}
             setProfileBio={setProfileBio}
+            theme={theme}
+            setTheme={setTheme}
        />
     </aside>
 
@@ -1248,7 +1202,7 @@ return (
           {mobileTab === "chat" && (
 
             <section className={`card-list ${viewMode}-view`}>
-              {questionCards.length === 0 ? (
+              {activeQuestionCards.length === 0 ? (
                 <p>질문이 없음</p>
               ) : (
 
@@ -1353,7 +1307,7 @@ return (
 
                     
                       {hasAnswer && (
-                        <article className="answer-card-only">
+                        <article className={`answer-card-only ${justEditedAnswerId === card.id ? "just-edited" : ""}`}>
                           <div className="answer-line">
 
                                 {viewMode === "owner" && hasAnswer && (
@@ -1484,7 +1438,7 @@ return (
                 <div className="image-zoom-modal" onClick={closeImageZoom}>
                   <div
                     ref={zoomModalRef}
-                    className="image-zoom-medal-content"
+                    className="image-zoom-modal-content"
                     onClick={(e) => e.stopPropagation()}
                     onTouchStart={handleZoomTouchStart}
                     onTouchMove={handleZoomTouchMove}
@@ -1724,7 +1678,7 @@ return (
             source={archiveSource}
             viewMode={viewMode}
             isArchiveEditing={isArchiveEditing}
-            onToggleEdit={() => setIsArchiveEditing((prev) => !prev)}
+            onToggleEdit={handleToggleArchiveEdit}
             onToggleVisibility={toggleArchivePostVisibility} />
  </aside>
  </div>

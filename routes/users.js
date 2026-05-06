@@ -18,15 +18,16 @@ router.get("/users/:username", async (req, res) => {
     }
 
     return res.json({
-        id: data.id,
-        username: data.username,
-        displayName: data.display_name,
-        bio: data.bio,
-        avatarUrl: data.avatar_url,
-        bgUrl: data.bg_url,
-        xUserId: data.x_user_id,
-        createdAtISO: data.created_at,
-        });
+       id: data.id,
+       username: data.username,
+       displayName: data.display_name,
+       bio: data.bio,
+       avatarUrl: data.avatar_url,
+       bgUrl: data.bg_url,
+       theme: data.theme || "purple",
+       xUserId: data.x_user_id,
+       createdAtISO: data.created_at,
+    });
 
  } catch (error) {
     console.error("GET /users/:username error:", error);
@@ -267,6 +268,7 @@ router.patch("/users/:username/profile", async (req, res) => {
          bio = "",
          avatarUrl = "",
          bgUrl = "",
+         theme = "purple",
       } = req.body || {};
 
       const updatePayload = {
@@ -274,6 +276,7 @@ router.patch("/users/:username/profile", async (req, res) => {
          bio: bio || "",
          avatar_url: avatarUrl || "",
          bg_url: bgUrl || "",
+         theme: theme || "purple",
       };
 
       const { data: updated, error } = await supabase
@@ -299,7 +302,8 @@ router.patch("/users/:username/profile", async (req, res) => {
          bgUrl: updated.bg_url,
          xUserId: updated.x_user_id,
          createdAtISO: updated.created_at,
-       askerAuthId: updated.asker_auth_id,         
+         askerAuthId: updated.asker_auth_id,
+         theme: updated.theme || "purple",
       });
    } catch (error) {
       console.error("PATCH /users/:username/profile server error:", error);
