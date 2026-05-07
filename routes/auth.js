@@ -128,10 +128,14 @@ router.get("/x/callback", async (req, res) => {
       );
     }
 
-    res.cookie("x_access_token", tokenData.access_token, {
+    const tokenCookieOptions = {
       httpOnly: true,
       secure: isProduction,
       sameSite: "lax",
+      path: "/",
+    };
+    res.cookie("x_access_token", tokenData.access_token, {
+      ...tokenCookieOptions,
       maxAge: tokenData.expires_in * 1000,
     });
 
@@ -145,14 +149,14 @@ router.get("/x/callback", async (req, res) => {
       });
     }
 
-    res.cookie("x_token_expires_at", (Date.now() + tokenData.expires_in * 1000),
+    res.cookie(
+      "x_token_expires_at",
+      String(Date.now() + tokenData.expires_in * 1000),
       {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "lax",
-        path: "/",
+        ...tokenCookieOptions,
         maxAge: tokenData.expires_in * 1000,
-      });
+      }
+    );
 
     console.log("tokenData ok:", {
       token_type: tokenData.token_type,
@@ -199,11 +203,11 @@ router.post("/x/logout", (req, res) => {
     path: "/",
   };
 
-  res.clearCookie("x_access_token", cookieOptions);
-  res.clearCookie("x_refresh_token", cookieOptions);
-  res.clearCookie("x_token_expires_at", cookieOptions);
-  res.clearCookie("x_oauth_state", cookieOptions);
-  res.clearCookie("x_code_verifier", cookieOptions);
+  res.clearCookie("x_access_token", { ...cookieOptions, path: "/auth/x" });
+  res.clearCookie("x_refresh_token", { ...cookieOptions, path: "/auth/x" });
+  res.clearCookie("x_token_expires_at", { ...cookieOptions, path: "/auth/x" });
+  res.clearCookie("x_oauth_state", { ...cookieOptions, path: "/auth/x" });
+  res.clearCookie("x_code_verifier", { ...cookieOptions, path: "/auth/x" });
 
   return res.json({ ok: true });
 });

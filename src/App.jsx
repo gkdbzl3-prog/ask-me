@@ -90,7 +90,7 @@ function ArchiveGallery({
               <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
                 {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => {
                   const canToggleHiddenTile =
-                    isHiddenTile && viewMode === "owner" && isArchiveEditing;
+                    isHiddenTile && viewMode === "owner";
 
                   return (
                     <div
