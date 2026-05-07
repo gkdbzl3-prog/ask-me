@@ -103,20 +103,23 @@ function ArchiveGallery({
                         <span>접기</span>
                       </div>
                     ) :
-                      item?.type === "video" || item?.type === "animated_gif" ? (
-                        <video
-                          src={item.url}
-                          poster={item.previewUrl}
-                          controls
-                          muted
-                          playsInline
-                        />
+                      { item?.type === "video" || item?.type === "animated_gif" ? (
+                        <div className="archive-video-thumb">
+                          <img
+                            src={item.previewUrl}
+                            alt={post.text || `archive-video-${group.hashtag}`}
+                          />
+                          <span className="archive-play-badge">
+                            {item.type === "animated_gif" ? "GIF" : "▶"}
+                          </span>
+                        </div>
                       ) : (
                         <img
                           src={item?.url}
                           alt={post.text || `archive-${group.hashtag}`}
                         />
                       )}
+        }
 
 
                     {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
