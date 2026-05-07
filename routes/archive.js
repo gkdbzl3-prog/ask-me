@@ -227,7 +227,7 @@ router.post("/sync", async (req, res) => {
       const rateLimit = {
         limit: xRes.headers.get("x-rate-limit-limit"),
         remaining: xRes.headers.get("x-rate-limit-remaining"),
-        reset: xRes.headers.get("x-rate-limit-reset");
+        reset: xRes.headers.get("x-rate-limit-reset"),
       };
 
       console.log("X rate limit:", rateLimit);
