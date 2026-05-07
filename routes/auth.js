@@ -191,7 +191,7 @@ router.get("/x/callback", async (req, res) => {
   }
 });
 
-router.post("/z/logout", (req, res) => {
+router.post("/x/logout", (req, res) => {
   const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
