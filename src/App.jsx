@@ -3,139 +3,6 @@ import React, { useState, useEffect, useRef } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 
-function ArchiveGallery({
-  posts,
-  source,
-  viewMode,
-  isArchiveEditing,
-  onToggleEdit,
-  onToggleVisibility,
-}) {
-
-  return (
-    <section className="archive-box">
-      <div className="archive-title-row">
-        <h3 className="archive-title">Archive</h3>
-        {viewMode === "owner" && (
-          <button type="button" onClick={syncArchive}>
-            sync
-          </button>
-        )}
-
-        {(source === "mock" || viewMode === "owner") && (
-          <div className="archive-title-actions">
-            {source === "mock" && (
-              <p className="archive-source-badge">sample</p>
-            )}
-
-            {viewMode === "owner" && (
-              <button
-                type="button"
-                className={`archive-edit-toggle ${isArchiveEditing ? "active" : ""}`}
-                onClick={onToggleEdit}>
-                {isArchiveEditing ? "완료" : "편집"}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="archive-grid">
-        {posts.map((group) => {
-          const MAX_THUMBS = 10;
-          const archiveMedia =
-            group.posts
-              ?.flatMap((post) => {
-                const items = post.media?.length
-                  ? post.media
-                  : (post.images || []).map((url) => ({
-                    type: "photo",
-                    url,
-                    previewUrl: url,
-                  }));
-
-                if (post.hidden) {
-                  return [
-                    {
-                      post,
-                      item: items[0] || null,
-                      mediaIndex: 0,
-                      isHiddenTile: true,
-                    },
-                  ];
-                }
-
-                return items.map((item, mediaIndex) => ({
-                  post,
-                  item,
-                  mediaIndex,
-                  isHiddenTile: false,
-                }));
-              })
-              .slice(0, MAX_THUMBS) || [];
-
-          return (
-            <div key={group.hashtag} className="archive-card">
-              <div className="archive-head">
-                <p className="archive-hashtag">#{group.hashtag}</p>
-                <span className="archive-count">총{group.count}개</span>
-              </div>
-
-              <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
-                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => (
-                  <div
-                    className={`archive-image-wrap ${isHiddenTile ? "is-hidden is-collapsed" : ""
-                      }`}
-                    key={`${post.id}-${mediaIndex}`}
-                    onClick={() => {
-                      if (!isHiddenTile && post.postUrl) {
-                        window.open(post.postUrl, "_blank", "noopener,noreferrer");
-                      }
-                    }}>
-                    {isHiddenTile ? (
-                      <div className="archive-hidden-tile">
-                        <span>접기</span>
-                      </div>
-                    ) :
-                      item?.type === "video" || item?.type === "animated_gif" ? (
-                        <video
-                          src={item.url}
-                          poster={item.previewUrl}
-                          controls
-                          muted
-                          playsInline
-                        />
-                      ) : (
-                        <img
-                          src={item?.url}
-                          alt={post.text || `archive-${group.hashtag}`}
-                        />
-                      )}
-
-
-                    {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
-                      <button
-                        type="button"
-                        className="archive-hide-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleVisibility(post.id, !post.hidden);
-                        }}
-                      >
-                        {post.hidden ? "show" : "hide"}
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function App() {
   const [input, setInput] = useState("");
@@ -974,6 +841,11 @@ function App() {
 
 
   async function syncArchive() {
+    if (!profileXUserId || !routeUsername) {
+      alert("X 연동 정보가 없어서 동기화할 수 없어요.");
+      return;
+    }
+
     const params = new URLSearchParams({
       ownerId: profileXUserId,
       username: routeUsername,
@@ -1723,5 +1595,145 @@ function App() {
     </>
   );
 }
+
+function ArchiveGallery({
+  posts,
+  source,
+  viewMode,
+  isArchiveEditing,
+  onToggleEdit,
+  onToggleVisibility,
+  onSyncArchive = { syncArchive }
+}) {
+
+  return (
+    <section className="archive-box">
+      <div className="archive-title-row">
+        <h3 className="archive-title">Archive</h3>
+
+
+        {(source === "mock" || viewMode === "owner") && (
+          <div className="archive-title-actions">
+            {source === "mock" && (
+              <p className="archive-source-badge">sample</p>
+            )}
+
+            {viewMode === "owner" && (
+              <>
+                <button type="button"
+                  className="archive-sync-btn"
+                  onClick={onSyncArchive}>
+                  sync
+                </button>
+
+                <button
+                  type="button"
+                  className={`archive-edit-toggle ${isArchiveEditing ? "active" : ""}`}
+                  onClick={onToggleEdit}>
+                  {isArchiveEditing ? "완료" : "편집"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="archive-grid">
+        {posts.map((group) => {
+          const MAX_THUMBS = 10;
+          const archiveMedia =
+            group.posts
+              ?.flatMap((post) => {
+                const items = post.media?.length
+                  ? post.media
+                  : (post.images || []).map((url) => ({
+                    type: "photo",
+                    url,
+                    previewUrl: url,
+                  }));
+
+                if (post.hidden) {
+                  return [
+                    {
+                      post,
+                      item: items[0] || null,
+                      mediaIndex: 0,
+                      isHiddenTile: true,
+                    },
+                  ];
+                }
+
+                return items.map((item, mediaIndex) => ({
+                  post,
+                  item,
+                  mediaIndex,
+                  isHiddenTile: false,
+                }));
+              })
+              .slice(0, MAX_THUMBS) || [];
+
+          return (
+            <div key={group.hashtag} className="archive-card">
+              <div className="archive-head">
+                <p className="archive-hashtag">#{group.hashtag}</p>
+                <span className="archive-count">총{group.count}개</span>
+              </div>
+
+              <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
+                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => (
+                  <div
+                    className={`archive-image-wrap ${isHiddenTile ? "is-hidden is-collapsed" : ""
+                      }`}
+                    key={`${post.id}-${mediaIndex}`}
+                    onClick={() => {
+                      if (!isHiddenTile && post.postUrl) {
+                        window.open(post.postUrl, "_blank", "noopener,noreferrer");
+                      }
+                    }}>
+                    {isHiddenTile ? (
+                      <div className="archive-hidden-tile">
+                        <span>접기</span>
+                      </div>
+                    ) :
+                      item?.type === "video" || item?.type === "animated_gif" ? (
+                        <video
+                          src={item.url}
+                          poster={item.previewUrl}
+                          controls
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <img
+                          src={item?.url}
+                          alt={post.text || `archive-${group.hashtag}`}
+                        />
+                      )}
+
+
+                    {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
+                      <button
+                        type="button"
+                        className="archive-hide-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleVisibility(post.id, !post.hidden);
+                        }}
+                      >
+                        {post.hidden ? "show" : "hide"}
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 
 export default App;
