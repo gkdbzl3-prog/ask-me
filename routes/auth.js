@@ -196,7 +196,7 @@ router.post("/x/logout", (req, res) => {
     httpOnly: true,
     secure: isProduction,
     sameSite: "lax",
-    path: "/".
+    path: "/",
   };
 
   res.clearCookie("x_access_token", cookieOptions);
