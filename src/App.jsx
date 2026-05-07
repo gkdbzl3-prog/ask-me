@@ -938,6 +938,30 @@ function getRecentAnswerText(questionCards, nowMs) {
     await loadArchiveHashtags();
   }
 
+  function handleToggleArchiveEdit() {
+    setIsArchiveEditing((prev) => !prev);
+  }
+
+  const [currentAuthUserId, setCurrentAuthUserId] = useState(() => {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9af]{3}-[0-9a-f][12]$/i;
+
+    let authId = localStorage.getItem("authId");
+
+    const createFallbackId = () =>
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+    if (!authId || !uuidRegex.test(authId)) {
+      authId =
+        typeof window.crypto?.randomUUID === "function"
+          ? window.crypto.randomUUID()
+          : createFallbackId();
+
+      localStorage.setItem("authId", authId);
+    }
+
+    return authId;
+  });
 
 
   useEffect(() => {
@@ -966,30 +990,6 @@ function getRecentAnswerText(questionCards, nowMs) {
 
 
 
-  function handleToggleArchiveEdit() {
-    setIsArchiveEditing((prev) => !prev);
-  }
-
-  const [currentAuthUserId, setCurrentAuthUserId] = useState(() => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9af]{3}-[0-9a-f][12]$/i;
-    
-    let authId = localStorage.getItem("authId");
-
-    const createFallbackId = () =>
-      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    if (!authId || !uuidRegex.test(authId)) {
-      authId =
-        typeof window.crypto?.randomUUID === "function"
-          ? window.crypto.randomUUID()
-          : createFallbackId();
-
-      localStorage.setItem("authId", authId);
-    }
-
-    return authId;
-  });
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -1020,7 +1020,6 @@ useEffect(() => {
 }, [isLocalDev, routeUsername]);
 
 
- 
   
   useEffect(() => {
     if (!routeUsername) return;
