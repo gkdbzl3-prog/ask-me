@@ -210,10 +210,10 @@ router.post("/sync", async (req, res) => {
     do {
       const params = new URLSearchParams({
         max_results: "100",
-        exclude: "retweets.replies",
+        exclude: "retweets,replies",
         expansions: "attachments.media_keys",
         "tweet.fields": "attachments,text,created_at",
-        "media.fields": "url,type.preview_image_url,variants,duration_ms,width,height",
+        "media.fields": "url,type,preview_image_url,variants,duration_ms,width,height",
       });
 
       if (paginationToken) {
