@@ -2683,7 +2683,7 @@ async function refreshXAccessToken(refreshToken, res) {
   const tokenData = await tokenRes.json();
 
   if (!tokenRes.ok) {
-    console.log("X refresh 실패:", toeknData);
+    console.log("X refresh 실패:", tokennData);
     return null;
   }
 

@@ -1869,6 +1869,17 @@ body {
   backdrop-filter: blur(8px);
 }
 
+.archive-edit-btn {
+  border: 1px solid rgba(153, 118, 210, 0.24);
+  border-radius: 20px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.62);
+  color: rgba(80, 55, 130, 0.86);
+  font-size: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
 .archive-edit-toggle.active {
   background: var(--main-soft);
   ;
@@ -1976,6 +1987,10 @@ body {
   background: rgba(245, 239, 255, 0.62);
   border: 1px dashed rgba(137, 105, 190, 0.28);
   cursor: default;
+}
+
+.archive-image-wrap.is-collapsed.can-toggle {
+  cursor: pointer;
 }
 
 .archive-images .archive-image-wrap.is-collapsed:first-child {

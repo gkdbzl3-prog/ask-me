@@ -88,51 +88,66 @@ function ArchiveGallery({
               </div>
 
               <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
-                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => (
-                  <div
-                    className={`archive-image-wrap ${isHiddenTile ? "is-hidden is-collapsed" : ""
-                      }`}
-                    key={`${post.id}-${mediaIndex}`}
-                    onClick={() => {
-                      if (!isHiddenTile && post.postUrl) {
-                        window.open(post.postUrl, "_blank", "noopener,noreferrer");
-                      }
-                    }}>
-                    {isHiddenTile ? (
-                      <div className="archive-hidden-tile">
-                        <span>접기</span>
-                      </div>
-                    ) :
-                      item?.type === "video" || item?.type === "animated_gif" ? (
-                        <video
-                          src={item.url}
-                          poster={item.previewUrl}
-                          controls
-                          muted
-                          playsInline
-                        />
-                      ) : (
-                        <img
-                          src={item?.url}
-                          alt={post.text || `archive-${group.hashtag}`}
-                        />
+                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => {
+                  const canToggleHiddenTile =
+                    isHiddenTile && viewMode === "owner" && isArchiveEditing;
+
+                  return (
+                    <div
+                      className={[
+                        "archive-image-wrap",
+                        isHiddenTile ? "is-hidden is-collapsed" : "",
+                        canToggleHiddenTile ? "can-toggle" : "",
+                      ].filter(Boolean).join(" ")}
+                      key={`${post.id}-${mediaIndex}`}
+                      onClick={() => {
+                        if (isHiddenTile) {
+                          if (canToggleHiddenTile) {
+                            onToggleVisibility(post.id, false);
+                          }
+                          return;
+                        }
+
+                        if (post.postUrl) {
+                          window.open(post.postUrl, "_blank", "noopener,noreferrer");
+                        }
+                      }}>
+                      {isHiddenTile ? (
+                        <div className="archive-hidden-tile">
+                          <span>{canToggleHiddenTile ? "펼침" : "접음"}</span>
+                        </div>
+                      ) :
+                        item?.type === "video" || item?.type === "animated_gif" ? (
+                          <video
+                            src={item.url}
+                            poster={item.previewUrl}
+                            controls
+                            muted
+                            playsInline
+                          />
+                        ) : (
+                          <img
+                            src={item?.url}
+                            alt={post.text || `archive-${group.hashtag}`}
+                          />
+                        )}
+
+
+                      {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && !isHiddenTile && (
+                        <button
+                          type="button"
+                          className="archive-hide-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleVisibility(post.id, !post.hidden);
+                          }}
+                        >
+                          {post.hidden ? "show" : "hide"}
+                        </button>
                       )}
-
-
-                    {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
-                      <button
-                        type="button"
-                        className="archive-hide-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleVisibility(post.id, !post.hidden);
-                        }}
-                      >
-                        {post.hidden ? "show" : "hide"}
-                      </button>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
 
               </div>
             </div>
