@@ -8,166 +8,166 @@ const isProduction = process.env.NODE_ENV === "production";
 const base64UrlEncode = (buffer) =>
   buffer
     .toString("base64")
-    .replace(/\+/g,"-")
-    .replace(/\//g,"_")
-    .replace(/=+$/,"");
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 
 const createCodeVerifier = () => {
- return base64UrlEncode(randomBytes(32));
+  return base64UrlEncode(randomBytes(32));
 };
 
 const createCodeChallenge = (verifier) => {
- return base64UrlEncode(
+  return base64UrlEncode(
     createHash("sha256").update(verifier).digest()
- );
+  );
 };
 
-router.get("/x/login", (req,res) => {
- const clientId = process.env.X_CLIENT_ID;
- const redirectUri = process.env.X_REDIRECT_URI;
+router.get("/x/login", (req, res) => {
+  const clientId = process.env.X_CLIENT_ID;
+  const redirectUri = process.env.X_REDIRECT_URI;
 
- const state = randomBytes(16).toString("hex");
- const codeVerifier = createCodeVerifier();
- const codeChallenge = createCodeChallenge(codeVerifier);
+  const state = randomBytes(16).toString("hex");
+  const codeVerifier = createCodeVerifier();
+  const codeChallenge = createCodeChallenge(codeVerifier);
 
- res.cookie("x_oauth_state", state, {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: "lax",
- });
+  res.cookie("x_oauth_state", state, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+  });
 
- res.cookie("x_code_verifier", codeVerifier, {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: "lax",
- });
+  res.cookie("x_code_verifier", codeVerifier, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+  });
 
   const scope = "tweet.read users.read offline.access";
 
- const authUrl =
-  `https://twitter.com/i/oauth2/authorize` +
-  `?response_type=code` +
-  `&client_id=${encodeURIComponent(clientId)}` +
-  `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-  `&scope=${encodeURIComponent(scope)}` +
-  `&state=${encodeURIComponent(state)}` +
-  `&code_challenge=${encodeURIComponent(codeChallenge)}` +
-  `&code_challenge_method=S256`;
+  const authUrl =
+    `https://twitter.com/i/oauth2/authorize` +
+    `?response_type=code` +
+    `&client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&scope=${encodeURIComponent(scope)}` +
+    `&state=${encodeURIComponent(state)}` +
+    `&code_challenge=${encodeURIComponent(codeChallenge)}` +
+    `&code_challenge_method=S256`;
 
- res.redirect(authUrl);
+  res.redirect(authUrl);
 });
 
-router.get("/x/callback", async (req,res) => {
- try {
+router.get("/x/callback", async (req, res) => {
+  try {
 
- const code = req.query.code;
- const state = req.query.state;
+    const code = req.query.code;
+    const state = req.query.state;
 
- const savedState = req.cookies.x_oauth_state;
- const codeVerifier = req.cookies.x_code_verifier;
-
- 
- if (!code || !state) {
-    return res.status(400).send("code 또는 state 없음");
- }
-
- if (!savedState || state !== savedState) {
-    return res.status(400).send("state 불일치");
- }
-
- if (!codeVerifier) {
-    return res.status(400).send("code_verifier 없음");
- }
+    const savedState = req.cookies.x_oauth_state;
+    const codeVerifier = req.cookies.x_code_verifier;
 
 
- const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
-   method: "POST",
-   headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Authorization:
-         "Basic " +
-         Buffer.from(
+    if (!code || !state) {
+      return res.status(400).send("code 또는 state 없음");
+    }
+
+    if (!savedState || state !== savedState) {
+      return res.status(400).send("state 불일치");
+    }
+
+    if (!codeVerifier) {
+      return res.status(400).send("code_verifier 없음");
+    }
+
+
+    const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization:
+          "Basic " +
+          Buffer.from(
             `${process.env.X_CLIENT_ID}:${process.env.X_CLIENT_SECRET}`
-         ).toString("base64"),
-   },
-   body: new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: process.env.X_REDIRECT_URI,
-      code_verifier: codeVerifier,
-   }),
- });
+          ).toString("base64"),
+      },
+      body: new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: process.env.X_REDIRECT_URI,
+        code_verifier: codeVerifier,
+      }),
+    });
 
- const tokenData = await tokenRes.json();
+    const tokenData = await tokenRes.json();
 
- console.log("tokenData ok:", {
-   token_type: tokenData.token_type,
-   expires_in: tokenData.expires_in,
-   scope: tokenData.scope,
-   has_access_token: !!tokenData.access_token,
- });
+    console.log("tokenData ok:", {
+      token_type: tokenData.token_type,
+      expires_in: tokenData.expires_in,
+      scope: tokenData.scope,
+      has_access_token: !!tokenData.access_token,
+    });
 
- if (!tokenData.access_token) {
-   return res.status(400).send(
-      `토큰 교환 실패: ${JSON.stringify(tokenData)}`
+    if (!tokenData.access_token) {
+      return res.status(400).send(
+        `토큰 교환 실패: ${JSON.stringify(tokenData)}`
       );
- }
+    }
 
- const userRes = await fetch("https://api.x.com/2/users/me", {
-   headers: {
-      Authorization: `Bearer ${tokenData.access_token}`,
-   },
- });
+    const userRes = await fetch("https://api.x.com/2/users/me", {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    });
 
- const userData = await userRes.json();
+    const userData = await userRes.json();
 
 
- if(!userData?.data?.username) {
-   return res.status(400).send(
-      `유저 정보 조회 실패: ${JSON.stringify(userData)}`
-   );
- }
+    if (!userData?.data?.username) {
+      return res.status(400).send(
+        `유저 정보 조회 실패: ${JSON.stringify(userData)}`
+      );
+    }
 
- res.cookie("x_access_token", tokenData.access_token, {
-   httpOnly: true,
-   secure: isProduction,
-   sameSite: "lax",
-   maxAge: tokenData.expires_in * 1000,
- });
-   
-   if (tokenData.refresh_token) {
-     res.cookie("x_refresh_token", tokenData.refresh_token, {
-       httpOnly: true,
-       secure: isProduction,
-       sameSite: "lax",
-       path: "/",
-       maxAge: 30 * 24 * 60 * 60 * 1000,
-     });
-   }
+    res.cookie("x_access_token", tokenData.access_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      maxAge: tokenData.expires_in * 1000,
+    });
 
-   res.cookie("x_toke_expires_at", (Date.now() + tokenData.expires_in * 1000),
-     {  
-       httpOnly: true, 
-       secure: isProduction,
-       sameSite: "lax",
-       path: "/",     
-       maxAge: tokenData.expires_in * 1000,
-     });
-   
-console.log("tokenData ok:", {
-  token_type: tokenData.token_type,
-  expires_in: tokenData.expires_in,
-  scope: tokenData.scope,
-  has_access_token: !!tokenData.access_token,
-  has_refresh_token: !!tokenData.refresh_token,
-});
-   
-await supabase
-  .from("users")
-  .update({ x_user_id: userData.data.id })
-  .eq("username", userData.data.username);
+    if (tokenData.refresh_token) {
+      res.cookie("x_refresh_token", tokenData.refresh_token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+    }
 
- res.send(`
+    res.cookie("x_token_expires_at", (Date.now() + tokenData.expires_in * 1000),
+      {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        path: "/",
+        maxAge: tokenData.expires_in * 1000,
+      });
+
+    console.log("tokenData ok:", {
+      token_type: tokenData.token_type,
+      expires_in: tokenData.expires_in,
+      scope: tokenData.scope,
+      has_access_token: !!tokenData.access_token,
+      has_refresh_token: !!tokenData.refresh_token,
+    });
+
+    await supabase
+      .from("users")
+      .update({ x_user_id: userData.data.id })
+      .eq("username", userData.data.username);
+
+    res.send(`
    <!doctype html>
    <html lang="ko">
     <head>
@@ -185,11 +185,29 @@ await supabase
     </body>
    </html>
  `);
- } catch (error) {
-   console.error("X callback error:", error);
-   res.status(500).send("콜백 처리 중 오류 발생");
- }
+  } catch (error) {
+    console.error("X callback error:", error);
+    res.status(500).send("콜백 처리 중 오류 발생");
+  }
 });
+
+router.post("/z/logout", (req, res) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+    path: "/".
+  };
+
+  res.clearCookie("x_access_token", cookieOptions);
+  res.clearCookie("x_refresh_token", cookieOptions);
+  res.clearCookie("x_token_expires_at", cookieOptions);
+  res.clearCookie("x_oauth_state", cookieOptions);
+  res.clearCookie("x_code_verifier", cookieOptions);
+
+  return res.json({ ok: true });
+});
+
 
 export default router;
 

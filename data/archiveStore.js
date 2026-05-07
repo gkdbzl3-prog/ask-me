@@ -42,6 +42,7 @@ export async function loadArchivePosts(ownerId, includeHidden = false) {
         ownerId: row.owner_id,
         username: row.username,
         text: row.text || "",
+        images: row.images || [],
         media: row.media || [],
         postUrl: row.post_url || "#",
         hidden: row.hidden === true,
@@ -57,11 +58,13 @@ export async function saveArchivePosts(ownerId, username, posts) {
         owner_id: ownerId,
         username,
         text: post.text || "",
+        images: post.images || [],
         media: post.media || [],
         post_url: post.postUrl || "#",
         hidden: post.hidden === true,
         created_at: post.createdAt || null,
         updated_at: new Date().toISOString(),
+        synced_at: new Date().toISOString(),
     }));
 
     if (rows.length === 0) return [];
@@ -70,7 +73,7 @@ export async function saveArchivePosts(ownerId, username, posts) {
         .from("archive_posts")
         .upsert(rows, { onConflict: "id" })
         .select();
-    
+
     if (error) {
         console.error("ssaveArchivePosts supabase error:", error);
         throw error;
@@ -89,7 +92,7 @@ export async function updateArchivePostVisibility(postId, hidden) {
         .eq("id", postId)
         .select()
         .single();
-    
+
     if (error) {
         console.error("updateArchivePostVisibility supabase error:", error);
         throw error;

@@ -26,9 +26,9 @@ export default function ProfileHeader({
   setNickname,
   setProfileBio,
   theme = "purple",
-  setTheme = () => {},
+  setTheme = () => { },
   notificationSettings = DEFAULT_NOTIFICATION_SETTINGS,
-  setNotificationSettings = () => {},
+  setNotificationSettings = () => { },
 }) {
   const [editNickname, setEditNickname] = useState(
     localStorage.getItem("editNickname") || "",
@@ -384,13 +384,24 @@ export default function ProfileHeader({
                 <button
                   type="button"
                   className="x-disconnect-btn"
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      await fetch("/auth/x/logout", {
+                        method: "POST",
+                        credentials: "include",
+                      });
+                    } catch (error) {
+                      console.error("x logout error:", error);
+                    }
+
                     setIsXConnected(false);
                     setConnectedXId("");
                     localStorage.removeItem("isXConnected");
                     localStorage.removeItem("connectedXId");
                     localStorage.removeItem("connectedXUserId");
                     localStorage.removeItem("twitterId");
+
+                    window.location.reload();
                   }}
                 >
                   해제
@@ -523,7 +534,7 @@ export default function ProfileHeader({
                 }
               />
               새 질문 알림
-              </label>
+            </label>
 
             <label className="setting-check-row">
               <input
@@ -537,7 +548,7 @@ export default function ProfileHeader({
                 }
               />
               새 답변 알림
-              </label>
+            </label>
 
             <label className="setting-check-row">
               <input
