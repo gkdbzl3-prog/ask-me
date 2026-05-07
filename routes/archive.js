@@ -203,11 +203,18 @@ router.post("/sync", async (req, res) => {
     let allRawPosts = [];
     let paginationToken = null;
     let page = 0;
+    let rateLimit = null;
     const maxPages = 32;
 
 
 
     do {
+      rateLimit = {
+        limit: xRes.headers.get("x-rate-limit-limit"),
+        remaining: xRes.headers.get("x-rate-limit-remaining"),
+        reset: xRes.headers.get("x-rate-limit-reset"),
+      };
+
       const params = new URLSearchParams({
         max_results: "100",
         exclude: "retweets,replies",
@@ -229,11 +236,7 @@ router.post("/sync", async (req, res) => {
         }
       );
 
-      const rateLimit = {
-        limit: xRes.headers.get("x-rate-limit-limit"),
-        remaining: xRes.headers.get("x-rate-limit-remaining"),
-        reset: xRes.headers.get("x-rate-limit-reset"),
-      };
+
 
       console.log("X rate limit:", rateLimit);
 
