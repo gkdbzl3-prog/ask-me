@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 
+const DEFAULT_NOTIFICATION_SETTINGS = {
+  newQuestion: true,
+  newAnswer: true,
+  archiveSync: false,
+};
+
 export default function ProfileHeader({
   viewMode,
   questionCards = [],
@@ -19,10 +25,10 @@ export default function ProfileHeader({
   routeUsername,
   setNickname,
   setProfileBio,
-  theme = { theme },
-  setTheme = { setTheme },
-  notificationSettings = { notificationSettings },
-  setNotificationSettings = { setNotificationSettings },
+  theme = "purple",
+  setTheme = () => {},
+  notificationSettings = DEFAULT_NOTIFICATION_SETTINGS,
+  setNotificationSettings = () => {},
 }) {
   const [editNickname, setEditNickname] = useState(
     localStorage.getItem("editNickname") || "",

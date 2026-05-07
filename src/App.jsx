@@ -1192,6 +1192,8 @@ return (
             setProfileBio={setProfileBio}
             theme={theme}
             setTheme={setTheme}
+            notificationSettings={notificationSettings}
+            setNotificationSettings={setNotificationSettings}
        />
     </aside>
 
