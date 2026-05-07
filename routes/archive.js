@@ -170,12 +170,17 @@ router.get("/hashtags", async (req, res) => {
 });
 
 router.post("/sync", async (req, res) => {
+  console.log("archive sync cookie names:", Object.keys(req.cookies || {}));
+  console.log("archive sync has cookie header:", !!req.headers.cookie);
 
   try {
     const ownerId = req.query.ownerId || req.body.ownerId || "";
     const username = req.query.username || req.body.username || "";
     let accessToken = req.cookies.x_access_token;
     const refreshToken = req.cookies.x_refresh_token;
+
+    console.log("has accessToken:", !!accessToken);
+    console.log("has refreshToken:", !!refreshToken);
 
     if (!ownerId || !username) {
       return res.status(400).json({
