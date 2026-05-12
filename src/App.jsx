@@ -121,10 +121,15 @@ function ArchiveGallery({
                       ) : (
                         <img
                           src={item?.url}
+                          style={{
+                            objectFit: "cover",
+                            objectPostion: `${item?.crop?.x || 50}% ${item?.crop?.y || 50}%`,
+                            transform: `scale(${item?.crop?.zoom || 1})`,
+                          }}
                           alt={post.text || `archive-${group.hashtag}`}
                         />
                       )}
-        }
+
 
 
                     {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (

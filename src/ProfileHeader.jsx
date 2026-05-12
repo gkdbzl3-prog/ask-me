@@ -519,6 +519,49 @@ export default function ProfileHeader({
             <option value="custom">사용자 지정</option>
           </select>
 
+          <div className="background-actions">
+            <label
+              htmlFor="backgroundImageInput"
+              className="background-select-btn"
+            >
+              배경 선택
+            </label>
+
+            <input
+              id="backgroundImageInput"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                try {
+                  const oldBg = bgUrl;
+                  const uploadedUrl = await uploadImageToStorage(
+                    file,
+                    "backgrounds",
+                  );
+
+                  setPendingOldBgUrl(oldBg);
+                  setBgUrl(uploadedUrl);
+                } catch (error) {
+                  console.error("background upload error:", error);
+                  alert("배경사진 업로드 실패");
+                }
+              }}
+            />
+
+            <button
+              type="button"
+              className="background-clear-btn"
+              onClick={clearBackground}
+            >
+              초기화
+            </button>
+          </div>
+
+
           <div className="admin-card">
             <h4 className="background-select-text">Notification</h4>
 
@@ -564,47 +607,7 @@ export default function ProfileHeader({
               아카이브 동기화 알림
             </label>
 
-            <div className="background-actions">
-              <label
-                htmlFor="backgroundImageInput"
-                className="background-select-btn"
-              >
-                배경 선택
-              </label>
 
-              <input
-                id="backgroundImageInput"
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  try {
-                    const oldBg = bgUrl;
-                    const uploadedUrl = await uploadImageToStorage(
-                      file,
-                      "backgrounds",
-                    );
-
-                    setPendingOldBgUrl(oldBg);
-                    setBgUrl(uploadedUrl);
-                  } catch (error) {
-                    console.error("background upload error:", error);
-                    alert("배경사진 업로드 실패");
-                  }
-                }}
-              />
-
-              <button
-                type="button"
-                className="background-clear-btn"
-                onClick={clearBackground}
-              >
-                초기화
-              </button>
-            </div>
           </div>
         </section>
       )}
