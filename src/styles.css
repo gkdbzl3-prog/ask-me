@@ -1867,6 +1867,7 @@ body {
   font-size: 12px;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  line-height: 1;
 }
 
 .archive-sync-btn {
@@ -1878,6 +1879,7 @@ body {
   font-size: 12px;
   cursor: pointer;
   backdrop-filter: blur(8px);
+  line-height: 1;
 }
 
 .archive-edit-toggle.active {
@@ -1961,6 +1963,8 @@ body {
   background: rgba(255, 255, 255, 0.35);
   transition: opacity 0.18s eas, filter 0.18s ease, transfrom 0.18s ease;
   cursor: pointer;
+  aspect-ratio: 3 / 4;
+  height: auto;
 }
 
 .archive-image-wrap img {
@@ -1969,6 +1973,13 @@ body {
   min-height: 92px;
   object-fit: cover;
   display: block;
+  object-fit: cover;
+}
+
+.archive-video-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 

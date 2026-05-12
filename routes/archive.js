@@ -30,6 +30,12 @@ function mapXPostsToRawPosts(xData, xIncludes, username = "") {
             type: "photo",
             url: media.url,
             previewUrl: media.url,
+            crop: {
+              x: 50,
+              y: 50,
+              zoom: 1,
+              ratio: "1/1"
+            }
           };
         }
 

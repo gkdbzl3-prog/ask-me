@@ -103,10 +103,15 @@ function ArchiveGallery({
                         <span>접기</span>
                       </div>
                     ) :
-                      { item?.type === "video" || item?.type === "animated_gif" ? (
+                      item?.type === "video" || item?.type === "animated_gif" ? (
                         <div className="archive-video-thumb">
                           <img
                             src={item.previewUrl}
+                            style={{
+                              objectFit: "cover",
+                              objectPosition: `${item.crop?.x || 50}% ${item.crop?.y || 50}%`,
+                              transform: `scale(${item.crop?.zoom || 1})`,
+                            }}
                             alt={post.text || `archive-video-${group.hashtag}`}
                           />
                           <span className="archive-play-badge">
