@@ -156,13 +156,15 @@ function ArchiveGallery({
                           {post.hidden ? "show" : "hide"}
                         </button>
                       </div>
-                    ))}
+                    )}
 
                   </div>
+                ))}
+              </div>
             </div>
-              );
+          );
         })}
-            </div>
+      </div>
     </section>
   );
 }
