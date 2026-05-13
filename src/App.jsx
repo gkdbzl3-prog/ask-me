@@ -60,13 +60,13 @@ function ArchiveGallery({
                     previewUrl: url,
                   }));
 
-                if (post.hidden) {
+                if (post.collapsed) {
                   return [
                     {
                       post,
                       item: items[0] || null,
                       mediaIndex: 0,
-                      isHiddenTile: true,
+                      isCollapsedTile: true,
                     },
                   ];
                 }
@@ -88,7 +88,7 @@ function ArchiveGallery({
               </div>
 
               <div className={`archive-images image-count-${Math.min(archiveMedia.length, 10)}`}>
-                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile }) => (
+                {archiveMedia.map(({ post, item, mediaIndex, isHiddenTile, isCollapsedTile }) => (
                   <div
                     className={`archive-image-wrap ${isHiddenTile ? "is-hidden is-collapsed" : ""
                       }`}
@@ -98,7 +98,7 @@ function ArchiveGallery({
                         window.open(post.postUrl, "_blank", "noopener,noreferrer");
                       }
                     }}>
-                    {isHiddenTile ? (
+                    {isCollapsedTile ? (
                       <div className="archive-hidden-tile">
                         <span>접기</span>
                       </div>
@@ -133,25 +133,36 @@ function ArchiveGallery({
 
 
                     {viewMode === "owner" && isArchiveEditing && mediaIndex === 0 && (
-                      <button
-                        type="button"
-                        className="archive-hide-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleVisibility(post.id, !post.hidden);
-                        }}
-                      >
-                        {post.hidden ? "show" : "hide"}
-                      </button>
-                    )}
-                  </div>
-                ))}
+                      <div className="archive-edit-actions">
+                        <button
+                          type="button"
+                          className="archive-hide-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleCollapsed(post.id, !post.collapsed);
+                          }}
+                        >
+                          {post.collapsed ? "펼치기" : "접기"}
+                        </button>
 
-              </div>
+                        <button
+                          type="button"
+                          className="archive-hide-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleVisibility(post.id, !post.hidden);
+                          }}
+                        >
+                          {post.hidden ? "show" : "hide"}
+                        </button>
+                      </div>
+                    ))}
+
+                  </div>
             </div>
-          );
+              );
         })}
-      </div>
+            </div>
     </section>
   );
 }
