@@ -49,6 +49,7 @@ export async function loadArchivePosts(ownerId, includeHidden = false) {
         createdAt: row.created_at,
         savedAt: row.saved_at,
         updatedAt: row.updated_at,
+        collapsed: row.collapsed === true,
     }));
 }
 
@@ -63,6 +64,7 @@ export async function saveArchivePosts(ownerId, username, posts) {
         post_url: post.postUrl || "#",
         hidden: post.hidden === true,
         created_at: post.createdAt || null,
+        collapsed: post.collapsed === true,
         updated_at: new Date().toISOString(),
         synced_at: new Date().toISOString(),
     }));
@@ -95,6 +97,25 @@ export async function updateArchivePostVisibility(postId, hidden) {
 
     if (error) {
         console.error("updateArchivePostVisibility supabase error:", error);
+        throw error;
+    }
+
+    return data;
+}
+
+export async function updateArchivePostCollapsed(postId, collapsed) {
+    const { data, error } = await supabase
+        .from("archive_posts")
+        .update({
+            collapsed,
+            updated_at: new Date().toISOString(),
+        })
+        .eq("id", postId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error("updateArchivePostsCollapsed supabase error:", error);
         throw error;
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
@@ -37,8 +37,8 @@ export default function ProfileHeader({
   const [link1, setLink1] = useState(localStorage.getItem("link1") || "");
   const [link2, setLink2] = useState(localStorage.getItem("link2") || "");
   const [saveStatus, setSaveStatus] = useState("idle");
-  const [didInitAutoSave, setDidInitAutoSave] = useState(false);
-  const [lastSavedSnapshot, setLastSavedSnapshot] = useState("");
+  const didInitAutoSaveRef = useRef(false);
+  const lastSavedSnapshotRef = useRef("");
   const [pendingOldAvatarUrl, setPendingOldAvatarUrl] = useState("");
   const [pendingOldBgUrl, setPendingOldBgUrl] = useState("");
   const parseKoreanDateString = (dateString) => {
@@ -91,7 +91,7 @@ export default function ProfileHeader({
   };
 
   async function saveProfileToDB() {
-    if (!routeUsername) return;
+    if (!routeUsername) return false;
 
     setSaveStatus("saving");
 
@@ -123,7 +123,7 @@ export default function ProfileHeader({
         console.error("profile save failed:", result);
         alert("프로필 저장 실패");
         setSaveStatus("error");
-        return;
+        return false;
       }
 
       if (pendingOldBgUrl && pendingOldBgUrl !== result.bgUrl) {
@@ -145,10 +145,12 @@ export default function ProfileHeader({
       localStorage.setItem("bio", result.bio || "");
       localStorage.setItem("profileImage", result.avatarUrl || "");
       localStorage.setItem("bgUrl", result.bgUrl || "");
+      return true;
     } catch (error) {
       setSaveStatus("error");
       console.error("profile save error:", error);
       alert("프로필 저장 중 오류 발생");
+      return false;
     }
   }
 
@@ -272,11 +274,15 @@ export default function ProfileHeader({
   }, [link2]);
 
   useEffect(() => {
-    setEditNickname(nickname || "");
+    queueMicrotask(() => {
+      setEditNickname(nickname || "");
+    });
   }, [nickname]);
 
   useEffect(() => {
-    setBio(profileBio || "");
+    queueMicrotask(() => {
+      setBio(profileBio || "");
+    });
   }, [profileBio]);
 
   useEffect(() => {
@@ -284,16 +290,19 @@ export default function ProfileHeader({
 
     const currentSnapshot = getProfileSnapshot();
 
-    if (!didInitAutoSave) {
-      setLastSavedSnapshot(currentSnapshot);
-      setDidInitAutoSave(true);
+    if (!didInitAutoSaveRef.current) {
+      lastSavedSnapshotRef.current = currentSnapshot;
+      didInitAutoSaveRef.current = true;
       return;
     }
 
-    if (currentSnapshot === lastSavedSnapshot) return;
+    if (currentSnapshot === lastSavedSnapshotRef.current) return;
 
     const timer = setTimeout(async () => {
-      await saveProfileToDB();
+      const didSave = await saveProfileToDB();
+      if (didSave) {
+        lastSavedSnapshotRef.current = currentSnapshot;
+      }
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -303,8 +312,6 @@ export default function ProfileHeader({
     profileImage,
     bgUrl,
     viewMode,
-    didInitAutoSave,
-    lastSavedSnapshot,
   ]);
 
   return (

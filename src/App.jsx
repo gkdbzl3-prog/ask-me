@@ -11,6 +11,7 @@ function ArchiveGallery({
   isArchiveEditing,
   onToggleEdit,
   onToggleVisibility,
+  onToggleCollapsed,
   onSyncArchive,
 }) {
 
@@ -123,7 +124,7 @@ function ArchiveGallery({
                           src={item?.url}
                           style={{
                             objectFit: "cover",
-                            objectPostion: `${item?.crop?.x || 50}% ${item?.crop?.y || 50}%`,
+                            objectPosition: `${item?.crop?.x || 50}% ${item?.crop?.y || 50}%`,
                             transform: `scale(${item?.crop?.zoom || 1})`,
                           }}
                           alt={post.text || `archive-${group.hashtag}`}
@@ -954,14 +955,8 @@ function App() {
       }))
     );
 
-    const params = new URLSearchParams({
-      ownerId: connectedXUserId,
-      username: connectedXId,
-      includeHidden: "true",
-    });
-
     const res = await fetch(
-      `/archive/posts/${encodeURIComponent(postId)}/visibility?${params.toString()}`,
+      `/archive/posts/${encodeURIComponent(postId)}/visibility`,
       {
         method: "PATCH",
         headers: {
@@ -980,6 +975,41 @@ function App() {
 
     await loadArchiveHashtags();
   }
+
+  async function toggleArchivePostCollapsed(postId, collapsed) {
+    if (!postId) return;
+
+    setArchivePosts((prev) =>
+      prev.map((group) => ({
+        ...group,
+        posts:
+          group.posts?.map((post) =>
+            post.id === postId ? { ...post, collapsed } : post
+          ) || [],
+      }))
+    );
+
+    const res = await fetch(
+      `/archive/posts/${encodeURIComponent(postId)}/collapsed`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ collapsed }),
+      }
+    );
+
+    if (!res.ok) {
+      console.error("archive collapsed failed:", await res.text());
+      await loadArchiveHashtags();
+      return;
+    }
+
+    await loadArchiveHashtags();
+  }
+
 
   function handleToggleArchiveEdit() {
     setIsArchiveEditing((prev) => !prev);
@@ -1157,10 +1187,10 @@ function App() {
       });
     }
 
-    el.addEventListener("whell", onWheel, { passive: false });
+    el.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
-      el.removeEventListener("whell", onWheel);
+      el.removeEventListener("wheel", onWheel);
     };
   }, [showImageZoom]);
 
@@ -1231,13 +1261,24 @@ function App() {
 
 
           <div className="mobile-tabs">
-            <button className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
+            <button
+              type="button"
+              className={`nav-btn ${mobileTab === "chat" ? "active" : ""}`}
+              onClick={() => setMobileTab("chat")}>
+              Chat
+            </button>
+
+            <button
+              type="button"
+              className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
               onClick={() => setMobileTab("profile")}>
               Profile
             </button>
 
 
-            <button className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
+            <button
+              type="button"
+              className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
               onClick={() => setMobileTab("archive")}>
               Archive
             </button>
@@ -1245,7 +1286,7 @@ function App() {
         </header>
 
         <div className="app-shell">
-          <aside className="profile-panel">
+          <aside className={`profile-panel ${mobileTab === "profile" ? "is-mobile-active" : ""}`}>
             <ProfileHeader
               viewMode={viewMode}
               questionCards={questionCards}
@@ -1273,7 +1314,7 @@ function App() {
 
 
 
-          <main className={`chat-panel ${viewMode}-view`}>
+          <main className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
             {mobileTab === "chat" && (
 
               <section className={`card-list ${viewMode}-view`}>
@@ -1281,7 +1322,7 @@ function App() {
                   <p>질문이 없음</p>
                 ) : (
 
-                  questionCards.map((card) => {
+                  activeQuestionCards.map((card) => {
 
                     const hasAnswer = !!card.answer ||
                       (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
@@ -1747,7 +1788,7 @@ function App() {
             )}
           </main>
 
-          <aside className="archive-panel">
+          <aside className={`archive-panel ${mobileTab === "archive" ? "is-mobile-active" : ""}`}>
             <ArchiveGallery
               posts={archivePosts}
               source={archiveSource}
@@ -1756,7 +1797,7 @@ function App() {
               onToggleEdit={handleToggleArchiveEdit}
               onSyncArchive={syncArchive}
               onToggleVisibility={toggleArchivePostVisibility}
-              onSyncArchive={syncArchive} />
+              onToggleCollapsed={toggleArchivePostCollapsed} />
           </aside>
         </div>
       </div>

@@ -10,10 +10,16 @@ import usersRouter from "./users.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const isProduction = process.env.NODE_ENV === "production";
+const cookieSecret = process.env.COOKIE_SECRET || "askme-dev-cookie-secret";
+
+if (isProduction && !process.env.COOKIE_SECRET) {
+    throw new Error("COOKIE_SECRET is required in production");
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname,"..");
+const rootDir = path.resolve(__dirname, "..");
 const distPath = path.join(rootDir, "dist");
 
 app.get('/healthz', (req, res) => {
@@ -21,26 +27,26 @@ app.get('/healthz', (req, res) => {
 });
 
 app.use(cors({
- origin: true,
- credentials: true,
+    origin: true,
+    credentials: true,
 }));
 
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
-app.use(cookieParser());
+app.use(cookieParser(cookieSecret));
 
-app.use("/auth",authRouter);
-app.use("/archive",archiveRouter);
+app.use("/auth", authRouter);
+app.use("/archive", archiveRouter);
 app.use("/api", usersRouter);
 
 app.use(express.static(distPath));
 
-app.use((req,res) => {
- res.sendFile(path.join(distPath, "index.html"));
+app.use((req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
 });
 
 
 
 app.listen(process.env.PORT || 8080, '0.0.0.0', () => {
- console.log(`server running on port ${PORT}`);
+    console.log(`server running on port ${PORT}`);
 });

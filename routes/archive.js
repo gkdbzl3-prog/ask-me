@@ -1,8 +1,10 @@
 import express from "express";
+import { supabase } from "../supabase.js";
 import {
   loadArchivePosts,
   saveArchivePosts,
   updateArchivePostVisibility,
+  updateArchivePostCollapsed,
 } from "../data/archiveStore.js";
 
 const router = express.Router();
@@ -126,6 +128,7 @@ function buildHashtagGroups(rawPosts) {
         images: post.images || [],
         postUrl: post.postUrl || "#",
         hidden: post.hidden === true,
+        collapsed: post.collapsed === true,
       });
     });
   });
@@ -140,6 +143,117 @@ function buildHashtagGroups(rawPosts) {
     .sort((a, b) => b.count - a.count);
 }
 
+async function refreshXAccessToken(refreshToken, res) {
+  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh-token",
+      refresh_token: refreshToken,
+      client_id: process.env.X_CLIENT_ID,
+    }),
+  });
+
+  const tokenData = await tokenRes.json();
+
+  if (!tokenRes.ok) {
+    console.log("X refresh 실패:", tokenData);
+    return null;
+  }
+
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.cookie("x_access_token", tokenData.access_token, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "lax",
+    path: "/",
+    maxAge: tokenData.expires_in * 1000,
+  });
+
+  if (tokenData.refresh_token) {
+    res.cookie("x_refresh_token", tokenData.refresh_token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+  }
+
+  res.cookie(
+    "x_token_expires_at",
+    String(Date.now() + tokenData.expires_in * 1000),
+    {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: tokenData.expires_in * 1000,
+    }
+  );
+
+  return tokenData.access_token;
+}
+
+function getRequesterXUserId(req) {
+  return req.signedCookies?.x_user_id || "";
+}
+
+function requireArchiveOwnerId(req, res, next) {
+  const requesterXUserId = getRequesterXUserId(req);
+  const ownerId = req.query.ownerId || req.body.ownerId || "";
+
+  if (!requesterXUserId) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
+  if (!ownerId || ownerId !== requesterXUserId) {
+    return res.status(403).json({
+      message: "아카이브를 수정할 권한이 없습니다.",
+    });
+  }
+
+  req.archiveOwnerId = ownerId;
+  return next();
+}
+
+async function requireArchiveOwner(req, res, next) {
+  const requesterXUserId = getRequesterXUserId(req);
+  const { postId } = req.params;
+
+  if (!requesterXUserId) {
+    return res.status(401).json({
+      message: "로그인이 필요합니다.",
+    });
+  }
+
+  const { data: post, error } = await supabase
+    .from("archive_posts")
+    .select("id, owner_id, username")
+    .eq("id", postId)
+    .single();
+
+  if (error || !post) {
+    return res.status(404).json({
+      message: "아카이브 게시물을 찾을 수 없습니다.",
+    });
+  }
+
+  if (post.owner_id !== requesterXUserId) {
+    return res.status(403).json({
+      message: "아카이브를 수정할 권한이 없습니다.",
+    });
+  }
+
+  req.archivePost = post;
+  return next();
+}
+
 
 
 router.get("/hashtags", async (req, res) => {
@@ -152,6 +266,22 @@ router.get("/hashtags", async (req, res) => {
       return res.status(400).json({
         message: "ownerId 또는 username 없음",
       });
+    }
+
+    if (includeHidden) {
+      const requesterXUserId = getRequesterXUserId(req);
+
+      if (!requesterXUserId) {
+        return res.status(401).json({
+          message: "로그인이 필요합니다.",
+        });
+      }
+
+      if (requesterXUserId !== ownerId) {
+        return res.status(403).json({
+          message: "숨긴 아카이브를 볼 권한이 없습니다.",
+        });
+      }
     }
 
     const rawPosts = await loadArchivePosts(ownerId, includeHidden);
@@ -175,11 +305,11 @@ router.get("/hashtags", async (req, res) => {
   }
 });
 
-router.post("/sync", async (req, res) => {
+router.post("/sync", requireArchiveOwnerId, async (req, res) => {
 
 
   try {
-    const ownerId = req.query.ownerId || req.body.ownerId || "";
+    const ownerId = req.archiveOwnerId;
     const username = req.query.username || req.body.username || "";
     let accessToken = req.cookies.x_access_token;
     const refreshToken = req.cookies.x_refresh_token;
@@ -327,22 +457,13 @@ router.post("/sync", async (req, res) => {
   }
 });
 
-router.patch("/posts/:postId/visibility", async (req, res) => {
+router.patch("/posts/:postId/visibility", requireArchiveOwner, async (req, res) => {
   try {
     const { postId } = req.params;
     const hidden = req.body.hidden === true;
-    const ownerId = req.query.ownerId || "";
-    const username = req.query.username || "";
-    const includeHidden = req.query.includeHidden === "true";
-
-    if (!ownerId || !username) {
-      return res.status(400).json({
-        message: "ownerId 또는 username 없음",
-      });
-    }
 
     const updatedPost = await updateArchivePostVisibility(postId, hidden);
-    const postsForResponse = await loadArchivePosts(ownerId, includeHidden);
+    const postsForResponse = await loadArchivePosts(req.archivePost.owner_id, true);
     const groupedHashtags = buildHashtagGroups(postsForResponse);
 
     return res.json({
@@ -363,60 +484,38 @@ router.patch("/posts/:postId/visibility", async (req, res) => {
   }
 });
 
-async function refreshXAccessToken(refreshToken, res) {
-  const tokenRes = await fetch("https://api.x.com/2/oauth2/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh-token",
-      refresh_token: refreshToken,
-      client_id: process.env.X_CLIENT_ID,
-    }),
-  });
+router.patch(
+  "/posts/:postId/collapsed",
+  requireArchiveOwner,
+  async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const collapsed = req.body.collapsed == true;
 
-  const tokenData = await tokenRes.json();
+      const updatedPost = await updateArchivePostCollapsed(postId, collapsed);
+      const postsForResponse = await loadArchivePosts(
+        req.archivePost.owner_id,
+        true
+      );
 
-  if (!tokenRes.ok) {
-    console.log("X refresh 실패:", tokenData);
-    return null;
-  }
+      return res.json({
+        ok: true,
+        postId,
+        collapsed,
+        updatedPost,
+        hashtags: buildHashtagGroups(postsForResponse),
+      });
+    } catch (error) {
+      console.error("archive collapsed error:", error);
 
-  const isProduction = process.env.NODE_ENV === "production";
-
-  res.cookie("x_access_token", tokenData.access_token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
-    path: "/",
-    maxAge: tokenData.expires_in * 1000,
-  });
-
-  if (tokenData.refresh_token) {
-    res.cookie("x_refresh_token", tokenData.refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-  }
-
-  res.cookie(
-    "x_token_expires_at",
-    String(Date.now() + tokenData.expires_in * 1000),
-    {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: tokenData.expires_in * 1000,
+      return res.status(500).json({
+        message: "아카이브 접기 저장 중 오류 발생",
+        error: String(error),
+      });
     }
-  );
+  });
 
-  return tokenData.access_token;
-}
+
 
 
 export default router;

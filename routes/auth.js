@@ -158,6 +158,12 @@ router.get("/x/callback", async (req, res) => {
       }
     );
 
+    res.cookie("x_user_id", userData.data.id, {
+      ...tokenCookieOptions,
+      signed: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     console.log("tokenData ok:", {
       token_type: tokenData.token_type,
       expires_in: tokenData.expires_in,
@@ -208,6 +214,7 @@ router.post("/x/logout", (req, res) => {
   res.clearCookie("x_token_expires_at", { ...cookieOptions, path: "/auth/x" });
   res.clearCookie("x_oauth_state", { ...cookieOptions, path: "/auth/x" });
   res.clearCookie("x_code_verifier", { ...cookieOptions, path: "/auth/x" });
+  res.clearCookie("x_user_id", { ...cookieOptions, path: "/" });
 
   return res.json({ ok: true });
 });
