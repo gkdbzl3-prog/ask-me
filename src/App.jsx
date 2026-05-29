@@ -325,7 +325,7 @@ function App() {
       const res = await fetch(`/api/questions/${questionId}/like`, {
         method: "POST",
         headers: {
-          "Content-Type": currentAuthUserId,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           likerAuthId: currentAuthUserId,
@@ -1066,7 +1066,29 @@ function App() {
     setArchiveSource(data.source || "x");
   }
 
+  async function handleToggleArchiveCollapsed(postId, nextCollapsed) {
+    wetArchiveHashtags((prev) =>
+      prev.map((group) => ({
+        ...group,
+        posts: group.posts.map({
+          post =>
+          post.id === postId
+            ? { ...post, collapsed: nextCollapsed }
+            : post
+),
+      }))
+    );
 
+    await fetch(`/archive/posts/${postId}/collapsed`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ collapsed: nextCollapsed }),
+    });
+
+    await loadArchiveHashtags();
+  }
   useEffect(() => {
     localStorage.setItem(
       "notificationSettings",
@@ -1216,589 +1238,605 @@ function App() {
     <>
 
 
-      <div className={`app theme-${theme}`}
-        style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : {}}>
+      <div className={`app mobile-tab-${mobileTab}`}>
+        <div className={`app theme-${theme}`}
+          style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : {}}>
 
-        <header className="top-bar">
-          <svg
-            className="top-bar-wave left"
-            viewBox="0 0 120 24"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,12 C20,0 40,24 60,12 C80,0 100,24 120,12"
-              fill="none"
-              stroke="rgba(130,80,180,0.45)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-
-          <h1 onClick={() => setMobileTab("chat")}>Ask me</h1>
-
-          <svg className="top-bar-wave right" viewBox="0 0 120 24" preserveAspectRatio="none">
-            <path d="M0,12 C20,0 40,24 60,12 C80,0 100,24 120,12"
-              fill="none" stroke="rgba(130,80,180,0.45)" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-
-          {isLocalDev && (
-            <div className="dev-mode-toggle">
-              <button
-                type="button"
-                className={devViewMode === "guest" ? "active" : ""}
-                onClick={() => setDevViewMode("guest")}>
-                guest
-              </button>
-              <button
-                type="button"
-                className={devViewMode === "owner" ? "active" : ""}
-                onClick={() => setDevViewMode("owner")}>
-                owner
-              </button>
-            </div>
-          )}
-
-
-
-          <div className="mobile-tabs">
-            <button
-              type="button"
-              className={`nav-btn ${mobileTab === "chat" ? "active" : ""}`}
-              onClick={() => setMobileTab("chat")}>
-              Chat
-            </button>
+          <header className="top-bar">
+            <svg
+              className="top-bar-wave left"
+              viewBox="0 0 120 24"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M0,12 C20,0 40,24 60,12 C80,0 100,24 120,12"
+                fill="none"
+                stroke="rgba(130,80,180,0.45)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
 
             <button
               type="button"
-              className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
+              className={`top-nav-btn left ${mobileTab === "profile" ? "active" : ""}`}
               onClick={() => setMobileTab("profile")}>
               Profile
             </button>
 
+            <h1 onClick={() => setMobileTab("chat")}>Ask me</h1>
+
+            <svg className="top-bar-wave right" viewBox="0 0 120 24" preserveAspectRatio="none">
+              <path d="M0,12 C20,0 40,24 60,12 C80,0 100,24 120,12"
+                fill="none" stroke="rgba(130,80,180,0.45)" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
 
             <button
               type="button"
-              className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
+              className={`top-nav-btn right ${mobileTab === "archive" ? "active" : ""}`}
               onClick={() => setMobileTab("archive")}>
               Archive
             </button>
-          </div>
-        </header>
 
-        <div className="app-shell">
-          <aside className={`profile-panel ${mobileTab === "profile" ? "is-mobile-active" : ""}`}>
-            <ProfileHeader
-              viewMode={viewMode}
-              questionCards={questionCards}
-              profileImage={profileImage}
-              setProfileImage={setProfileImage}
-              totalLikeCount={totalLikeCount}
-              bgUrl={bgUrl}
-              setBgUrl={setBgUrl}
-              nickname={nickname}
-              profileBio={profileBio}
-              recentAnswerText={recentAnswerText}
-              totalCards={totalCards}
-              answeredCount={answeredCount}
-              privateQuestionCount={privateQuestionCount}
-              unansweredCount={unansweredCount}
-              routeUsername={routeUsername}
-              setNickname={setNickname}
-              setProfileBio={setProfileBio}
-              theme={theme}
-              setTheme={setTheme}
-              notificationSettings={notificationSettings}
-              setNotificationSettings={setNotificationSettings}
-            />
-          </aside>
+            {isLocalDev && (
+              <div className="dev-mode-toggle">
+                <button
+                  type="button"
+                  className={devViewMode === "guest" ? "active" : ""}
+                  onClick={() => setDevViewMode("guest")}>
+                  guest
+                </button>
+                <button
+                  type="button"
+                  className={devViewMode === "owner" ? "active" : ""}
+                  onClick={() => setDevViewMode("owner")}>
+                  owner
+                </button>
+              </div>
+            )}
 
 
 
-          <main className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
-            {mobileTab === "chat" && (
+            <div className="mobile-tabs">
+              <button
+                type="button"
+                className={`nav-btn ${mobileTab === "chat" ? "active" : ""}`}
+                onClick={() => setMobileTab("chat")}>
+                Chat
+              </button>
 
-              <section className={`card-list ${viewMode}-view`}>
-                {activeQuestionCards.length === 0 ? (
-                  <p>질문이 없음</p>
-                ) : (
-
-                  activeQuestionCards.map((card) => {
-
-                    const hasAnswer = !!card.answer ||
-                      (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
-                    const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
-
-                    return (
-                      <React.Fragment key={card.id}>
+              <button
+                type="button"
+                className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
+                onClick={() => setMobileTab("profile")}>
+                Profile
+              </button>
 
 
-                        <article className={`question-card-only ${card.isPrivate ? "private" : ""} ${hasAnswer ? "answered" : ""}`}>
-                          <div className="question-line">
-                            <div className="question-box-wrap">
-                              <div className="question-bubble">
+              <button
+                type="button"
+                className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
+                onClick={() => setMobileTab("archive")}>
+                Archive
+              </button>
+            </div>
+          </header>
 
-                                {card.isPrivate ? (
-                                  viewMode === "owner" ? (
+          <div className="app-shell">
+            <aside className={`profile-panel ${mobileTab === "profile" ? "is-mobile-active" : ""}`}>
+              <ProfileHeader
+                viewMode={viewMode}
+                questionCards={questionCards}
+                profileImage={profileImage}
+                setProfileImage={setProfileImage}
+                totalLikeCount={totalLikeCount}
+                bgUrl={bgUrl}
+                setBgUrl={setBgUrl}
+                nickname={nickname}
+                profileBio={profileBio}
+                recentAnswerText={recentAnswerText}
+                totalCards={totalCards}
+                answeredCount={answeredCount}
+                privateQuestionCount={privateQuestionCount}
+                unansweredCount={unansweredCount}
+                routeUsername={routeUsername}
+                setNickname={setNickname}
+                setProfileBio={setProfileBio}
+                theme={theme}
+                setTheme={setTheme}
+                notificationSettings={notificationSettings}
+                setNotificationSettings={setNotificationSettings}
+              />
+            </aside>
+
+
+
+            <main className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
+              {mobileTab === "chat" && (
+
+                <section className={`card-list ${viewMode}-view`}>
+                  {activeQuestionCards.length === 0 ? (
+                    <p>질문이 없음</p>
+                  ) : (
+
+                    activeQuestionCards.map((card) => {
+
+                      const hasAnswer = !!card.answer ||
+                        (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
+                      const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
+
+                      return (
+                        <React.Fragment key={card.id}>
+
+
+                          <article className={`question-card-only ${card.isPrivate ? "private" : ""} ${hasAnswer ? "answered" : ""}`}>
+                            <div className="question-line">
+                              <div className="question-box-wrap">
+                                <div className="question-bubble">
+
+                                  {card.isPrivate ? (
+                                    viewMode === "owner" ? (
+                                      <>
+                                        <p className="private-tag">🔐비공개 질문</p>
+                                        <p className="question-text">{card.text}</p>
+                                        <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
+                                      </>
+                                    ) : (
+                                      <span className="private-tag">🔐비공개된 질문입니다</span>
+                                    )
+                                  ) : (
                                     <>
-                                      <p className="private-tag">🔐비공개 질문</p>
                                       <p className="question-text">{card.text}</p>
                                       <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
                                     </>
-                                  ) : (
-                                    <span className="private-tag">🔐비공개된 질문입니다</span>
-                                  )
-                                ) : (
-                                  <>
-                                    <p className="question-text">{card.text}</p>
-                                    <p className="meta">{formatDisplayDate(card.createdAtISO || card.createdAt)}</p>
-                                  </>
-                                )}
+                                  )}
 
-                                {card.files?.length > 0 && (
-                                  <div className={`question-file-grid ${card.files.length === 1 ? "single" : "multi"}`}>
-                                    {card.files.map((file, index) => (
-                                      <div className="question-file-item" key={index}>
-                                        <img src={file.fileUrl || file.url || ""}
-                                          alt={file.fileName || `첨부이미지-${index + 1}`}
-                                          onClick={() => openImageZoom(card.files, index)}
-                                        />
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-
-                              </div>
-                            </div>
-
-
-                            <div className="question-actions">
-
-
-                              {hasAnswer && (
-                                <div className="question-side check-side">
-                                  <span className="answered-mark">
-                                    <img className="check-img" src="/images/체크.png" alt="읽음" />
-                                  </span>
-                                </div>
-                              )}
-
-                              {viewMode === "owner" && (
-                                <button
-                                  className="reply-btn"
-                                  onClick={() => {
-                                    setReplyTargetId(card.id);
-                                    setIsEditingAnswer(false);
-                                    setInput("");
-                                    setExistingAnswerFiles([]);
-                                    setRemovedExistingFileUrls([]);
-                                    setSelectedFiles([]);
-                                    requestAnimationFrame(() => {
-                                      answerInputRef.current?.focus();
-                                      answerInputRef.current?.scrollIntoView({
-                                        behavior: "smooth",
-                                        block: "center",
-                                      });
-                                    });
-                                  }}>
-                                  답변하기
-                                </button>
-                              )}
-                            </div>
-
-
-
-
-                            {canDeleteQuestion && (
-                              <div className="question-side delete-side">
-                                <button
-                                  className="question-delete-btn"
-                                  onClick={() => removeQuestion(card.id)}>
-                                  ×
-                                </button>
-                              </div>
-                            )}
-
-                          </div>
-                        </article>
-
-
-                        {hasAnswer && (
-                          <article className={`answer-card-only ${justEditedAnswerId === card.id ? "just-edited" : ""}`}>
-                            <div className="answer-line">
-
-                              {viewMode === "owner" && hasAnswer && (
-                                <button
-                                  className="answer-edit-btn"
-                                  onClick={() => {
-                                    setReplyTargetId(card.id);
-                                    setIsEditingAnswer(true);
-                                    setInput(card.answer || "");
-                                    setExistingAnswerFiles(card.answerFiles || []);
-                                    setSelectedFiles([]);
-                                    setRemovedExistingFileUrls([]);
-                                    requestAnimationFrame(() => {
-                                      answerInputRef.current?.focus();
-                                      answerInputRef.current?.scrollIntoView({
-                                        behavior: "smooth",
-                                        block: "center",
-                                      });
-                                    });
-                                  }}>
-                                  답변수정
-                                </button>
-                              )}
-
-
-                              {viewMode === "owner" && (
-                                <button
-                                  className="answer-delete-btn"
-                                  onClick={() => removeAnswer(card.id)}>
-                                  ×
-                                </button>
-                              )}
-
-                              {viewMode === "guest" && (
-                                <div className="answer-side like-side">
-                                  <button
-                                    className="like-btn"
-                                    onClick={() => handleLike(card.id)}>
-                                    {card.liked ? "❤️" : "🩶"}
-                                  </button>
-                                </div>
-                              )}
-
-
-
-
-
-                              <div className="answer-box-wrap">
-                                <div className="answer-box">
-                                  <p className="answer-text">{card.answer}</p>
-
-
-
-                                  {card.answerFiles?.length > 0 && (
-                                    <div className={`answer-file-grid ${card.answerFiles.length === 1 ? "single" : "multi"}`}>
-                                      {card.answerFiles.map((file, index) => (
-                                        <div className="answer-file-item" key={index}>
-                                          <img
-                                            src={file.fileUrl || file.url || ""}
+                                  {card.files?.length > 0 && (
+                                    <div className={`question-file-grid ${card.files.length === 1 ? "single" : "multi"}`}>
+                                      {card.files.map((file, index) => (
+                                        <div className="question-file-item" key={index}>
+                                          <img src={file.fileUrl || file.url || ""}
                                             alt={file.fileName || `첨부이미지-${index + 1}`}
-                                            onClick={() => openImageZoom(card.answerFiles, index)}
+                                            onClick={() => openImageZoom(card.files, index)}
                                           />
                                         </div>
                                       ))}
                                     </div>
                                   )}
-                                  <p className="quoted-question">
-                                    {card.isPrivate
-                                      ? "🔐 비공개된 질문입니다"
-                                      : getQuestionPreview(card)}
-                                  </p>
 
                                 </div>
+                              </div>
 
+
+                              <div className="question-actions">
+
+
+                                {hasAnswer && (
+                                  <div className="question-side check-side">
+                                    <span className="answered-mark">
+                                      <img className="check-img" src="/images/체크.png" alt="읽음" />
+                                    </span>
+                                  </div>
+                                )}
+
+                                {viewMode === "owner" && (
+                                  <button
+                                    className="reply-btn"
+                                    onClick={() => {
+                                      setReplyTargetId(card.id);
+                                      setIsEditingAnswer(false);
+                                      setInput("");
+                                      setExistingAnswerFiles([]);
+                                      setRemovedExistingFileUrls([]);
+                                      setSelectedFiles([]);
+                                      requestAnimationFrame(() => {
+                                        answerInputRef.current?.focus();
+                                        answerInputRef.current?.scrollIntoView({
+                                          behavior: "smooth",
+                                          block: "center",
+                                        });
+                                      });
+                                    }}>
+                                    답변하기
+                                  </button>
+                                )}
                               </div>
-                              <div className="answer-side avatar-side">
-                                <div className="card-avatar">
-                                  <img src={profileImage || "/images/default-avatar.png"}
-                                    alt="Profile"
-                                    className="profile-avatar" />
+
+
+
+
+                              {canDeleteQuestion && (
+                                <div className="question-side delete-side">
+                                  <button
+                                    className="question-delete-btn"
+                                    onClick={() => removeQuestion(card.id)}>
+                                    ×
+                                  </button>
                                 </div>
-                              </div>
+                              )}
 
                             </div>
                           </article>
-                        )}
-
-                      </React.Fragment>
-                    );
-                  })
-                )}
 
 
-                {showPreview && selectedFiles.length > 0 && (
-                  <div className="preview-modal" onClick={() => setShowPreview(false)}>
-                    <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
+                          {hasAnswer && (
+                            <article className={`answer-card-only ${justEditedAnswerId === card.id ? "just-edited" : ""}`}>
+                              <div className="answer-line">
 
-                      <div className={selectedFiles.length > 1
-                        ? "preview-grid is-multi"
-                        : "preview-grid is-single"}>
-                        {selectedFiles.map((file, index) => (
-                          <div className="preview-grid-item" key={`${file.name}-${index}`}>
-                            <img src={URL.createObjectURL(file)} alt={`선택한 이미지 ${index + 1}`} />
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="preview-modal-actions">
-                        <button type="button" onClick={() => setShowPreview(false)}>
-                          확인
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedFiles([]);
-                            setShowPreview(false);
-                          }}>
-                          취소
-                        </button>
-
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {showImageZoom && zoomedImages.length > 0 && (
-                  <div className="image-zoom-modal" onClick={closeImageZoom}>
-                    <div
-                      ref={zoomModalRef}
-                      className="image-zoom-modal-content"
-                      onClick={(e) => e.stopPropagation()}
-                      onTouchStart={handleZoomTouchStart}
-                      onTouchMove={handleZoomTouchMove}
-                      onTouchEnd={handleZoomTouchEnd}
-                      onWheel={handleZoomWheel}
-                      onMouseDown={handleZoomMouseDown}
-                      onMouseUp={handleZoomMouseUp}
-                      onMouseLeave={handleZoomMouseLeave}>
-                      <button
-                        type="button"
-                        className="image-zoom-close"
-                        onClick={closeImageZoom}>
-                        ×
-                      </button>
+                                {viewMode === "owner" && hasAnswer && (
+                                  <button
+                                    className="answer-edit-btn"
+                                    onClick={() => {
+                                      setReplyTargetId(card.id);
+                                      setIsEditingAnswer(true);
+                                      setInput(card.answer || "");
+                                      setExistingAnswerFiles(card.answerFiles || []);
+                                      setSelectedFiles([]);
+                                      setRemovedExistingFileUrls([]);
+                                      requestAnimationFrame(() => {
+                                        answerInputRef.current?.focus();
+                                        answerInputRef.current?.scrollIntoView({
+                                          behavior: "smooth",
+                                          block: "center",
+                                        });
+                                      });
+                                    }}>
+                                    답변수정
+                                  </button>
+                                )}
 
 
-                      <img src={zoomedImages[zoomedIndex]?.fileUrl || zoomedImages[zoomedIndex]?.url || ""}
-                        alt={zoomedImages[zoomedIndex]?.fileName || `확대 이미지 ${zoomedIndex + 1}`}
-                        className={[
-                          "zoom-img",
-                          zoomScale > 1 ? "zoomed" : "",
-                          isDraggingZoom ? "dragging" : "",
-                        ].join(" ").trim()}
-                        style={{
-                          transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
-                          transition: isPinching || isDraggingZoom ? "none" : "transform 0.18s ease",
-                          cursor: zoomScale > 1 ? (isDraggingZoom ? "grabbing" : "grab") : "zoom-in",
-                        }}
-                        onTouchStart={handleZoomTouchStart}
-                        onTouchMove={handleZoomTouchMove}
-                        onTouchEnd={handleZoomTouchEnd}
-                      />
+                                {viewMode === "owner" && (
+                                  <button
+                                    className="answer-delete-btn"
+                                    onClick={() => removeAnswer(card.id)}>
+                                    ×
+                                  </button>
+                                )}
 
-
-                      {zoomedImages.length > 1 && (
-                        <button
-                          type="button"
-                          className="image-zoom-nav prev"
-                          onClick={goPrevZoomImage}>
-
-                          ‹
-                        </button>
-                      )}
+                                {viewMode === "guest" && (
+                                  <div className="answer-side like-side">
+                                    <button
+                                      className="like-btn"
+                                      onClick={() => handleLike(card.id)}>
+                                      {card.liked ? "❤️" : "🩶"}
+                                    </button>
+                                  </div>
+                                )}
 
 
 
-                      {zoomedImages.length > 1 && (
-                        <button
-                          type="button"
-                          className="image-zoom-nav next"
-                          onClick={goNextZoomImage}>
-                          ›
-                        </button>
-                      )}
 
 
-                      <div className="image-zoom-counter">
-                        {zoomedIndex + 1} / {zoomedImages.length}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                <div className="answer-box-wrap">
+                                  <div className="answer-box">
+                                    <p className="answer-text">{card.answer}</p>
 
 
-                <div className="ask-area-wrap">
 
-                  {selectedFiles.length > 0 && !showPreview && (
-                    <div className="selected-file-card">
-                      <div className={selectedFiles.length > 1
-                        ? "selected-file-grid is-multi"
-                        : "selected-file-grid is-single"}>
-                        {selectedFiles.map((file, index) => (
-                          <div className="selected-file-grid-item" key={`${file.name}-${index}`}>
-                            <div className="selected-file-preview">
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={`보낼 이미지 ${index + 1}`}
-                              />
+                                    {card.answerFiles?.length > 0 && (
+                                      <div className={`answer-file-grid ${card.answerFiles.length === 1 ? "single" : "multi"}`}>
+                                        {card.answerFiles.map((file, index) => (
+                                          <div className="answer-file-item" key={index}>
+                                            <img
+                                              src={file.fileUrl || file.url || ""}
+                                              alt={file.fileName || `첨부이미지-${index + 1}`}
+                                              onClick={() => openImageZoom(card.answerFiles, index)}
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <p className="quoted-question">
+                                      {card.isPrivate
+                                        ? "🔐 비공개된 질문입니다"
+                                        : getQuestionPreview(card)}
+                                    </p>
 
-                              <button
-                                type="button"
-                                className="selected-file-remove-btn"
-                                onClick={() => {
-                                  setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-                                }}>
-                                ×
-                              </button>
+                                  </div>
 
+                                </div>
+                                <div className="answer-side avatar-side">
+                                  <div className="card-avatar">
+                                    <img src={profileImage || "/images/default-avatar.png"}
+                                      alt="Profile"
+                                      className="profile-avatar" />
+                                  </div>
+                                </div>
+
+                              </div>
+                            </article>
+                          )}
+
+                        </React.Fragment>
+                      );
+                    })
+                  )}
+
+
+                  {showPreview && selectedFiles.length > 0 && (
+                    <div className="preview-modal" onClick={() => setShowPreview(false)}>
+                      <div className="preview-modal-content" onClick={(e) => e.stopPropagation()}>
+
+                        <div className={selectedFiles.length > 1
+                          ? "preview-grid is-multi"
+                          : "preview-grid is-single"}>
+                          {selectedFiles.map((file, index) => (
+                            <div className="preview-grid-item" key={`${file.name}-${index}`}>
+                              <img src={URL.createObjectURL(file)} alt={`선택한 이미지 ${index + 1}`} />
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
 
-                      </div>
+                        <div className="preview-modal-actions">
+                          <button type="button" onClick={() => setShowPreview(false)}>
+                            확인
+                          </button>
 
-                      <div className="selected-file-preview-meta">
-                        <span>
-                          {selectedFiles.length === 1
-                            ? selectedFiles[0].name
-                            : `${selectedFiles.length}개의 이미지 선택됨`}
-                        </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFiles([]);
+                              setShowPreview(false);
+                            }}>
+                            취소
+                          </button>
 
+                        </div>
                       </div>
                     </div>
                   )}
-                  <div ref={replyEditorRef}>
-                    <div className="ask-input-shell">
-                      {viewMode === "guest" && (
+
+                  {showImageZoom && zoomedImages.length > 0 && (
+                    <div className="image-zoom-modal" onClick={closeImageZoom}>
+                      <div
+                        ref={zoomModalRef}
+                        className="image-zoom-modal-content"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleZoomTouchStart}
+                        onTouchMove={handleZoomTouchMove}
+                        onTouchEnd={handleZoomTouchEnd}
+                        onWheel={handleZoomWheel}
+                        onMouseDown={handleZoomMouseDown}
+                        onMouseUp={handleZoomMouseUp}
+                        onMouseLeave={handleZoomMouseLeave}>
                         <button
-                          className={`secret-toggle ${secret ? "on" : ""}`}
-                          onClick={() => setSecret(!secret)}
-                        >
-                          {secret ? "◉" : "◎"} Secret
-                        </button>)}
-
-                      {viewMode === "owner" && replyTargetId !== null && (
-                        <div className={`replying-bar ${isEditingAnswer ? "is-editing" : ""}`}>
-                          <span className="replying-bar-text">
-                            {replyTargetCard && (isEditingAnswer
-                              ? `"${replyTargetCard.text}" 수정 중`
-                              : `"${replyTargetCard.text}"에 답하는 중`)}
-                          </span>
+                          type="button"
+                          className="image-zoom-close"
+                          onClick={closeImageZoom}>
+                          ×
+                        </button>
 
 
+                        <img src={zoomedImages[zoomedIndex]?.fileUrl || zoomedImages[zoomedIndex]?.url || ""}
+                          alt={zoomedImages[zoomedIndex]?.fileName || `확대 이미지 ${zoomedIndex + 1}`}
+                          className={[
+                            "zoom-img",
+                            zoomScale > 1 ? "zoomed" : "",
+                            isDraggingZoom ? "dragging" : "",
+                          ].join(" ").trim()}
+                          style={{
+                            transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
+                            transition: isPinching || isDraggingZoom ? "none" : "transform 0.18s ease",
+                            cursor: zoomScale > 1 ? (isDraggingZoom ? "grabbing" : "grab") : "zoom-in",
+                          }}
+                          onTouchStart={handleZoomTouchStart}
+                          onTouchMove={handleZoomTouchMove}
+                          onTouchEnd={handleZoomTouchEnd}
+                        />
+
+
+                        {zoomedImages.length > 1 && (
+                          <button
+                            type="button"
+                            className="image-zoom-nav prev"
+                            onClick={goPrevZoomImage}>
+
+                            ‹
+                          </button>
+                        )}
+
+
+
+                        {zoomedImages.length > 1 && (
+                          <button
+                            type="button"
+                            className="image-zoom-nav next"
+                            onClick={goNextZoomImage}>
+                            ›
+                          </button>
+                        )}
+
+
+                        <div className="image-zoom-counter">
+                          {zoomedIndex + 1} / {zoomedImages.length}
                         </div>
-                      )}
+                      </div>
+                    </div>
+                  )}
 
 
-                      {replyTargetId !== null && existingAnswerFiles.length > 0 && (
-                        <div className="existing-answer-files">
-                          {existingAnswerFiles
-                            .filter((file) => !removedExistingFileUrls.includes(file.fileUrl || file.url))
-                            .map((file) => (
-                              <div className="existing-answer-file-item" key={file.fileUrl || file.url}>
-                                <img src={file.url || file.fileUrl} alt={file.name || file.fileName || "기존 첨부"} />
+                  <div className="ask-area-wrap">
+
+                    {selectedFiles.length > 0 && !showPreview && (
+                      <div className="selected-file-card">
+                        <div className={selectedFiles.length > 1
+                          ? "selected-file-grid is-multi"
+                          : "selected-file-grid is-single"}>
+                          {selectedFiles.map((file, index) => (
+                            <div className="selected-file-grid-item" key={`${file.name}-${index}`}>
+                              <div className="selected-file-preview">
+                                <img
+                                  src={URL.createObjectURL(file)}
+                                  alt={`보낼 이미지 ${index + 1}`}
+                                />
+
                                 <button
                                   type="button"
-                                  onClick={() => removeExistingAnswerFile(file.fileUrl || file.url)}
-                                >
+                                  className="selected-file-remove-btn"
+                                  onClick={() => {
+                                    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+                                  }}>
+                                  ×
+                                </button>
+
+                              </div>
+                            </div>
+                          ))}
+
+                        </div>
+
+                        <div className="selected-file-preview-meta">
+                          <span>
+                            {selectedFiles.length === 1
+                              ? selectedFiles[0].name
+                              : `${selectedFiles.length}개의 이미지 선택됨`}
+                          </span>
+
+                        </div>
+                      </div>
+                    )}
+                    <div ref={replyEditorRef}>
+                      <div className="ask-input-shell">
+                        {viewMode === "guest" && (
+                          <button
+                            className={`secret-toggle ${secret ? "on" : ""}`}
+                            onClick={() => setSecret(!secret)}
+                          >
+                            {secret ? "◉" : "◎"} Secret
+                          </button>)}
+
+                        {viewMode === "owner" && replyTargetId !== null && (
+                          <div className={`replying-bar ${isEditingAnswer ? "is-editing" : ""}`}>
+                            <span className="replying-bar-text">
+                              {replyTargetCard && (isEditingAnswer
+                                ? `"${replyTargetCard.text}" 수정 중`
+                                : `"${replyTargetCard.text}"에 답하는 중`)}
+                            </span>
+
+
+                          </div>
+                        )}
+
+
+                        {replyTargetId !== null && existingAnswerFiles.length > 0 && (
+                          <div className="existing-answer-files">
+                            {existingAnswerFiles
+                              .filter((file) => !removedExistingFileUrls.includes(file.fileUrl || file.url))
+                              .map((file) => (
+                                <div className="existing-answer-file-item" key={file.fileUrl || file.url}>
+                                  <img src={file.url || file.fileUrl} alt={file.name || file.fileName || "기존 첨부"} />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeExistingAnswerFile(file.fileUrl || file.url)}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        {selectedFiles.length > 0 && (
+                          <div className="new-answer-files">
+                            {selectedFiles.map((file, index) => (
+                              <div className="new-answer-file-item" key={`${file.name}-${index}`}>
+                                <img src={URL.createObjectURL(file)} alt={file.name || `새 첨부 ${index + 1}`} />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+                                  }}>
                                   ×
                                 </button>
                               </div>
                             ))}
-                        </div>
-                      )}
-
-                      {selectedFiles.length > 0 && (
-                        <div className="new-answer-files">
-                          {selectedFiles.map((file, index) => (
-                            <div className="new-answer-file-item" key={`${file.name}-${index}`}>
-                              <img src={URL.createObjectURL(file)} alt={file.name || `새 첨부 ${index + 1}`} />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-                                }}>
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                          </div>
+                        )}
 
 
 
 
 
 
-                      <section className="input-row">
-                        <div className="message-field">
+                        <section className="input-row">
+                          <div className="message-field">
+
+                            <button
+                              className="clip-btn"
+                              onClick={() => document.getElementById("fileInput").click()}
+                              type="button"
+                            >
+                              📎
+                            </button>
+
+
+                            <input
+                              type="file"
+                              style={{ display: "none" }}
+                              id="fileInput"
+                              multiple
+                              accept="image/*"
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (!files.length) return;
+
+                                setSelectedFiles((prev) => [...prev, ...files]);
+                                setShowPreview(true);
+                                e.target.value = "";
+                              }}
+                            />
+
+                            <input
+                              ref={answerInputRef}
+                              value={input}
+                              className="message-input"
+                              value={input}
+                              onChange={(e) => setInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleSend();
+                                }
+                              }}
+                              placeholder={
+                                viewMode === "owner"
+                                  ? (replyTargetId !== null ? "답변을 입력하세요" : "질문에 답할 시간✨")
+                                  : `${nickname}님에게 하고 싶은 말을 적어보세요!`} />
+
+
+                          </div>
+
 
                           <button
-                            className="clip-btn"
-                            onClick={() => document.getElementById("fileInput").click()}
+                            onClick={handleSend}
+                            className="send-btn"
                             type="button"
+                            disabled={isSending}
                           >
-                            📎
+                            <img src="/images/종이비행기.png" alt="전송" />
                           </button>
+                        </section>
 
-
-                          <input
-                            type="file"
-                            style={{ display: "none" }}
-                            id="fileInput"
-                            multiple
-                            accept="image/*"
-                            onChange={(e) => {
-                              const files = Array.from(e.target.files || []);
-                              if (!files.length) return;
-
-                              setSelectedFiles((prev) => [...prev, ...files]);
-                              setShowPreview(true);
-                              e.target.value = "";
-                            }}
-                          />
-
-                          <input
-                            ref={answerInputRef}
-                            value={input}
-                            className="message-input"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSend();
-                              }
-                            }}
-                            placeholder={
-                              viewMode === "owner"
-                                ? (replyTargetId !== null ? "답변을 입력하세요" : "질문에 답할 시간✨")
-                                : `${nickname}님에게 하고 싶은 말을 적어보세요!`} />
-
-
-                        </div>
-
-
-                        <button
-                          onClick={handleSend}
-                          className="send-btn"
-                          type="button"
-                          disabled={isSending}
-                        >
-                          <img src="/images/종이비행기.png" alt="전송" />
-                        </button>
-                      </section>
-
+                      </div>
                     </div>
                   </div>
-                </div>
-              </section>
-            )}
-          </main>
+                </section>
+              )}
+            </main>
 
-          <aside className={`archive-panel ${mobileTab === "archive" ? "is-mobile-active" : ""}`}>
-            <ArchiveGallery
-              posts={archivePosts}
-              source={archiveSource}
-              viewMode={viewMode}
-              isArchiveEditing={isArchiveEditing}
-              onToggleEdit={handleToggleArchiveEdit}
-              onSyncArchive={syncArchive}
-              onToggleVisibility={toggleArchivePostVisibility}
-              onToggleCollapsed={toggleArchivePostCollapsed} />
-          </aside>
+            <aside className={`archive-panel ${mobileTab === "archive" ? "is-mobile-active" : ""}`}>
+              <ArchiveGallery
+                posts={archivePosts}
+                source={archiveSource}
+                viewMode={viewMode}
+                isArchiveEditing={isArchiveEditing}
+                onToggleEdit={handleToggleArchiveEdit}
+                onSyncArchive={syncArchive}
+                onToggleVisibility={toggleArchivePostVisibility}
+                onToggleCollapsed={toggleArchivePostCollapsed} />
+            </aside>
+          </div>
         </div>
       </div>
 

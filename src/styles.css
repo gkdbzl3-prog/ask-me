@@ -729,6 +729,18 @@ body {
     transform: none;
   }
 
+  .mobile-tab-profile .ask-input-shell {
+    display: none;
+  }
+
+  .mobile-tab-archive .ask-input-shell {
+    display: none;
+  }
+
+  .mobile-tab-chat .ask-input-shell {
+    display: flex;
+  }
+
   .question-line {
     width: 100%;
   }
@@ -737,15 +749,15 @@ body {
   .chat-panel,
   .archive-panel {
     display: none;
+    width: 100%;
+    height: auto;
+    overflow: visible;
   }
 
   .profile-panel.is-mobile-active,
   .chat-panel.is-mobile-active,
   .archive-panel.is-mobile-active {
-    display: block;
-    width: 100%;
-    height: auto;
-    overflow: visible;
+    display: block !important;
   }
 
   .profile-panel.is-mobile-active .profile-public {
@@ -1973,6 +1985,13 @@ body {
   gap: 6px;
 }
 
+.archive-images img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 .archive-image-wrap {
   position: relative;
   overflow: hidden;
@@ -2101,7 +2120,7 @@ body {
 }
 
 .archive-images.image-count-2 {
-  grid-template-columns: repeat(2, minmax(2, 1fr));
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .archive-images.image-count-2 .archive-image-wrap {
@@ -2119,35 +2138,35 @@ body {
 }
 
 .archive-images.image-count-4 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(2, 1fr));
 }
 
 .archive-images.image-count-5 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-6 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-7 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-8 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-8 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-9 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(3, 1fr));
 }
 
 .archive-images.image-count-10 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(5, 1fr));
 }
 
 .archive-images.image-count-1 {
