@@ -1070,8 +1070,8 @@ function App() {
     setArchiveHashtags((prev) =>
       prev.map((group) => ({
         ...group,
-        posts: group.posts.map((post)
-          post =>
+        posts: group.posts.map(
+          (post) =>
             post.id === postId
               ? { ...post, collapsed: nextCollapsed }
               : post
