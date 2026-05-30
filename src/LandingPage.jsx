@@ -10,6 +10,7 @@ function LandingPage() {
             <div className="landing-bg" />
             <div className="landing-content">
                 <div className="landing-logo">
+                    <img src="/images/landing-logo.png" />
                     <h1>Ask me</h1>
                     <p className="landing-tagline"></p>
                 </div>

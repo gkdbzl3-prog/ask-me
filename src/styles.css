@@ -2450,7 +2450,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: url("/landing-bg.png");
+  background-image: url("images/landing-bg.png");
   background-size: cover;
   background-position: center;
 }
@@ -2471,7 +2471,10 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  background-image: url("/landing-logo.png");
+}
+
+.landing-logo img {
+  background-image: url("images/landing-logo.png");
   background-size: cover;
   background-position: center;
 }
