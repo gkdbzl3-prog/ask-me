@@ -703,32 +703,28 @@ body {
 
 
 @media (max-width: 768px) {
+
   .top-bar {
     width: 100%;
     box-sizing: border-box;
-  }
-
-  .top-bar-wave {
-    display: none;
+    height: 70px;
   }
 
   .top-nav-btn {
     display: inline-flex;
     align-items: center;
+    margin-top: 25px;
     justify-content: center;
     grid-row: 1;
-    padding: 8px 16px;
-    border: 1px solid rgba(169, 120, 230, 0.24);
-    border-radius: 13px;
-    background: rgba(255, 250, 255, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    background: transparent;
     color: rgba(66, 40, 112, 0.72);
     font-family: "MyFont";
-    font-size: 14px;
-    font-wdight: 400;
+    font-size: 18px;
+    font-weight: 400;
     cursor: pointer;
     opacity: 0.85;
+    text-shadow: 0 1px 10px rgba(190, 160, 240, 0.18);
     transition:
       color 0.18s ease,
       opacity 0.18s ease,
@@ -747,18 +743,18 @@ body {
   }
 
   .top-nav-btn:hover {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(66, 40, 112, 0.95);
     opacity: 1;
     transform: translateY(-1px);
+    text-shadow: 0 2px 14px rgba(176, 138, 235, 0.32);
   }
 
   .top-nav-btn.active {
-    background: linear-gradient(190deg,
-        rgba(186, 148, 240, 0.42) 0%,
-        rgba(169, 120, 230, 0.3) 100%);
-    border-color: rgba(169, 120, 230, 0.52);
     color: rgba(58, 31, 105, 0.98);
     opacity: 1;
+    text-shadow:
+      0 2px 16px rgba(176, 138, 235, 0.42),
+      0 0 1px rgba(255, 255, 255, 0.3);
   }
 
   .mobile-tabs {
@@ -777,7 +773,6 @@ body {
 
 
   .ask-area-wrap {
-    bottom: 82px;
     width: calc(100vw - 28px);
     max-width: none;
   }
