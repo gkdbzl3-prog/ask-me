@@ -1295,31 +1295,6 @@ function App() {
               </div>
             )}
 
-
-
-            <div className="mobile-tabs">
-              <button
-                type="button"
-                className={`nav-btn ${mobileTab === "chat" ? "active" : ""}`}
-                onClick={() => setMobileTab("chat")}>
-                Chat
-              </button>
-
-              <button
-                type="button"
-                className={`nav-btn ${mobileTab === "profile" ? "active" : ""}`}
-                onClick={() => setMobileTab("profile")}>
-                Profile
-              </button>
-
-
-              <button
-                type="button"
-                className={`nav-btn ${mobileTab === "archive" ? "active" : ""}`}
-                onClick={() => setMobileTab("archive")}>
-                Archive
-              </button>
-            </div>
           </header>
 
           <div className="app-shell">

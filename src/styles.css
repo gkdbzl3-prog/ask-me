@@ -87,6 +87,9 @@ body {
 }
 
 
+.top-nav-btn {
+  display: none;
+}
 
 .top-bar-wave {
   width: 100%;
@@ -705,6 +708,62 @@ body {
     box-sizing: border-box;
   }
 
+  .top-bar-wave {
+    display: none;
+  }
+
+  .top-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    grid-row: 1;
+    padding: 8px 16px;
+    border: 1px solid rgba(169, 120, 230, 0.24);
+    border-radius: 13px;
+    background: rgba(255, 250, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(66, 40, 112, 0.72);
+    font-family: "MyFont";
+    font-size: 14px;
+    font-wdight: 400;
+    cursor: pointer;
+    opacity: 0.85;
+    transition:
+      color 0.18s ease,
+      opacity 0.18s ease,
+      transform 0.15s ease,
+      background 0.18s ease;
+  }
+
+  .top-nav-btn.left {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .top-nav-btn.right {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .top-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+
+  .top-nav-btn.active {
+    background: linear-gradient(190deg,
+        rgba(186, 148, 240, 0.42) 0%,
+        rgba(169, 120, 230, 0.3) 100%);
+    border-color: rgba(169, 120, 230, 0.52);
+    color: rgba(58, 31, 105, 0.98);
+    opacity: 1;
+  }
+
+  .mobile-tabs {
+    display: none;
+  }
 
   .app-shell {
     display: block;
@@ -729,17 +788,6 @@ body {
     transform: none;
   }
 
-  .mobile-tab-profile .ask-input-shell {
-    display: none;
-  }
-
-  .mobile-tab-archive .ask-input-shell {
-    display: none;
-  }
-
-  .mobile-tab-chat .ask-input-shell {
-    display: flex;
-  }
 
   .question-line {
     width: 100%;
@@ -769,71 +817,6 @@ body {
   .chat-panel.owner-view {
     margin: 0;
     width: 100%;
-  }
-
-
-  .mobile-tabs {
-    position: fixed;
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    z-index: 60;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    height: 54px;
-    padding: 7px;
-    border: 1px solid rgba(169, 120, 230, 0.24);
-    border-radius: 18px;
-    background: rgba(255, 250, 255, 0.86);
-    box-shadow: 0 14px 34px rgba(72, 45, 120, 0.18);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-
-
-
-  .mobile-tabs .nav-btn {
-    border: none;
-    background: transparent;
-    padding: 0;
-    color: rgba(66, 40, 112, 0.72);
-    font-weight: 400;
-    font-family: "MyFont";
-    letter-spacing: 0;
-    cursor: pointer;
-    text-shadow: 0 1px 10px rgba(190, 160, 240, 0.18);
-    transition:
-      color 0.18s ease,
-      opacity 0.18s ease,
-      transform 0.15s ease,
-      text-shadow 0.18s ease;
-    opacity: 0.72;
-    font-size: 14px;
-    position: static;
-    border-radius: 13px;
-  }
-
-  .mobile-tabs .nav-btn:hover {
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.94) 0%,
-        rgba(250, 245, 255, 0.84) 100%);
-    color: rgba(66, 40, 112, 0.9);
-    opacity: 1;
-    transform: translateY(-1px);
-    text-shadow: 0 2px 14px rgba(176, 138, 235, 0.28);
-  }
-
-  .mobile-tabs .nav-btn.active {
-    background: linear-gradient(190deg,
-        rgba(186, 148, 240, 0.42) 0%,
-        rgba(169, 120, 230, 0.3) 100%);
-    border-color: rgba(169, 120, 230, 0.52);
-    color: rgba(58, 31, 105, 0.98);
-    opacity: 1;
-    text-shadow:
-      0 2px 16px rgba(176, 138, 235, 0.34),
-      0 0 1px rgba(255, 255, 255, 0.28);
   }
 
 
