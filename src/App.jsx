@@ -255,6 +255,7 @@ function App() {
   });
 
 
+
   const SAMPLE_QUESTIONS = [
     {
       id: "q1",
@@ -1252,6 +1253,10 @@ function App() {
       document.removeEventListener("mousedown", handleDocumentClick);
     };
   }, [replyTargetId]);
+
+  if (!routeUsername) {
+    return <LandingPage />;
+  }
 
   return (
     <>

@@ -2,7 +2,7 @@ import React from "react";
 
 function LandingPage() {
     function handleTwitterLogin() {
-        window.location.href = "/auth/twitter";
+        window.location.href = "/auth/x/login";
     }
 
     return (
