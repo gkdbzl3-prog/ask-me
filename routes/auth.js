@@ -1,6 +1,7 @@
 import express from "express";
 import { randomBytes, createHash } from "crypto";
 import { supabase } from "../supabase.js";
+import { clearXTokenCookies, setXTokenCookies } from "./xTokens.js";
 
 const router = express.Router();
 const isProduction = process.env.NODE_ENV === "production";
@@ -128,41 +129,7 @@ router.get("/x/callback", async (req, res) => {
       );
     }
 
-    const tokenCookieOptions = {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-    };
-    res.cookie("x_access_token", tokenData.access_token, {
-      ...tokenCookieOptions,
-      maxAge: tokenData.expires_in * 1000,
-    });
-
-    if (tokenData.refresh_token) {
-      res.cookie("x_refresh_token", tokenData.refresh_token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-    }
-
-    res.cookie(
-      "x_token_expires_at",
-      String(Date.now() + tokenData.expires_in * 1000),
-      {
-        ...tokenCookieOptions,
-        maxAge: tokenData.expires_in * 1000,
-      }
-    );
-
-    res.cookie("x_user_id", userData.data.id, {
-      ...tokenCookieOptions,
-      signed: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    setXTokenCookies(res, tokenData, userData.data.id, isProduction);
 
     console.log("tokenData ok:", {
       token_type: tokenData.token_type,
@@ -202,19 +169,7 @@ router.get("/x/callback", async (req, res) => {
 });
 
 router.post("/x/logout", (req, res) => {
-  const cookieOptions = {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
-    path: "/",
-  };
-
-  res.clearCookie("x_access_token", { ...cookieOptions, path: "/auth/x" });
-  res.clearCookie("x_refresh_token", { ...cookieOptions, path: "/auth/x" });
-  res.clearCookie("x_token_expires_at", { ...cookieOptions, path: "/auth/x" });
-  res.clearCookie("x_oauth_state", { ...cookieOptions, path: "/auth/x" });
-  res.clearCookie("x_code_verifier", { ...cookieOptions, path: "/auth/x" });
-  res.clearCookie("x_user_id", { ...cookieOptions, path: "/" });
+  clearXTokenCookies(res, isProduction);
 
   return res.json({ ok: true });
 });

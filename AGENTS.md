@@ -99,29 +99,20 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 ## Session Completion
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**Repository handoff policy:** AI agents must not commit, push, or deploy for this project unless the user explicitly asks in that session. The user handles git commits, remote pushes, and deployment.
 
-**MANDATORY WORKFLOW:**
+**MANDATORY WORKFLOW FOR AI AGENTS:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+1. **File issues for remaining work** - Create issues for anything that needs follow-up when `bd` is available
+2. **Run quality gates** (if code changed) - Tests, linters, and builds as applicable
+3. **Update issue status** - Close finished work or update in-progress items when `bd` is available
+4. **Stop before git handoff** - Do not run `git commit`, `git push`, `bd dolt push`, or deployment commands
+5. **Hand off** - Report changed files, verification results, and any known remaining work
 
 **CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- Work is complete for AI agents after requested changes are implemented and quality gates, including build, have run
+- NEVER commit, push, or deploy unless the user explicitly requests it in the current session
+- If quality gates cannot run, state the exact blocker and leave git operations to the user
 
 <!-- END BEADS INTEGRATION -->
 

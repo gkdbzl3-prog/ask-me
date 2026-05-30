@@ -1,5 +1,6 @@
 import express from "express";
 import { supabase } from "../supabase.js";
+import { createXRefreshTokenBody, setXTokenCookies } from "./xTokens.js";
 import {
   loadArchivePosts,
   saveArchivePosts,
@@ -149,10 +150,9 @@ async function refreshXAccessToken(refreshToken, res) {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({
-      grant_type: "refresh-token",
-      refresh_token: refreshToken,
-      client_id: process.env.X_CLIENT_ID,
+    body: createXRefreshTokenBody({
+      refreshToken,
+      clientId: process.env.X_CLIENT_ID,
     }),
   });
 
@@ -165,35 +165,7 @@ async function refreshXAccessToken(refreshToken, res) {
 
   const isProduction = process.env.NODE_ENV === "production";
 
-  res.cookie("x_access_token", tokenData.access_token, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
-    path: "/",
-    maxAge: tokenData.expires_in * 1000,
-  });
-
-  if (tokenData.refresh_token) {
-    res.cookie("x_refresh_token", tokenData.refresh_token, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-  }
-
-  res.cookie(
-    "x_token_expires_at",
-    String(Date.now() + tokenData.expires_in * 1000),
-    {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
-      path: "/",
-      maxAge: tokenData.expires_in * 1000,
-    }
-  );
+  setXTokenCookies(res, tokenData, null, isProduction);
 
   return tokenData.access_token;
 }

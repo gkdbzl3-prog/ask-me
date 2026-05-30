@@ -1067,7 +1067,7 @@ function App() {
   }
 
   async function handleToggleArchiveCollapsed(postId, nextCollapsed) {
-    setArchiveHashtags((prev) =>
+    setArchivePosts((prev) =>
       prev.map((group) => ({
         ...group,
         posts: group.posts.map(

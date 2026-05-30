@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "node --test test/*.test.js",
     "preview": "vite preview",
     "start": "node routes/server.js",
     "all": "concurrently \"npm run dev -- --host\" \"npm run start\""

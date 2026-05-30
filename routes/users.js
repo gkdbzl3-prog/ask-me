@@ -1,5 +1,6 @@
 import express from "express";
 import { supabase } from "../supabase.js";
+import { buildQuestionInsertPayload } from "./questionPayload.js";
 
 const router = express.Router();
 
@@ -146,17 +147,13 @@ router.post("/users/:username/questions", async (req, res) => {
          return res.status(404).json({ message: "user not found" });
       }
 
-      const insertPayload = {
-         user_id: user.id,
+      const insertPayload = buildQuestionInsertPayload({
+         userId: user.id,
          text: trimmedText,
-         is_private: !!isPrivate,
-         files: files || [],
-         answer: "",
-         answer_files: [],
-         answered: false,
-         like_count: 0,
-         asker_auth_id: askerAuthId,
-      };
+         isPrivate,
+         files,
+         askerAuthId,
+      });
 
 
 
