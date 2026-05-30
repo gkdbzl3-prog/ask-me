@@ -1075,7 +1075,7 @@ function App() {
           post.id === postId
             ? { ...post, collapsed: nextCollapsed }
             : post
-),
+        }),
       }))
     );
 
