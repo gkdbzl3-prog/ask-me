@@ -7,13 +7,9 @@ function LandingPage() {
 
     return (
         <div className="landing">
-            <div className="landing-bg" />
             <div className="landing-content">
-                <div className="landing-logo">
-                    <img src="/images/landing-logo.png" />
-                    <h1>Ask me</h1>
-                    <p className="landing-tagline"></p>
-                </div>
+                <img src="/images/landing-logo.png" alt="Ask me" className="landing-logo-img" />
+
                 <div className="landing-actions">
                     <button
                         type="button"

@@ -2443,17 +2443,9 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(160deg, #faf7ff 0%, #f3e9ff 45%, #efe2ff 100%);
+  background: linear-gradient(160deg, #faf7ff 0%, #f0e6ff 50%, #d8c1f2 100%);
 }
 
-.landing-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: url("images/landing-bg.png");
-  background-size: cover;
-  background-position: center;
-}
 
 .landing-content {
   position: relative;
@@ -2462,36 +2454,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 48px;
-  text-align: center;
+  gap: 56px;
 }
 
-.landing-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+.landing-logo-img {
+  width: min(80%, 320px);
+  height: auto;
+  filter: drop-shadow(0 4px 24px rgba(120, 60, 40, 0.18));
 }
 
-.landing-logo img {
-  background-image: url("images/landing-logo.png");
-  background-size: cover;
-  background-position: center;
-}
-
-.landing-logo h1 {
-  font-family: "MyFont";
-  font-size: 48px;
-  margin: 0;
-  color: #2c1d4a;
-  text-shadow: 0 2px 20px rgba(176, 138, 235, 0.3);
-}
-
-.landing-tagline {
-  margin: 0;
-  color: rgba(70, 50, 110, 0.7);
-  font-size: 15px;
-}
 
 .landing-actions {
   display: flex;
@@ -2513,17 +2484,17 @@ body {
   border: none;
   color: #fff;
   background: linear-gradient(135deg, #b48ce8 0%, #9a6fe0 100%);
-  box-shadow: 0 10px 28px rgba(132, 90, 200, 0.32);
+  box-shadow: 0 8px 24px rgba(110, 80, 180, 0.32);
 }
 
 .landing-btn.primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(132, 90, 200, 0.42);
+  box-shadow: 0 12px 30px rgba(110, 80, 180, 0.42);
 }
 
 .landing-btn.secondary {
-  border: 1px solid rgba(169, 120, 230, 0.45);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 245, 235, 0.82);
   color: #4a3270;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -2531,5 +2502,5 @@ body {
 
 .landing-btn.secondary:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 250, 245, 0.8);
 }

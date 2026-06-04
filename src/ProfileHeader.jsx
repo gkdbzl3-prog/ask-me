@@ -576,12 +576,30 @@ export default function ProfileHeader({
               <input
                 type="checkbox"
                 checked={notificationSettings.newQuestion}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const on = e.target.checked;
+
+                  if (on) {
+                    if (!("Norification" in window)) {
+                      alert("이 브라우저는 알림을 지원하지 않습니다.");
+                      return;
+                    }
+                    const permission = await Notification.requestPermission();
+                    if (permission !== "granted") {
+                      alert("알림 권한이 거부되어 있습니다. 브라우저 설정에서 허용해주세요.");
+                      return;
+                    }
+                    new Norification("Ask me", {
+                      body: "알림이 켜졌습니다. 새 질문이 도착하면 알림이 울립니다.",
+                      icon: "/images/icon-192.png",
+                    });
+                  }
+
                   setNotificationSettings((prev) => ({
                     ...prev,
-                    newQuestion: e.target.checked,
-                  }))
-                }
+                    newQuestion: on,
+                  }));
+                }}
               />
               새 질문 알림
             </label>
