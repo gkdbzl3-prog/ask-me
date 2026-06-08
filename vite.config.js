@@ -6,8 +6,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: "autoUpdate",
       includeAssets: ["images/landing-logo.png", "images/icon-192.png", "images/icon-512.png", "images/icon-512-maskable.png"],
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,woff,woff2,ttf,png,svg}"],
+      },
       manifest: {
         name: "Ask me",
         short_name: "Ask me",
@@ -35,36 +41,7 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,woff,woff2,ttf,png,svg}"],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) =>
-              url.pathname.startsWith("/api") ||
-              url.pathname.startsWith("/archive"),
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24,
-              },
-            },
-          },
-          {
-            urlPattern: ({ url }) => url.hostname.includes("supabase"),
-            handler: "CacheFirst",
-            options: {
-              cacheName: "supabase-images",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-        ],
-      },
+
     }),
   ],
   server: {

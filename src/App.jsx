@@ -500,6 +500,7 @@ function App() {
       setSelectedFiles([]);
       setShowPreview(false);
       setReplyTargetId(null);
+      subscribeToPush({ authId: currentAuthUserId })
       await loadQuestionsByUsername(routeUsername);
     } catch (error) {
       console.error("handleSend error:", error);

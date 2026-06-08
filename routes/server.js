@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
 import usersRouter from "./users.js";
+import pushRouter fomr "./push.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -38,7 +39,7 @@ app.use(cookieParser(cookieSecret));
 app.use("/auth", authRouter);
 app.use("/archive", archiveRouter);
 app.use("/api", usersRouter);
-
+app.use("/api", pushRouter);
 app.use(express.static(distPath));
 
 app.use((req, res) => {
