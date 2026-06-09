@@ -173,6 +173,12 @@ router.post("/users/:username/questions", async (req, res) => {
          });
       }
 
+      sendToOwner(username, {
+         title: "새 질문이 도착했어요!",
+         body: isPrivate ? "비공개 질문" : trimmedText.slice(0, 60),
+         url: `/u/${username}`,
+      }).catch((e) => console.error("owner push:", e));
+
       return res.status(201).json({
          id: inserted.id,
          text: inserted.text,
@@ -237,6 +243,13 @@ router.patch("/questions/:id/answer", async (req, res) => {
             error: updateError,
          });
       }
+
+      const { data: owner } = await supabase.from("users").select("username").eq("id", updated.user_id).single();
+      sendToAuthId(updated.asker_auth_id, {
+         title: "답변이 왔어요!",
+         body: trimmedAnswer.slice(0, 60),
+         url: `/u/${owner.username}`
+      }).catch((e) => console.error("guest push:", e));
 
       return res.json({
          id: updated.id,

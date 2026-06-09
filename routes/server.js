@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import archiveRouter from "./archive.js";
 import authRouter from "./auth.js";
 import usersRouter from "./users.js";
-import pushRouter fomr "./push.js";
+import pushRouter from "./push.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -35,11 +35,10 @@ app.use(cors({
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 app.use(cookieParser(cookieSecret));
-
+app.use("/api", pushRouter);
 app.use("/auth", authRouter);
 app.use("/archive", archiveRouter);
 app.use("/api", usersRouter);
-app.use("/api", pushRouter);
 app.use(express.static(distPath));
 
 app.use((req, res) => {

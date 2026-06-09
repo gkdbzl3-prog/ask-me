@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 import LandingPage from "./LandingPage";
+import { subscribeToPush } from "./notifications";
 
 function ArchiveGallery({
   posts,
@@ -500,8 +501,8 @@ function App() {
       setSelectedFiles([]);
       setShowPreview(false);
       setReplyTargetId(null);
-      subscribeToPush({ authId: currentAuthUserId })
       await loadQuestionsByUsername(routeUsername);
+      subscribeToPush({ authId: currentAuthUserId }).catch(() => { });
     } catch (error) {
       console.error("handleSend error:", error);
       alert("전송 중 오류가 발생했습니다");

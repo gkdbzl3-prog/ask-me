@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import { subscribeToPush } from "./notifications";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: true,
@@ -577,7 +578,14 @@ export default function ProfileHeader({
                 type="checkbox"
                 checked={notificationSettings.newQuestion}
                 onChange={async (e) => {
-                  subscribeToPush({ authId, username: routeUsername })
+                  const on = e.target.checked;
+                  if (on) {
+                    await subscribeToPush({
+                      authId: localStorage.getItem("authId"),
+                      username: routeUsername,
+                    });
+                  }
+                  setNotificationSettings((prev) => ({ ...prev, newQuestion: on }));
                 }}
               />
               새 질문 알림
