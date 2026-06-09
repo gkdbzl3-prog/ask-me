@@ -242,7 +242,7 @@ function App() {
   const [notificationSettings, setNotificationSettings] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("notificationSettings")) || {
-        newQuestion: true,
+        newQuestion: false,
         newAnswer: true,
         archiveSync: false,
       };

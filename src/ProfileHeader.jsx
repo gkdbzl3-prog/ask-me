@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import { subscribeToPush } from "./notifications";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
-  newQuestion: true,
+  newQuestion: false,
   newAnswer: true,
   archiveSync: false,
 };
