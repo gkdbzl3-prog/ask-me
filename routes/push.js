@@ -10,7 +10,7 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE_KEY)
 
 router.post("/push/subscribe", async (req, res) => {
-    const { subscription, authId, username = null } req.body || {};
+    const { subscription, authId, username = null } = req.body || {};
     if (!subscription?.endpoint) {
         return res.status(400).json({ message: "invalid subscription" });
     }
@@ -36,7 +36,7 @@ async function sendToRows(rows, payload) {
                 await webpush.sendNotification(sub, JSON.stringify(payload));
             } catch (err) {
                 if (err.statusCode === 404 || err.statusCode === 410) {
-                    await supabase.from("push_subxcriptions".delete().eq("endpoint", row.endpoint);
+                    await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
                 } else {
                     console.error("push send error:", err.statusCode);
                 }

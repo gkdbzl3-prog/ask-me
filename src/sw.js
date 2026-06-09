@@ -1,7 +1,7 @@
 import { precacheAndRoute } from "workbox-precaching";
-import { registerUroute } from "workbox-routing";
+import { registerRoute } from "workbox-routing";
 import { NetworkFirst, CacheFirst } from "workbox-strategies";
-import { ExpirationPlugin } rom "workbox-expiration";
+import { ExpirationPlugin } from "workbox-expiration";
 
 precacheAndRoute(self.__WB_MANIFEST);
 
@@ -10,7 +10,7 @@ registerRoute(
     new NetworkFirst({
         cacheName: "api-cache",
         networkTimeoutSeconds: 5,
-        pluugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 })],
+        plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 })],
     })
 );
 
