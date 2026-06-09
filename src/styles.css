@@ -426,7 +426,7 @@ body {
   color: #4a3a5a;
   border: 1px solid rgba(210, 180, 230, 0.3);
   border-radius: 24px 24px 24px 4px;
-  padding: 16px 20px;
+  padding: 10px 14px;
   box-shadow:
     0 8px 24px rgba(180, 150, 220, 0.15),
     0 2px 6px rgba(0, 0, 0, 0.02);
@@ -729,7 +729,6 @@ body {
   }
 
   .top-nav-btn:hover {
-    background: rgba(66, 40, 112, 0.95);
     opacity: 1;
     transform: translateY(-1px);
     text-shadow: 0 2px 14px rgba(176, 138, 235, 0.32);
