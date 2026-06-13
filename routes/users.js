@@ -44,13 +44,16 @@ router.get("/users/:username/questions", async (req, res) => {
 
       const { data: user, error: userError } = await supabase
          .from("users")
-         .select("id")
+         .select("id, x_user_id")
          .eq("username", username)
          .single();
 
       if (userError || !user) {
          return res.status(404).json({ message: "user not found" });
       }
+
+      const xUserId = req.signedCookies?.x_user_id;
+      const isOwner = !!xUserId && user.x_user_id === xUserId;
 
       const { data: questions, error: questionError } = await supabase
          .from("questions")
@@ -84,16 +87,16 @@ router.get("/users/:username/questions", async (req, res) => {
       return res.json(
          questions.map((q) => ({
             id: q.id,
-            text: q.text,
+            text: q.is_private && !isOwner ? "" : q.text,
             isPrivate: q.is_private,
-            files: q.files || [],
+            files: q.is_private && !isOwner ? [] : (q.files || []),
             answer: q.answer,
             answerFiles: q.answer_files || [],
             answered: q.answered,
             likeCount: q.like_count,
             createdAtISO: q.created_at,
             answeredAtISO: q.answered_at,
-            askerAuthId: q.asker_auth_id,
+            isMine: !!requesterAuthId && q.asker_auth_id === requesterAuthId,
             liked: likedQuestionIds.has(q.id),
          }))
       );
@@ -218,6 +221,15 @@ router.patch("/questions/:id/answer", async (req, res) => {
          })
       }
 
+      const xUserId = req.signedCookies?.x_user_id;
+      if (!xUserId) return res.status(401).json({ message: "login required" });
+
+      const { data: q } = await supabase.from("questions").select("user_id").eq("id", id).single();
+      if (!q) return res.status(404).json({ message: "question not found" });
+
+      const { data: owner } = await supabase.from("users").select("x_user_id, username").eq("id", q.user_id).single();
+      if (!owner || owner.x_user_id !== xUserId) return res.status(403).json({ message: "forbidden" });
+
       const updatePayload = {
          answer: trimmedAnswer,
          answer_files: answerFiles || [],
@@ -244,7 +256,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
          });
       }
 
-      const { data: owner } = await supabase.from("users").select("username").eq("id", updated.user_id).single();
+
       sendToAuthId(updated.asker_auth_id, {
          title: "답변이 왔어요!",
          body: trimmedAnswer.slice(0, 60),
@@ -280,6 +292,12 @@ router.patch("/users/:username/profile", async (req, res) => {
          bgUrl = "",
          theme = "purple",
       } = req.body || {};
+
+      const xUserId = req.signedCookies?.x_user_id;
+      if (!xUserId) return res.status(401).json({ message: "login required" });
+
+      const { data: target } = await supabase.from("users").select("x_user_id").eq("username", username).single();
+      if (!target || target.x_user_id !== xUserId) return res.status(403).json({ message: "forbidden" });
 
       const updatePayload = {
          display_name: displayName || "",
@@ -324,10 +342,7 @@ router.patch("/users/:username/profile", async (req, res) => {
 router.delete("/questions/:id", async (req, res) => {
    try {
       const { id } = req.params;
-      const {
-         requesterAuthId = "",
-         requesterXUserId = "",
-      } = req.body || {};
+      const { requesterAuthId = "", requesterXUserId = "" } = req.body || {};
 
       const { data: question, error: questionError } = await supabase
          .from("questions")
@@ -349,16 +364,13 @@ router.delete("/questions/:id", async (req, res) => {
          return res.status(404).json({ message: "owner not found" });
       }
 
-      const isAsker =
-         !!requesterAuthId &&
-         question.asker_auth_id === requesterAuthId;
-
-      const isOwner =
-         !!requesterXUserId &&
-         ownerUser.x_user_id === requesterXUserId;
+      const xUserId = req.signedCookies?.x_user_id;
+      const isOwner = !!xUserId && ownerUser.x_user_id === xUserId;
+      const isAsker = !!requesterAuthId && question.asker_auth_id === requesterAuthId;
       if (!isAsker && !isOwner) {
          return res.status(403).json({ message: "forbidden" });
       }
+
 
 
       const { error } = await supabase
@@ -385,6 +397,16 @@ router.delete("/questions/:id", async (req, res) => {
 router.patch("/questions/:id/answer/delete", async (req, res) => {
    try {
       const { id } = req.params;
+
+      const xUserId = req.signedCookies?.x_user_id;
+      if (!xUserId) return res.status(401).json({ message: "login required" });
+
+      const { data: q } = await supabase.from("questions").select("user_id").eq("id", id).single();
+      if (!q) return res.status(404).json({ message: "question not found" });
+
+      const { data: owner } = await supabase.from("users").select("x_user_id").eq("id", q.user_id).single();
+      if (!owner || owner.x_user_id !== xUserId) return res.status(403).json({ message: "forbidden" });
+
 
       const updatePayload = {
          answer: "",

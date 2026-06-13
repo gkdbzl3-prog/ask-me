@@ -629,7 +629,7 @@ function App() {
       ? data
         .map((q) => ({
           ...q,
-          askerAuthId: q.askerAuthId || q.asker_auth_id || "",
+          isMine: q.isMine,
         }))
         .sort(
           (a, b) =>
@@ -1363,7 +1363,7 @@ function App() {
 
                     const hasAnswer = !!card.answer ||
                       (Array.isArray(card.answerFiles) && card.answerFiles.length > 0);
-                    const canDeleteQuestion = viewMode === "owner" || card.askerAuthId === currentAuthUserId;
+                    const canDeleteQuestion = viewMode === "owner" || card.isMine;
 
                     return (
                       <React.Fragment key={card.id}>

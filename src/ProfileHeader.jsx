@@ -591,19 +591,6 @@ export default function ProfileHeader({
               새 질문 알림
             </label>
 
-            <label className="setting-check-row">
-              <input
-                type="checkbox"
-                checked={notificationSettings.newAnswer}
-                onChange={(e) =>
-                  setNotificationSettings((prev) => ({
-                    ...prev,
-                    newAnswer: e.target.checked,
-                  }))
-                }
-              />
-              새 답변 알림
-            </label>
 
             <label className="setting-check-row">
               <input
