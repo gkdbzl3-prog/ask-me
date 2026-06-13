@@ -1096,18 +1096,34 @@ function App() {
 
   const chatScrollKey = `chatScroll:${routeUsername || "default"}`;
 
+  // 데스크탑은 .chat-panel 내부 스크롤, 모바일은 .chat-panel이 overflow: visible이라
+  // 페이지(window) 전체가 스크롤된다. 둘 중 실제로 움직이는 쪽 값을 사용한다.
+  function getChatScrollPos() {
+    const el = chatScrollRef.current;
+    const elScroll = el ? el.scrollTop : 0;
+    const winScroll = window.scrollY || document.documentElement.scrollTop || 0;
+    return elScroll || winScroll;
+  }
+
+  function setChatScrollPos(value) {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = value;
+    window.scrollTo(0, value);
+  }
+
   function handleChatScroll() {
-    if (chatScrollRef.current) {
-      savedScroll.current = chatScrollRef.current.scrollTop;
-      sessionStorage.setItem(chatScrollKey, String(savedScroll.current));
-    }
+    savedScroll.current = getChatScrollPos();
+    sessionStorage.setItem(chatScrollKey, String(savedScroll.current));
   }
 
   useEffect(() => {
-    const el = chatScrollRef.current;
-    if (!el) return;
+    window.addEventListener("scroll", handleChatScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleChatScroll);
+  });
+
+  useEffect(() => {
     if (mobileTab === "chat") {
-      el.scrollTop = savedScroll.current;
+      setChatScrollPos(savedScroll.current);
     }
   }, [mobileTab]);
 
@@ -1115,9 +1131,6 @@ function App() {
     if (activeQuestionCards.length === 0) return;
     if (restoredScrollFor.current === chatScrollKey) return;
     restoredScrollFor.current = chatScrollKey;
-
-    const el = chatScrollRef.current;
-    if (!el) return;
 
     const saved = sessionStorage.getItem(chatScrollKey);
     if (saved === null) return;
@@ -1133,13 +1146,13 @@ function App() {
     const stop = () => {
       cancelled = true;
       cancelAnimationFrame(frame);
-      el.removeEventListener("touchstart", stop);
-      el.removeEventListener("wheel", stop);
+      window.removeEventListener("touchstart", stop);
+      window.removeEventListener("wheel", stop);
     };
 
     const tryRestore = () => {
       if (cancelled) return;
-      el.scrollTop = value;
+      setChatScrollPos(value);
       if (performance.now() - start < 2000) {
         frame = requestAnimationFrame(tryRestore);
       } else {
@@ -1147,8 +1160,8 @@ function App() {
       }
     };
 
-    el.addEventListener("touchstart", stop, { passive: true });
-    el.addEventListener("wheel", stop, { passive: true });
+    window.addEventListener("touchstart", stop, { passive: true });
+    window.addEventListener("wheel", stop, { passive: true });
     frame = requestAnimationFrame(tryRestore);
 
     return stop;
