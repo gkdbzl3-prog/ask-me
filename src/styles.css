@@ -436,7 +436,7 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   width: fit-content;
-  max-width: 85%;
+  max-width: 100%;
   line-height: 1.7;
   font-size: 0.95em;
   position: relative;
@@ -621,9 +621,11 @@ body {
 
 
 .answer-box-wrap {
-  flex-shrink: 0;
+  /* PC의 좁은 패널에서 잘리지 않도록 줄어들 수 있게 하고, 너비 상한은 wrap에 둔다 */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 85%;
   order: 2;
-  width: 350px;
 }
 
 .owner-view .question-line {
