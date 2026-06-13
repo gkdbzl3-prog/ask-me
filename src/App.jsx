@@ -1256,6 +1256,31 @@ function App() {
     };
   }, [replyTargetId]);
 
+  useEffect(() => {
+    if (!routeUsername) return;
+    const channel = supabase
+      .channel(`questions-${routeUsername}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "questions" },
+        () => {
+          loadQuestionsByUsername(routeUsername);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [routeUsername]);
+
+  useEffect(() => {
+    if (!routeUsername) return;
+    const id = setInterval(() => {
+      ir(!document.hidden) loadQuestionsByUsername(routeUsername);
+    }, 12000);
+    return () => clearInterval(id);
+  }, [routeUsername]);
+
   if (!routeUsername) {
     return <LandingPage />;
   }

@@ -594,20 +594,6 @@ export default function ProfileHeader({
             </label>
 
 
-            <label className="setting-check-row">
-              <input
-                type="checkbox"
-                checked={notificationSettings.archiveSync}
-                onChange={(e) =>
-                  setNotificationSettings((prev) => ({
-                    ...prev,
-                    archiveSync: e.target.checked,
-                  }))
-                }
-              />
-              아카이브 동기화 알림
-            </label>
-
 
           </div>
         </section>
