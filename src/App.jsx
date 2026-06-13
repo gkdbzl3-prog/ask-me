@@ -1114,19 +1114,44 @@ function App() {
   useEffect(() => {
     if (activeQuestionCards.length === 0) return;
     if (restoredScrollFor.current === chatScrollKey) return;
+    restoredScrollFor.current = chatScrollKey;
 
     const el = chatScrollRef.current;
     if (!el) return;
 
     const saved = sessionStorage.getItem(chatScrollKey);
-    if (saved !== null) {
-      const value = parseInt(saved, 10);
-      savedScroll.current = value;
-      requestAnimationFrame(() => {
-        el.scrollTop = value;
-      });
-    }
-    restoredScrollFor.current = chatScrollKey;
+    if (saved === null) return;
+
+    const value = parseInt(saved, 10);
+    savedScroll.current = value;
+
+    // 이미지가 로드되며 콘텐츠 높이가 늘어나는 동안 목표 위치로 계속 보정
+    let cancelled = false;
+    let frame;
+    const start = performance.now();
+
+    const stop = () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      el.removeEventListener("touchstart", stop);
+      el.removeEventListener("wheel", stop);
+    };
+
+    const tryRestore = () => {
+      if (cancelled) return;
+      el.scrollTop = value;
+      if (performance.now() - start < 2000) {
+        frame = requestAnimationFrame(tryRestore);
+      } else {
+        stop();
+      }
+    };
+
+    el.addEventListener("touchstart", stop, { passive: true });
+    el.addEventListener("wheel", stop, { passive: true });
+    frame = requestAnimationFrame(tryRestore);
+
+    return stop;
   }, [activeQuestionCards, chatScrollKey]);
 
 
