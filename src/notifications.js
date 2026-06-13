@@ -34,3 +34,16 @@ export async function subscribeToPush({ authId, username = null }) {
         body: JSON.stringify({ subscription, authId, username }),
     });
 }
+
+export async function unsubscribeFromPush() {
+    if (!("serviceWorker" in navigator)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return;
+    await fetch("/api/push/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+    });
+    await sub.unsubscribe();
+}
