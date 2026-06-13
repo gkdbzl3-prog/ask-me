@@ -7,13 +7,15 @@ workflows:
       node: 20
       xcode: latest
       cocoapods: default
-    scripts:
+scripts:
       - name: Install deps
-        script: npm ci
+        script: |
+          npm i -g pnpm
+          pnpm install --no-frozen-lockfile
       - name: Build web (dist)
-        script: npm run build
+        script: pnpm run build
       - name: Capacitor sync iOS
-        script: npx cap sync ios
+        script: pnpm exec cap sync ios
       - name: Pod install
         script: |
           cd ios/App
@@ -24,5 +26,5 @@ workflows:
           xcodebuild -workspace App.xcworkspace -scheme App \
             -configuration Debug -sdk iphonesimulator \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO
-    artifacts:
+        artifacts:
       - ios/App/build/**/*.app
