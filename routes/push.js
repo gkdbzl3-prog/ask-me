@@ -37,7 +37,7 @@ router.post("/push/unsubscribe", async (req, res) => {
 });
 
 async function sendToRows(rows, payload) {
-    console.log("push rows:", rows?.length);
+
     await Promise.all(
         (rows || []).map(async (row) => {
             const sub = { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } };

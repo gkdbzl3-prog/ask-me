@@ -342,7 +342,7 @@ router.post("/sync", requireArchiveOwnerId, async (req, res) => {
         reset: xRes.headers.get("x-rate-limit-reset"),
       };
 
-      console.log("X rate limit:", rateLimit);
+
 
       if (xRes.status === 429) {
         return res.status(429).json({
@@ -352,10 +352,10 @@ router.post("/sync", requireArchiveOwnerId, async (req, res) => {
       }
 
 
-      console.log("sync xRes.ok:", xRes.ok, "status:", xRes.status);
+
 
       const xJson = await xRes.json();
-      console.log("sync xJson:", JSON.stringify(xJson, null, 2));
+
 
 
       if (!xRes.ok) {

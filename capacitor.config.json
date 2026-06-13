@@ -1,0 +1,9 @@
+{
+  "appId": "dev.askme.app",
+  "appName": "Ask me",
+  "webDir": "dist",
+  "server": {
+    "url": "https://ask-me.fly.dev",
+    "cleartext": false
+  }
+}

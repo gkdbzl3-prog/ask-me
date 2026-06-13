@@ -524,7 +524,6 @@ export default function ProfileHeader({
             <option value="green">Green</option>
             <option value="yellow">Yellow</option>
             <option value="pink">Pink</option>
-            <option value="custom">사용자 지정</option>
           </select>
 
           <div className="background-actions">

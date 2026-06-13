@@ -7,7 +7,6 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export async function subscribeToPush({ authId, username = null }) {
-    console.log("vapid:", import.meta.env.VITE_VAPID_PUBLIC_KEY);
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
         console.warn("이 브라우저는 푸시 미지원");
         return;

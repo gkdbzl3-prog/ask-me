@@ -184,7 +184,7 @@ body {
   margin: 0 auto;
   align-items: stretch;
   padding-top: 100px;
-  height: 150vh;
+  height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -405,6 +405,8 @@ body {
   margin: 0 0 5px 3px;
   line-height: 1.5;
   word-break: keep-all;
+  /* 긴 단어/URL 등은 강제 줄바꿈해 말풍선 밖으로 삐져나가지 않게 */
+  overflow-wrap: anywhere;
 }
 
 .answered-mark {
@@ -438,7 +440,8 @@ body {
   line-height: 1.7;
   font-size: 0.95em;
   position: relative;
-  overflow: hidden;
+  /* hidden이면 긴 답변이 잘림 — 모바일과 동일하게 visible로. (장식용 ::before 글로우는 그대로 노출) */
+  overflow: visible;
   animation: softPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.15);
 }
 
@@ -613,7 +616,7 @@ body {
 .answer-side.like-side {
   display: flex;
   align-items: center;
-  margin-bottom: 5px;
+  margin: 10px 0 0 -30px;
 }
 
 
@@ -2464,25 +2467,26 @@ body {
 
 .landing-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 14px;
   width: 100%;
 }
 
 .landing-btn {
-  padding: 16px 20px;
-  border-radius: 16px;
+  padding: 10px 15px 10px;
+  border-radius: 20px;
   font-family: "MyFont";
   font-size: 16px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: 168px;
 }
 
 .landing-btn.primary {
   border: none;
   color: #fff;
-  background: linear-gradient(135deg, #b48ce8 0%, #9a6fe0 100%);
-  box-shadow: 0 8px 24px rgba(110, 80, 180, 0.32);
+  background: linear-gradient(135deg, #b48ce8 0%, #b1a3c7 100%);
+  box-shadow: 0 8px 24px rgb(103 93 125 / 32%);
 }
 
 .landing-btn.primary:hover {
@@ -2491,7 +2495,7 @@ body {
 }
 
 .landing-btn.secondary {
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(231, 218, 224, 0.6);
   background: rgba(255, 245, 235, 0.82);
   color: #4a3270;
   backdrop-filter: blur(8px);

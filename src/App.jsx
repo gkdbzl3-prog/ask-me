@@ -480,8 +480,7 @@ function App() {
 
 
       const result = await res.json();
-      console.log("POST status:", res.status);
-      console.log("POST result:", result);
+
 
 
 
@@ -529,7 +528,7 @@ function App() {
       });
 
       const result = await res.json();
-      console.log("delete question result:", result);
+
 
       if (!res.ok) {
         alert("질문 삭제 실패");
@@ -539,7 +538,6 @@ function App() {
 
       await loadQuestionsByUsername(routeUsername);
     } catch (error) {
-      console.error("removeQuestion error:", error);
       alert("질문 삭제 중 오류 발생");
     }
   }
@@ -551,7 +549,7 @@ function App() {
       });
 
       const result = await res.json();
-      console.log("delete answer result:", result);
+
 
       if (!res.ok) {
         alert("삭제 실패");
@@ -1058,7 +1056,6 @@ function App() {
 
     const data = await res.json();
 
-    console.log("archive sync result:", data);
 
     if (!res.ok) {
       alert(data.message || "아카이브 동기화 실패");

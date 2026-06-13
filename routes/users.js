@@ -107,11 +107,9 @@ router.get("/users/:username/questions", async (req, res) => {
 });
 
 router.post("/users/:username/questions", async (req, res) => {
-   console.log("POST /api/users/:username/questions hit");
+
 
    try {
-      console.log("req.params:", req.params);
-      console.log("req.body:", req.body);
 
       const { username } = req.params;
       const {
@@ -132,7 +130,6 @@ router.post("/users/:username/questions", async (req, res) => {
       const trimmedText = String(text || "").trim();
 
       if (!trimmedText && files.length === 0) {
-         console.log("blocked: empty text and files");
          return res.status(400).json({
             message: "텍스트 또는 이미지를 넣어주세요.",
          });
@@ -202,9 +199,7 @@ router.post("/users/:username/questions", async (req, res) => {
 });
 
 router.patch("/questions/:id/answer", async (req, res) => {
-   console.log("PATCH /api/questions/:id/answer hit");
-   console.log("params:", req.params);
-   console.log("body:", req.body);
+
 
    try {
       const { id } = req.params;
@@ -237,7 +232,6 @@ router.patch("/questions/:id/answer", async (req, res) => {
          answered_at: new Date().toISOString(),
       };
 
-      console.log("updatePayload:", updatePayload);
 
       const { data: updated, error: updateError } = await supabase
          .from("questions")
@@ -246,8 +240,6 @@ router.patch("/questions/:id/answer", async (req, res) => {
          .select("*")
          .single();
 
-      console.log("updated:", updated);
-      console.log("updateError:", updateError);
 
       if (updateError) {
          return res.status(500).json({
