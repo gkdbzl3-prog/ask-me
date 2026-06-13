@@ -1276,7 +1276,7 @@ function App() {
   useEffect(() => {
     if (!routeUsername) return;
     const id = setInterval(() => {
-      ir(!document.hidden) loadQuestionsByUsername(routeUsername);
+      if (!document.hidden) loadQuestionsByUsername(routeUsername);
     }, 12000);
     return () => clearInterval(id);
   }, [routeUsername]);
