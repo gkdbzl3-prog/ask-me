@@ -180,7 +180,7 @@ body {
   grid-template-columns:
     clamp(335px, 26vw, 450px) minmax(0, 1fr) 400px;
   gap: 28px;
-  width: min(1400px, calc(85vw - 40px));
+  width: min(1400px, calc(100vw - 40px));
   margin: 0 auto;
   align-items: stretch;
   padding-top: 100px;

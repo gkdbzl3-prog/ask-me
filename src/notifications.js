@@ -67,6 +67,7 @@ export function initNativePushListeners() {
     if (!Capacitor.isNativePlatform()) return;
 
     PushNotifications.addListener("registration", async (token) => {
+        console.log("FCM token:", token.value);
         await fetch("/api/push/register-device", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
