@@ -28,11 +28,12 @@ router.post("/push/subscribe", async (req, res) => {
     return res.json({ ok: true });
 });
 
-router.post("/push/unsubscribe", async (rq, res) => {
+router.post("/push/unsubscribe", async (req, res) => {
     const { endpoint } = req.body || {};
     if (!endpoint) return res.status(400).json({ message: "endpoint required" });
     const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
     if (error) return res.status(500).json({ message: "unsubscripbe failed", error });
+    return res.json({ ok: true });
 });
 
 async function sendToRows(rows, payload) {
