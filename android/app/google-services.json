@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "70442644702",
+    "project_id": "ask-me-cbccd",
+    "storage_bucket": "ask-me-cbccd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:70442644702:android:4386e67821ded95c4b7e4f",
+        "android_client_info": {
+          "package_name": "dev.askme.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDvUrwzgyRGYbj2CDhOcYuEYyJbL_7xko"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
