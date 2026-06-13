@@ -1092,10 +1092,14 @@ function App() {
 
   const chatScrollRef = useRef(null);
   const savedScroll = useRef(0);
+  const restoredScrollFor = useRef(null);
 
   function handleChatScroll() {
-    if (mobileTab === "chat" && chatScrollRef) {
+    if (chatScrollRef.current) {
       savedScroll.current = chatScrollRef.current.scrollTop;
+      if (routeUsername) {
+        sessionStorage.setItem(`chatScroll:${routeUsername}`, String(savedScroll.current));
+      }
     }
   }
 
@@ -1106,6 +1110,24 @@ function App() {
       el.scrollTop = savedScroll.current;
     }
   }, [mobileTab]);
+
+  useEffect(() => {
+    if (!routeUsername || activeQuestionCards.length === 0) return;
+    if (restoredScrollFor.current === routeUsername) return;
+
+    const el = chatScrollRef.current;
+    if (!el) return;
+
+    const saved = sessionStorage.getItem(`chatScroll:${routeUsername}`);
+    if (saved !== null) {
+      const value = parseInt(saved, 10);
+      savedScroll.current = value;
+      requestAnimationFrame(() => {
+        el.scrollTop = value;
+      });
+    }
+    restoredScrollFor.current = routeUsername;
+  }, [activeQuestionCards, routeUsername]);
 
 
   useEffect(() => {
@@ -1379,7 +1401,11 @@ function App() {
 
 
 
-            <main className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
+            <main
+              className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}
+              ref={chatScrollRef}
+              onScroll={handleChatScroll}
+            >
 
               <section className={`card-list ${viewMode}-view`}>
                 {activeQuestionCards.length === 0 ? (
