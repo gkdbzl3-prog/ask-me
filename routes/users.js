@@ -224,7 +224,7 @@ router.patch("/questions/:id/answer", async (req, res) => {
       const xUserId = req.signedCookies?.x_user_id;
       if (!xUserId) return res.status(401).json({ message: "login required" });
 
-      const { data: q } = await supabase.from("questions").select("user_id").eq("id", id).single();
+      const { data: q } = await supabase.from("questions").select("user_id, answered").eq("id", id).single();
       if (!q) return res.status(404).json({ message: "question not found" });
 
       const { data: owner } = await supabase.from("users").select("x_user_id, username").eq("id", q.user_id).single();
@@ -256,12 +256,13 @@ router.patch("/questions/:id/answer", async (req, res) => {
          });
       }
 
-
-      sendToAuthId(updated.asker_auth_id, {
-         title: "답변이 왔어요!",
-         body: trimmedAnswer.slice(0, 60),
-         url: `/u/${owner.username}`
-      }).catch((e) => console.error("guest push:", e));
+      if (!q.answered) {
+         sendToAuthId(updated.asker_auth_id, {
+            title: "답변이 왔어요!",
+            body: trimmedAnswer.slice(0, 60),
+            url: `/u/${owner.username}`
+         }).catch((e) => console.error("guest push:", e));
+      }
 
       return res.json({
          id: updated.id,
@@ -401,7 +402,7 @@ router.patch("/questions/:id/answer/delete", async (req, res) => {
       const xUserId = req.signedCookies?.x_user_id;
       if (!xUserId) return res.status(401).json({ message: "login required" });
 
-      const { data: q } = await supabase.from("questions").select("user_id").eq("id", id).single();
+      const { data: q } = await supabase.from("questions").select("user_id, answered").eq("id", id).single();
       if (!q) return res.status(404).json({ message: "question not found" });
 
       const { data: owner } = await supabase.from("users").select("x_user_id").eq("id", q.user_id).single();
