@@ -41,7 +41,24 @@ body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  /* background-attachment: fixed 는 모바일에서 주소창이 접힐 때 빈틈이 생겨서 제거.
+     대신 아래 .app::after 로 뷰포트를 항상 덮는 고정 레이어를 사용한다. */
+}
+
+/* 배경 이미지를 그리는 고정 레이어 (.app 의 인라인 background-image 를 inherit 으로 가져온다) */
+.app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  /* 주소창이 접혀 뷰포트가 커져도 빈틈이 안 생기도록 가장 큰 뷰포트 높이로 고정 */
+  height: 100vh;
+  height: 100lvh;
+  background-image: inherit;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+  pointer-events: none;
 }
 
 .app::before {
