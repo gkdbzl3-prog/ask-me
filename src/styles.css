@@ -623,6 +623,7 @@ body {
 .answer-box-wrap {
   flex-shrink: 0;
   order: 2;
+  width: 350px;
 }
 
 .owner-view .question-line {
