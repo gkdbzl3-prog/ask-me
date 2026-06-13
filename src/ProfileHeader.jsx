@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
-import { subscribeToPush, unsubscribeFromPush } from "./notifications";
+import { enablePush, unsubscribeFromPush } from "./notifications";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: false,
@@ -579,7 +579,7 @@ export default function ProfileHeader({
                 onChange={async (e) => {
                   const on = e.target.checked;
                   if (on) {
-                    await subscribeToPush({
+                    await enablePush({
                       authId: localStorage.getItem("authId"),
                       username: routeUsername
                     });

@@ -1,3 +1,7 @@
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
+
+
 
 function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -45,4 +49,38 @@ export async function unsubscribeFromPush() {
         body: JSON.stringify({ endpoint: sub.endpoint }),
     });
     await sub.unsubscribe();
+}
+
+let pushContext = { authId: null, username: null };
+export async function enablePush({ authId, username = null }) {
+    if (!Capacitor.isNativePlatform()) {
+        return subscribeToPush({ authId, username });
+    }
+    pushContext = { authId, username };
+    let perm = await PushNotifications.checkPermissions();
+    if (perm.receive !== "granted") perm = await PushNotifications.requestPermissions();
+    if (perm.receive !== "granted") return;
+    await PushNotifications.register();
+}
+
+export function initNativePushListeners() {
+    if (!Capacitor.isNativePlatform()) return;
+
+    PushNotifications.addListener("registration", async (token) => {
+        await fetch("/api/push/register-device", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                token: token.value,
+                platform: Capacitor.getPlatform(),
+                authId: pushContext.authId,
+                username: pushContext.username,
+            }),
+        });
+    });
+    PushNotifications.addListener("registerationError", (E) => console.error("push reg error:", e));
+    PushNotifications.addListener("pushNotificationActionPerformed", (a) => {
+        const url = a.notification?.data?.url;
+        if (url) window.location.href = url;
+    });
 }

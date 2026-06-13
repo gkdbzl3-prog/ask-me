@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 import LandingPage from "./LandingPage";
-import { subscribeToPush } from "./notifications";
+import { enablePush, initNativePushListeners } from "./notifications";
 
 function ArchiveGallery({
   posts,
@@ -501,7 +501,7 @@ function App() {
       setShowPreview(false);
       setReplyTargetId(null);
       await loadQuestionsByUsername(routeUsername);
-      subscribeToPush({ authId: currentAuthUserId }).catch(() => { });
+      enablePush({ authId: currentAuthUserId }).catch(() => { });
     } catch (error) {
       console.error("handleSend error:", error);
       alert("전송 중 오류가 발생했습니다");
@@ -1277,6 +1277,11 @@ function App() {
     }, 12000);
     return () => clearInterval(id);
   }, [routeUsername]);
+
+  useEffect(() => {
+    initNativePushListeners();
+  }, []);
+
 
   if (!routeUsername) {
     return <LandingPage />;
