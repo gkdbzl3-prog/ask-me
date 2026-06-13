@@ -1094,12 +1094,12 @@ function App() {
   const savedScroll = useRef(0);
   const restoredScrollFor = useRef(null);
 
+  const chatScrollKey = `chatScroll:${routeUsername || "default"}`;
+
   function handleChatScroll() {
     if (chatScrollRef.current) {
       savedScroll.current = chatScrollRef.current.scrollTop;
-      if (routeUsername) {
-        sessionStorage.setItem(`chatScroll:${routeUsername}`, String(savedScroll.current));
-      }
+      sessionStorage.setItem(chatScrollKey, String(savedScroll.current));
     }
   }
 
@@ -1112,13 +1112,13 @@ function App() {
   }, [mobileTab]);
 
   useEffect(() => {
-    if (!routeUsername || activeQuestionCards.length === 0) return;
-    if (restoredScrollFor.current === routeUsername) return;
+    if (activeQuestionCards.length === 0) return;
+    if (restoredScrollFor.current === chatScrollKey) return;
 
     const el = chatScrollRef.current;
     if (!el) return;
 
-    const saved = sessionStorage.getItem(`chatScroll:${routeUsername}`);
+    const saved = sessionStorage.getItem(chatScrollKey);
     if (saved !== null) {
       const value = parseInt(saved, 10);
       savedScroll.current = value;
@@ -1126,8 +1126,8 @@ function App() {
         el.scrollTop = value;
       });
     }
-    restoredScrollFor.current = routeUsername;
-  }, [activeQuestionCards, routeUsername]);
+    restoredScrollFor.current = chatScrollKey;
+  }, [activeQuestionCards, chatScrollKey]);
 
 
   useEffect(() => {
