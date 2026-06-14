@@ -366,9 +366,12 @@ function App() {
   async function handleSend() {
     const trimmedInput = (input || "").trim();
     const hasFiles = Array.isArray(selectedFiles) && selectedFiles.length > 0;
+    const keptExistingAnswerFiles = existingAnswerFiles.filter(
+      (file) => !removedExistingFileUrls.includes(file.fileUrl || file.url)
+    );
 
     if (isSending) return;
-    if (!trimmedInput && !hasFiles) return;
+    if (!trimmedInput && !hasFiles && keptExistingAnswerFiles.length === 0) return;
 
     setIsSending(true);
 
@@ -415,7 +418,7 @@ function App() {
           },
           body: JSON.stringify({
             answer: trimmedInput,
-            answerFiles: uploadedAnswerFiles,
+            answerFiles: [...keptExistingAnswerFiles, ...uploadedAnswerFiles],
           }),
         });
 
@@ -1091,15 +1094,25 @@ function App() {
   }
 
   const chatScrollRef = useRef(null);
+  const profileScrollRef = useRef(null);
+  const archiveScrollRef = useRef(null);
+
   const savedScroll = useRef(0);
+  const savedProfileScroll = useRef(0);
+  const savedArchiveScroll = useRef(0);
+
   const restoredScrollFor = useRef(null);
+  const restoredProfileScrollFor = useRef(null);
+  const restoredArchiveScrollFor = useRef(null);
 
   const chatScrollKey = `chatScroll:${routeUsername || "default"}`;
+  const profileScrollKey = `profileScroll:${routeUsername || "default"}`;
+  const archiveScrollKey = `archiveScroll:${routeUsername || "default"}`;
 
-  // 데스크탑은 .chat-panel 내부 스크롤, 모바일은 .chat-panel이 overflow: visible이라
+  // 데스크탑은 패널 내부 스크롤, 모바일은 패널이 overflow: visible이라
   // 페이지(window) 전체가 스크롤된다. 둘 중 실제로 움직이는 쪽 값을 사용한다.
-  function getChatScrollPos() {
-    const el = chatScrollRef.current;
+  function getPanelScrollPos(ref) {
+    const el = ref.current;
     const elScroll = el ? el.scrollTop : 0;
     const winScroll = window.scrollY || document.documentElement.scrollTop || 0;
     return elScroll || winScroll;
@@ -1111,19 +1124,58 @@ function App() {
     window.scrollTo(0, value);
   }
 
+  // 모바일에서는 한번에 하나의 탭만 보이므로, 현재 탭이 아닐 때는
+  // window 스크롤을 건드리지 않고 데스크탑용 내부 스크롤 위치만 맞춘다.
+  function setProfileScrollPos(value) {
+    const el = profileScrollRef.current;
+    if (el) el.scrollTop = value;
+    if (mobileTab === "profile") window.scrollTo(0, value);
+  }
+
+  function setArchiveScrollPos(value) {
+    const el = archiveScrollRef.current;
+    if (el) el.scrollTop = value;
+    if (mobileTab === "archive") window.scrollTo(0, value);
+  }
+
   function handleChatScroll() {
-    savedScroll.current = getChatScrollPos();
+    savedScroll.current = getPanelScrollPos(chatScrollRef);
     sessionStorage.setItem(chatScrollKey, String(savedScroll.current));
   }
 
+  function handleProfileScroll() {
+    savedProfileScroll.current = getPanelScrollPos(profileScrollRef);
+    sessionStorage.setItem(profileScrollKey, String(savedProfileScroll.current));
+  }
+
+  function handleArchiveScroll() {
+    savedArchiveScroll.current = getPanelScrollPos(archiveScrollRef);
+    sessionStorage.setItem(archiveScrollKey, String(savedArchiveScroll.current));
+  }
+
+  // 모바일에서 window 스크롤은 현재 활성화된 탭의 패널 스크롤로 취급한다.
   useEffect(() => {
-    window.addEventListener("scroll", handleChatScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleChatScroll);
-  });
+    function handleWindowScroll() {
+      if (mobileTab === "profile") {
+        handleProfileScroll();
+      } else if (mobileTab === "archive") {
+        handleArchiveScroll();
+      } else {
+        handleChatScroll();
+      }
+    }
+
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
+  }, [mobileTab, chatScrollKey, profileScrollKey, archiveScrollKey]);
 
   useEffect(() => {
     if (mobileTab === "chat") {
       setChatScrollPos(savedScroll.current);
+    } else if (mobileTab === "profile") {
+      setProfileScrollPos(savedProfileScroll.current);
+    } else if (mobileTab === "archive") {
+      setArchiveScrollPos(savedArchiveScroll.current);
     }
   }, [mobileTab]);
 
@@ -1166,6 +1218,84 @@ function App() {
 
     return stop;
   }, [activeQuestionCards, chatScrollKey]);
+
+  useEffect(() => {
+    if (!nickname) return;
+    if (restoredProfileScrollFor.current === profileScrollKey) return;
+    restoredProfileScrollFor.current = profileScrollKey;
+
+    const saved = sessionStorage.getItem(profileScrollKey);
+    if (saved === null) return;
+
+    const value = parseInt(saved, 10);
+    savedProfileScroll.current = value;
+
+    let cancelled = false;
+    let frame;
+    const start = performance.now();
+
+    const stop = () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      window.removeEventListener("touchstart", stop);
+      window.removeEventListener("wheel", stop);
+    };
+
+    const tryRestore = () => {
+      if (cancelled) return;
+      setProfileScrollPos(value);
+      if (performance.now() - start < 2000) {
+        frame = requestAnimationFrame(tryRestore);
+      } else {
+        stop();
+      }
+    };
+
+    window.addEventListener("touchstart", stop, { passive: true });
+    window.addEventListener("wheel", stop, { passive: true });
+    frame = requestAnimationFrame(tryRestore);
+
+    return stop;
+  }, [nickname, profileScrollKey]);
+
+  useEffect(() => {
+    if (archivePosts.length === 0) return;
+    if (restoredArchiveScrollFor.current === archiveScrollKey) return;
+    restoredArchiveScrollFor.current = archiveScrollKey;
+
+    const saved = sessionStorage.getItem(archiveScrollKey);
+    if (saved === null) return;
+
+    const value = parseInt(saved, 10);
+    savedArchiveScroll.current = value;
+
+    let cancelled = false;
+    let frame;
+    const start = performance.now();
+
+    const stop = () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      window.removeEventListener("touchstart", stop);
+      window.removeEventListener("wheel", stop);
+    };
+
+    const tryRestore = () => {
+      if (cancelled) return;
+      setArchiveScrollPos(value);
+      if (performance.now() - start < 2000) {
+        frame = requestAnimationFrame(tryRestore);
+      } else {
+        stop();
+      }
+    };
+
+    window.addEventListener("touchstart", stop, { passive: true });
+    window.addEventListener("wheel", stop, { passive: true });
+    frame = requestAnimationFrame(tryRestore);
+
+    return stop;
+  }, [archivePosts, archiveScrollKey]);
 
 
   useEffect(() => {
@@ -1411,7 +1541,11 @@ function App() {
           </header>
 
           <div className="app-shell">
-            <aside className={`profile-panel ${mobileTab === "profile" ? "is-mobile-active" : ""}`}>
+            <aside
+              className={`profile-panel ${mobileTab === "profile" ? "is-mobile-active" : ""}`}
+              ref={profileScrollRef}
+              onScroll={handleProfileScroll}
+            >
               <ProfileHeader
                 viewMode={viewMode}
                 questionCards={questionCards}
@@ -1828,24 +1962,6 @@ function App() {
                         </div>
                       )}
 
-                      {selectedFiles.length > 0 && (
-                        <div className="new-answer-files">
-                          {selectedFiles.map((file, index) => (
-                            <div className="new-answer-file-item" key={`${file.name}-${index}`}>
-                              <img src={URL.createObjectURL(file)} alt={file.name || `새 첨부 ${index + 1}`} />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-                                }}>
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-
 
 
 
@@ -1882,7 +1998,6 @@ function App() {
                             ref={answerInputRef}
                             value={input}
                             className="message-input"
-                            value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" && !e.shiftKey) {
@@ -1916,7 +2031,11 @@ function App() {
 
             </main>
 
-            <aside className={`archive-panel ${mobileTab === "archive" ? "is-mobile-active" : ""}`}>
+            <aside
+              className={`archive-panel ${mobileTab === "archive" ? "is-mobile-active" : ""}`}
+              ref={archiveScrollRef}
+              onScroll={handleArchiveScroll}
+            >
               <ArchiveGallery
                 posts={archivePosts}
                 source={archiveSource}
