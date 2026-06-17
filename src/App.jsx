@@ -1092,6 +1092,7 @@ function App() {
 
   const chatScrollRef = useRef(null);
   const savedScroll = useRef(0);
+  const didInitialScroll = useRef(false);
 
   function handleChatScroll() {
     if (mobileTab === "chat" && chatScrollRef) {
@@ -1173,6 +1174,30 @@ function App() {
       console.error("questions fetch error:", err)
     );
   }, [routeUsername]);
+
+  // 다른 유저로 이동하면 초기 스크롤 위치를 다시 잡도록 플래그 리셋
+  useEffect(() => {
+    didInitialScroll.current = false;
+  }, [routeUsername]);
+
+  // 초기 진입 시 첫 대화(맨 위)가 아니라 최근 질문/답변(맨 아래)이 보이도록 한 번만 스크롤
+  useEffect(() => {
+    if (didInitialScroll.current) return;
+    if (!routeUsername) return;
+    if (activeQuestionCards.length === 0) return;
+
+    requestAnimationFrame(() => {
+      const el = chatScrollRef.current;
+      if (el && el.scrollHeight > el.clientHeight) {
+        // 데스크톱: chat-panel 자체가 스크롤 컨테이너
+        el.scrollTop = el.scrollHeight;
+      } else {
+        // 모바일: 페이지(window)가 스크롤됨
+        window.scrollTo(0, document.documentElement.scrollHeight);
+      }
+      didInitialScroll.current = true;
+    });
+  }, [routeUsername, activeQuestionCards.length]);
 
   useEffect(() => {
     if (!routeUsername) return;
@@ -1379,7 +1404,10 @@ function App() {
 
 
 
-            <main className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
+            <main
+              ref={chatScrollRef}
+              onScroll={handleChatScroll}
+              className={`chat-panel ${viewMode}-view ${mobileTab === "chat" ? "is-mobile-active" : ""}`}>
 
               <section className={`card-list ${viewMode}-view`}>
                 {activeQuestionCards.length === 0 ? (
