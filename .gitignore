@@ -9,3 +9,6 @@ node_modules/
 .dolt/
 *.db
 .beads-credential-key
+
+# Firebase service-account private keys — never commit
+*firebase-adminsdk*.json
