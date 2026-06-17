@@ -84,17 +84,6 @@ async function sendFcm(tokens, payload) {
 }
 
 export async function sendToOwner(username, payload) {
-    const { data } = await supabase.from("push_subscriptions").select("*").eq("username", username);
-    await sendToRows(data, payload);
-}
-
-export async function sendToAuthId(authId, payload) {
-    if (!authId) return;
-    const { data } = await supabase.from("push_subscriptions").select("*").eq("auth_id", authId);
-    await sendToRows(data, payload);
-}
-
-export async function sendToOwner(username, payload) {
     const { data: subs } = await supabase.from("push_subscriptions").select("*").eq("username", username);
     await sendToRows(subs, payload);                          // 웹
     const { data: devs } = await supabase.from("device_tokens").select("token").eq("username", username);
