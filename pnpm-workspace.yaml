@@ -1,2 +1,4 @@
 allowBuilds:
+  '@firebase/util': false
   cap: true
+  protobufjs: false

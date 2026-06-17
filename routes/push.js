@@ -1,6 +1,7 @@
 import express from "express";
 import webpush from "web-push";
 import { supabase } from "../supabase.js";
+import { messaging } from "./firebase.js";
 
 const router = express.Router();
 
@@ -36,6 +37,17 @@ router.post("/push/unsubscribe", async (req, res) => {
     return res.json({ ok: true });
 });
 
+router.post("/push/register-device", async (req, res) => {
+    const { token, platform = null, authId = null, username = null } = req.body || {};
+    if (!token) return res.status(400).json({ message: "token required" });
+    const { error } = await supabase.from("device_tokens").upsert(
+        { token, platform, auth_id: authId, username },
+        { onConflict: "token" }
+    );
+    if (error) return res.status(500).json({ message: "register failed", error });
+    return res.json({ ok: true });
+});
+
 async function sendToRows(rows, payload) {
 
     await Promise.all(
@@ -54,6 +66,22 @@ async function sendToRows(rows, payload) {
     );
 }
 
+async function sendFcm(tokens, payload) {
+    if (!tokens?.length) return;
+    const r = await messaging.sendEachForMulticast({
+        tokens,
+        notification: { title: payload.title, body: payload.body },
+        data: { url: payload.url || "/" },
+    });
+    r.responses.forEach((resp, i) => {
+        if (!resp.success) {
+            const code = resp.error?.code || "";
+            if (code.includes("not-registered") || code.includes("invalid-argument")) {
+                supabase.from("device_tokens").delete().eq("token", tokens[i]); // 죽은 토큰 정리
+            }
+        }
+    });
+}
 
 export async function sendToOwner(username, payload) {
     const { data } = await supabase.from("push_subscriptions").select("*").eq("username", username);
@@ -64,6 +92,21 @@ export async function sendToAuthId(authId, payload) {
     if (!authId) return;
     const { data } = await supabase.from("push_subscriptions").select("*").eq("auth_id", authId);
     await sendToRows(data, payload);
+}
+
+export async function sendToOwner(username, payload) {
+    const { data: subs } = await supabase.from("push_subscriptions").select("*").eq("username", username);
+    await sendToRows(subs, payload);                          // 웹
+    const { data: devs } = await supabase.from("device_tokens").select("token").eq("username", username);
+    await sendFcm((devs || []).map(d => d.token), payload);   // 앱(FCM)
+}
+
+export async function sendToAuthId(authId, payload) {
+    if (!authId) return;
+    const { data: subs } = await supabase.from("push_subscriptions").select("*").eq("auth_id", authId);
+    await sendToRows(subs, payload);
+    const { data: devs } = await supabase.from("device_tokens").select("token").eq("auth_id", authId);
+    await sendFcm((devs || []).map(d => d.token), payload);
 }
 
 export default router;

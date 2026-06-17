@@ -28,3 +28,25 @@ scripts:
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO
         artifacts:
       - ios/App/build/**/*.app
+android-capacitor:
+    name: Android Capacitor (APK)
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      node: 20
+    scripts:
+      - name: Install deps
+        script: |
+          npm i -g pnpm
+          pnpm install --no-frozen-lockfile
+      - name: Build web
+        script: pnpm run build
+      - name: Capacitor sync android
+        script: pnpm exec cap sync android
+      - name: Build debug APK
+        script: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk      
