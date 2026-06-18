@@ -4,6 +4,10 @@ import ProfileHeader from "./ProfileHeader";
 import { supabase } from "./supabaseClient";
 import LandingPage from "./LandingPage";
 import { enablePush, initNativePushListeners } from "./notifications";
+import { App as CapApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
+
 
 function ArchiveGallery({
   posts,
@@ -1153,7 +1157,29 @@ function App() {
     sessionStorage.setItem(archiveScrollKey, String(savedArchiveScroll.current));
   }
 
-  // 모바일에서 window 스크롤은 현재 활성화된 탭의 패널 스크롤로 취급한다.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const handle = CapApp.addListener("appUrlOpen", async ({ url }) => {
+      if (!url.startsWith("askme://")) return;
+      const code = new URLSearchParams(url.split("?")[1] || "").get("code");
+      await Browser.close();
+      if (!code) return;
+      const res = await fetch(`/auth/s/exchange?code=${encodeURIComponent(code)}`, { credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.username) {
+        localStorage.setItem("isXConnected", "true");
+        localStorage.setItem("connectedXId", data.username);
+        localStorage.setItem("connectedXUserId", data.xUserId || "");
+        localStorage.setItem("twitterId", data.username);
+        window.location.replace(`/u/${data.username}`);
+      }
+    });
+    return () => {
+      handle.then((h) => h.remove());
+    };
+  }, []);
+
   useEffect(() => {
     function handleWindowScroll() {
       if (mobileTab === "profile") {
@@ -1498,6 +1524,11 @@ function App() {
 
 
   if (!routeUsername) {
+    const savedX = localStorage.getItem("connectedXId");
+    if (savedX) {
+      window.location.replace(`/u/${savedX}`);
+      return null;
+    }
     return <LandingPage />;
   }
 

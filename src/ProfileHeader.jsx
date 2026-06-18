@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { enablePush, unsubscribeFromPush } from "./notifications";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: false,
@@ -87,8 +89,12 @@ export default function ProfileHeader({
       reader.readAsDataURL(file);
     });
 
-  const handleConnectX = () => {
-    window.location.href = "/auth/x/login";
+  const handleConnectX = async () => {
+    if (Capacitor.isNativePlatform()) {
+      await Browser.open({ url: "https://ask-me.fly.dev/auth/x/login?native=1" });
+    } else {
+      window.location.href = "/auth/x/login";
+    }
   };
 
   async function saveProfileToDB() {

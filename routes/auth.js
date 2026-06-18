@@ -55,6 +55,10 @@ router.get("/x/login", (req, res) => {
     `&code_challenge=${encodeURIComponent(codeChallenge)}` +
     `&code_challenge_method=S256`;
 
+  if (req.query.native) {
+    res.cookie("x_oauth_native", "1", { httpOnly: true, secure: isProduction, sameSite: "lax" });
+  }
+
   res.redirect(authUrl);
 });
 
@@ -144,6 +148,23 @@ router.get("/x/callback", async (req, res) => {
       .update({ x_user_id: userData.data.id })
       .eq("username", userData.data.username);
 
+    const isNative = req.cookies.x_oauth_native === "1";
+    if (isNative) {
+      const code = randomBytes(24).toString("hex");
+      await supabase.from("auth_codes").insert({
+        code,
+        x_user_id: userData.data.id,
+        username: userData.data.username,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token || null,
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      });
+      res.clearCookie("x_oauth_native");
+      return res.send(
+        `<!doctype html><html><body><script>window.location.href="askme://auth?code=${code}";;</script>앱으로 돌아가는 중...</body></html>`
+      );
+    }
+
     res.send(`
    <!doctype html>
    <html lang="ko">
@@ -174,6 +195,26 @@ router.post("/x/logout", (req, res) => {
   return res.json({ ok: true });
 });
 
+router.get("/x/exchange", async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).json({ message: "code required" });
+
+  const { data: row } = await supabase.from("auth_codes").select("*").eq("code", code).single();
+  if (!row) return res.status(400).json({ message: "invalid code" });
+  if (new Date(row.expires_at) < new Date()) {
+    await supabase.from("auth_codes").delete().eq("code", code);
+    return res.status(400).json({ message: "expired" });
+  }
+
+  setXTokenCookies(
+    res,
+    { access_token: row.access_token, refresh_token: row.refresh_token, expires_in: 7200 },
+    row.x_user_id,
+    isProduction
+  );
+  await supabase.from("auth_codes").delete().eq("code", code);
+  return res.json({ username: row.username, xUserId: row.x_user_id });
+});
 
 export default router;
 
