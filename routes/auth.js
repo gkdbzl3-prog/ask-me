@@ -150,6 +150,7 @@ router.get("/x/callback", async (req, res) => {
 
     const isNative = req.cookies.x_oauth_native === "1";
     if (isNative) {
+      console.log("native callback, code 생성됨");
       const code = randomBytes(24).toString("hex");
       await supabase.from("auth_codes").insert({
         code,
@@ -196,6 +197,7 @@ router.post("/x/logout", (req, res) => {
 });
 
 router.get("/x/exchange", async (req, res) => {
+  console.log("exchange 호출됨, code:", req.query.code);
   const { code } = req.query;
   if (!code) return res.status(400).json({ message: "code required" });
 
