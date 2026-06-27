@@ -1,8 +1,19 @@
 import React from "react";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 function LandingPage() {
-    function handleTwitterLogin() {
-        window.location.href = "/auth/x/login";
+    async function handleTwitterLogin() {
+        const loginUrl = "https://ask-me.fly.dev/auth/x/login?native=1";
+        if (Capacitor.isNativePlatform()) {
+            try {
+                await Browser.open({ url: loginUrl });
+            } catch {
+                window.location.href = loginUrl;
+            }
+        } else {
+            window.location.href = "/auth/x/login";
+        }
     }
 
     return (
