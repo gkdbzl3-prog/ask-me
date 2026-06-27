@@ -1159,13 +1159,24 @@ function App() {
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
-    const handle = CapApp.addListener("appUrlOpen", async ({ url }) => {
-      if (!url.startsWith("askme://")) return;
+
+    async function handleNativeAuthUrl(url, source) {
+      console.log("native auth url received:", { source, url });
+      if (!url?.startsWith("askme://")) return;
       const code = new URLSearchParams(url.split("?")[1] || "").get("code");
       await Browser.close();
-      if (!code) return;
+      if (!code) {
+        console.error("native auth url missing code:", { source, url });
+        return;
+      }
       const res = await fetch(`/auth/x/exchange?code=${encodeURIComponent(code)}`, { credentials: "include" });
-      if (!res.ok) return;
+      if (!res.ok) {
+        console.error("native auth exchange failed:", {
+          status: res.status,
+          body: await res.text(),
+        });
+        return;
+      }
       const data = await res.json();
       if (data.username) {
         localStorage.setItem("isXConnected", "true");
@@ -1174,6 +1185,18 @@ function App() {
         localStorage.setItem("twitterId", data.username);
         window.location.replace(`/u/${data.username}`);
       }
+    }
+
+    CapApp.getLaunchUrl()
+      .then((launch) => {
+        if (launch?.url) handleNativeAuthUrl(launch.url, "launch");
+      })
+      .catch((error) => {
+        console.error("native launch url read failed:", error);
+      });
+
+    const handle = CapApp.addListener("appUrlOpen", async ({ url }) => {
+      await handleNativeAuthUrl(url, "event");
     });
     return () => {
       handle.then((h) => h.remove());

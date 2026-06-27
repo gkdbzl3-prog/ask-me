@@ -152,7 +152,7 @@ router.get("/x/callback", async (req, res) => {
     if (isNative) {
       console.log("native callback, code 생성됨");
       const code = randomBytes(24).toString("hex");
-      await supabase.from("auth_codes").insert({
+      const { error: insertError } = await supabase.from("auth_codes").insert({
         code,
         x_user_id: userData.data.id,
         username: userData.data.username,
@@ -160,6 +160,10 @@ router.get("/x/callback", async (req, res) => {
         refresh_token: tokenData.refresh_token || null,
         expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       });
+      if (insertError) {
+        console.error("native auth code insert failed:", insertError);
+        return res.status(500).send("native auth code 저장 실패");
+      }
       res.clearCookie("x_oauth_native");
       return res.send(
         `<!doctype html><html><body><script>window.location.href="askme://auth?code=${code}";;</script>앱으로 돌아가는 중...</body></html>`
@@ -201,7 +205,10 @@ router.get("/x/exchange", async (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).json({ message: "code required" });
 
-  const { data: row } = await supabase.from("auth_codes").select("*").eq("code", code).single();
+  const { data: row, error: selectError } = await supabase.from("auth_codes").select("*").eq("code", code).single();
+  if (selectError) {
+    console.error("auth code lookup failed:", selectError);
+  }
   if (!row) return res.status(400).json({ message: "invalid code" });
   if (new Date(row.expires_at) < new Date()) {
     await supabase.from("auth_codes").delete().eq("code", code);
@@ -219,4 +226,3 @@ router.get("/x/exchange", async (req, res) => {
 });
 
 export default router;
-
