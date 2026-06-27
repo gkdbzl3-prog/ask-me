@@ -90,8 +90,15 @@ export default function ProfileHeader({
     });
 
   const handleConnectX = async () => {
+    const loginUrl = "https://ask-me.fly.dev/auth/x/login?native=1";
+
     if (Capacitor.isNativePlatform()) {
-      await Browser.open({ url: "https://ask-me.fly.dev/auth/x/login?native=1" });
+      try {
+        await Browser.open({ url: loginUrl });
+      } catch (error) {
+        console.error("native X login open failed:", error);
+        window.location.href = loginUrl;
+      }
     } else {
       window.location.href = "/auth/x/login";
     }
