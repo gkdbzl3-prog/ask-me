@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { enablePush, unsubscribeFromPush } from "./notifications";
 import { Capacitor } from "@capacitor/core";
-import { Browser } from "@capacitor/browser";
-import { AppLauncher } from "@capacitor/app-launcher";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: false,
@@ -91,13 +89,7 @@ export default function ProfileHeader({
     });
 
   const handleConnectX = async () => {
-    const loginUrl = "https://ask-me.fly.dev/auth/x/login?native=1";
-
-    if (Capacitor.isNativePlatform()) {
-      await AppLauncher.openUrl({ url: loginUrl });
-    } else {
-      window.location.href = "/auth/x/login";
-    }
+    window.location.href = "/auth/x/login";
   };
 
   async function saveProfileToDB() {
