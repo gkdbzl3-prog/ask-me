@@ -1164,7 +1164,6 @@ function App() {
       console.log("native auth url received:", { source, url });
       if (!url?.startsWith("askme://")) return;
       const code = new URLSearchParams(url.split("?")[1] || "").get("code");
-      await Browser.close();
       if (!code) {
         console.error("native auth url missing code:", { source, url });
         return;

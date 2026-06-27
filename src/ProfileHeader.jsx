@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient";
 import { enablePush, unsubscribeFromPush } from "./notifications";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
+import { AppLauncher } from "@capacitor/app-launcher";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: false,
@@ -93,12 +94,7 @@ export default function ProfileHeader({
     const loginUrl = "https://ask-me.fly.dev/auth/x/login?native=1";
 
     if (Capacitor.isNativePlatform()) {
-      try {
-        await Browser.open({ url: loginUrl });
-      } catch (error) {
-        console.error("native X login open failed:", error);
-        window.location.href = loginUrl;
-      }
+      await AppLauncher.openUrl({ url: loginUrl });
     } else {
       window.location.href = "/auth/x/login";
     }
