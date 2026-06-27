@@ -1164,7 +1164,7 @@ function App() {
       const code = new URLSearchParams(url.split("?")[1] || "").get("code");
       await Browser.close();
       if (!code) return;
-      const res = await fetch(`/auth/s/exchange?code=${encodeURIComponent(code)}`, { credentials: "include" });
+      const res = await fetch(`/auth/x/exchange?code=${encodeURIComponent(code)}`, { credentials: "include" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.username) {
