@@ -500,6 +500,16 @@ body {
   }
 }
 
+@keyframes toastDown {
+  from {
+    transform: traslate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
 
 .card-avatar {
   width: 45px;
@@ -2567,4 +2577,35 @@ body {
 .landing-btn.secondary:hover {
   transform: translateY(-2px);
   background: rgba(255, 250, 245, 0.8);
+}
+
+.toast {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: #1a1a1f;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 000;
+  animation: toastDown 0.3s ease;
+}
+
+.toast__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.toast__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

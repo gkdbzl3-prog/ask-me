@@ -209,6 +209,7 @@ function App() {
   const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [questionCards, setQuestionCards] = useState([]);
+  const [toast, setToast] = useState(null);
   const [debugLogs, setDebugLogs] = useState([]);
   const questionDraftKey = `questionDraft:${routeUsername}`;
   const [zoomedImages, setZoomedImages] = useState([]);
@@ -361,6 +362,13 @@ function App() {
       alert("좋아요 처리 중 오류가 발생했습니다");
     }
   };
+
+  function showToast(message) {
+    setToast({ text: message });
+    setTimeout(() => {
+      setToast(null);
+    }, 3500);
+  }
 
   const totalLikeCount = questionCards.reduce(
     (sum, card) => sum + (card.likeCount || 0), 0);
@@ -1522,11 +1530,17 @@ function App() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "questions" },
-        () => {
+        (payload) => {
           loadQuestionsByUsername(routeUsername);
+          const newText = payload?.new?.text;
+          if (newText) {
+            const preview = newText.length > 30 ? newText.slice(0, 30) + "..." : newText;
+            showToast(`새 질문: ${preview}`)
+          }
         }
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
@@ -1556,13 +1570,17 @@ function App() {
 
   return (
     <>
-
-
       <div className={`app mobile-tab-${mobileTab}`}>
         <div className={`app theme-${theme}`}
           style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : {}}>
 
           <header className="top-bar">
+              {toast && (
+    <div className="toast">
+      <span className="toast__icon">💬</span>
+      <span className="toast__text">{toast.text}</span>
+    </div>
+  )}
             <svg
               className="top-bar-wave left"
               viewBox="0 0 120 24"
