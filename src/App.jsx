@@ -1577,14 +1577,14 @@ function App() {
       <div className={`app mobile-tab-${mobileTab}`}>
         <div className={`app theme-${theme}`}
           style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : {}}>
-
-          <header className="top-bar">
               {toast && (
     <div className="toast">
       <span className="toast__icon">💬</span>
       <span className="toast__text">{toast.text}</span>
     </div>
   )}
+          <header className="top-bar">
+
             <svg
               className="top-bar-wave left"
               viewBox="0 0 120 24"
