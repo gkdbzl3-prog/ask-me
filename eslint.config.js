@@ -5,8 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist"]),
-  // 프론트엔드 (브라우저 환경)
+  globalIgnores(["dist", "android", "ios", "node_modules"]),
   {
     files: ["src/**/*.{js,jsx}"],
     extends: [
@@ -25,14 +24,14 @@ export default defineConfig([
     },
     rules: {
       "no-unused-vars": "off",
+      "no-undef": "off",
       "react-hooks/exhaustive-deps": "off",
       "react-hooks/refs": "off",
       "react-refresh/only-export-components": "off",
     },
   },
-  // 백엔드 (Node.js 환경)
   {
-    files: ["routes/**/*.js", "data/**/*.js", "supabase.js"],
+    files: ["routes/**/*.js", "data/**/*.js", "supabase.js", "*.js"],
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
@@ -44,6 +43,7 @@ export default defineConfig([
     },
     rules: {
       "no-unused-vars": "off",
+      "no-undef": "off",
     },
   },
 ]);

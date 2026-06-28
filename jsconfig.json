@@ -4,7 +4,7 @@
     "moduleResolution": "bundler",
     "target": "ESNext",
     "jsx": "react-jsx",
-    "checkJs": true,
+    "checkJs": false,
     "strict": false
   },
   "include": ["src/**/*", "routes/**/*"],

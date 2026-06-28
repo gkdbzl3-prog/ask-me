@@ -89,7 +89,7 @@ export default function ProfileHeader({
     });
 
   const handleConnectX = async () => {
-    window.location.href = "/auth/x/login";
+    window.location.href = "https://ask-me.fly.dev/auth/x/login";
   };
 
   async function saveProfileToDB() {
