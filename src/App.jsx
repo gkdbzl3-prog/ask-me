@@ -1211,6 +1211,10 @@ function App() {
   }, []);
 
   useEffect(() => {
+    showToast("Toast 테스트입니다");
+  }, []);
+
+  useEffect(() => {
     function handleWindowScroll() {
       if (mobileTab === "profile") {
         handleProfileScroll();
