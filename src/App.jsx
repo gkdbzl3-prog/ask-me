@@ -206,6 +206,7 @@ function App() {
     () => localStorage.getItem("connectedXUserId") || ""
   );
   const [profileXUserId, setProfileXUserId] = useState("");
+  const [profileUserId, setProfileUserId] = useState("");
   const isOwner = !isLocalDev && !!connectedXId && connectedXId === routeUsername;
   const viewMode = isLocalDev ? devViewMode : (isOwner ? "owner" : "guest");
   const [questionCards, setQuestionCards] = useState([]);
@@ -516,7 +517,6 @@ function App() {
       setShowPreview(false);
       setReplyTargetId(null);
       await loadQuestionsByUsername(routeUsername);
-      enablePush({ authId: currentAuthUserId }).catch(() => { });
     } catch (error) {
       console.error("handleSend error:", error);
       alert("전송 중 오류가 발생했습니다");
@@ -1165,6 +1165,20 @@ function App() {
     sessionStorage.setItem(archiveScrollKey, String(savedArchiveScroll.current));
   }
 
+
+  useEffect(() => {
+    if (viewMode !== "owner") return;
+    if (!notificationSettings.newQuestion) return;
+    if (!routeUsername) return;
+
+    enablePush({
+      authId: currentAuthUserId,
+      username: routeUsername,
+    }).catch((error) => {
+      console.error("enable owner push failed:", error);
+    });
+  }, [viewMode, notificationSettings.newQuestion, routeUsername, currentAuthUserId]);
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
@@ -1402,6 +1416,7 @@ function App() {
         setBgUrl(data.bgUrl || "");
         setTheme(data.theme || "purple");
         setProfileXUserId(data.xUserId || "");
+        setProfileUserId(data.id || "");
 
         localStorage.setItem("editNickname", data.displayName || "");
         localStorage.setItem("bio", data.bio || "");
@@ -1525,19 +1540,27 @@ function App() {
   }, [replyTargetId]);
 
   useEffect(() => {
+    if (viewMode !== "owner") return;
     if (!routeUsername) return;
+    if (!profileUserId) return;
+
     const channel = supabase
-      .channel(`questions-${routeUsername}`)
+      .channel(`questions-${routeUsername}-${profileUserId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "questions" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "questions",
+          filter: `user_id=eq.${profileUserId}`,
+       },
         (payload) => {
           loadQuestionsByUsername(routeUsername);
-          const newText = payload?.new?.text;
-          if (newText) {
-            const preview = newText.length > 30 ? newText.slice(0, 30) + "..." : newText;
-            showToast(`새 질문: ${preview}`)
-          }
+          const newText = payload?.new?.text || "";
+          const preview =
+            newText.length > 30 ? newText.slice(0,30) + "..." : newText;
+
+            showToast(`새 질문: ${preview || "비공개 질문"}`);
         }
       )
       .subscribe();
@@ -1545,7 +1568,7 @@ function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [routeUsername]);
+  }, [viewMode, routeUsername, profileUserId]);
 
   useEffect(() => {
     if (!routeUsername) return;

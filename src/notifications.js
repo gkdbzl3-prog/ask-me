@@ -90,7 +90,9 @@ export function initNativePushListeners() {
             }),
         });
     });
-    PushNotifications.addListener("registerationError", (E) => console.error("push reg error:", e));
+    PushNotifications.addListener("registrationError", (e) => {
+        console.error("push reg error:", e);
+    });
     PushNotifications.addListener("pushNotificationActionPerformed", (a) => {
         const url = a.notification?.data?.url;
         if (url) window.location.href = url;
