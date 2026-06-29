@@ -92,14 +92,33 @@ async function sendFcm(tokens, payload) {
 }
 
 export async function sendToOwner(username, payload) {
+    if (!username) return;
+
+    const { data: subs, error: subsError } = await supabase
+    .from("push_subscriptions")
+    .select("*")
+    .eq("username", username);
+
+    if (subsError) {
+        console.error("owner web push lookup error:", subsError);
+    }
+
+    const { data: devs, error: devsError } = await supabase
+    .from("device_tokens")
+    .select("token")
+    .eq("username", username);
+
+    if (devsError) {
+        console.error("owner device token lookup error:", devsError);
+    }
+
     console.log("sendToOwner:", username, {
         web: subs?.length || 0,
-        devices: devs?.length || 0,
+        device: devs?.length || 0,
     });
-    const { data: subs } = await supabase.from("push_subscriptions").select("*").eq("username", username);
-    await sendToRows(subs, payload);                          // 웹
-    const { data: devs } = await supabase.from("device_tokens").select("token").eq("username", username);
-    await sendFcm((devs || []).map(d => d.token), payload);   // 앱(FCM)
+
+    await sendToRows(subs || [], payload);
+    await sendFcm((devs || []).map(d => d.token), payload);
 }
 
 export async function sendToAuthId(authId, payload) {

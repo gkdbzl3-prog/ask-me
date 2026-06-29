@@ -1436,12 +1436,58 @@ function App() {
     );
   }, [routeUsername]);
 
-  // 다른 유저로 이동하면 초기 스크롤 위치를 다시 잡도록 플래그 리셋
+  useEffect(() => {
+    console.log("realtime effect check:", {
+      viewMode,
+      routeUsername,
+      profileUserId,
+    });
+
+    if (viewMode !== "owner") return;
+    if (!routeUsername) return;
+    if (!profileUserId) return;
+
+    const channel = supabase
+      .channel(`owner-questions-${profileUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "questions",
+          filter: `user_id=eq.${profileUserId}`,
+        },
+        (payload) => {
+          console.log("new question realtime payload:", payload);
+
+          loadQuestionsByUsername(routeUsername).catch((err) => {
+            console.error("questions reload after realtime failed:", err);
+          });
+
+          const text = payload?.new.text || "";
+          const preview =
+            text.length > 30 ? `${text.slice(0.30)}...` : text;
+
+          showToast({
+            title: "새 질문",
+            message: preview || "익명이 비공개 질문을 보냈습니다.",
+          });
+        }
+      )
+      .subscribe((status) => {
+        console.log("owner questions realtime status:", status);
+      });
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }, [viewMode, routeUsername, profileUserId]);
+
+
   useEffect(() => {
     didInitialScroll.current = false;
   }, [routeUsername]);
 
-  // 초기 진입 시 첫 대화(맨 위)가 아니라 최근 질문/답변(맨 아래)이 보이도록 한 번만 스크롤
   useEffect(() => {
     if (didInitialScroll.current) return;
     if (!routeUsername) return;
@@ -1539,38 +1585,6 @@ function App() {
     };
   }, [replyTargetId]);
 
-  useEffect(() => {
-    console.log("realtime ready", { viewMode, routeUsername, profileUserId });
-    if (viewMode !== "owner") return;
-    if (!routeUsername) return;
-    if (!profileUserId) return;
-
-    const channel = supabase
-      .channel(`questions-${routeUsername}-${profileUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "questions",
-          filter: `user_id=eq.${profileUserId}`,
-       },
-        (payload) => {
-          console.log("new question realtime payload:", payload);
-          loadQuestionsByUsername(routeUsername);
-          const newText = payload?.new?.text || "";
-          const preview =
-            newText.length > 30 ? newText.slice(0,30) + "..." : newText;
-
-            showToast(`새 질문: ${preview || "비공개 질문"}`);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [viewMode, routeUsername, profileUserId]);
 
   useEffect(() => {
     if (!routeUsername) return;
