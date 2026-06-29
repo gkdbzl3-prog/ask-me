@@ -1,7 +1,16 @@
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications } from "@capacitor/push-notifications";
 
-
+export async function createNotificationChannel() {
+    await PushNotifications.createChannel({
+        id: "askme_high",
+        name: "새 질문 알림",
+        description: "새 질문이 오면 알림이 울립니다.",
+        importance: 5,
+        visibility: 1,
+        sound: "알림음",
+    });
+}
 
 function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -52,6 +61,7 @@ export async function unsubscribeFromPush() {
 }
 
 let pushContext = { authId: null, username: null };
+
 export async function enablePush({ authId, username = null }) {
     if (!Capacitor.isNativePlatform()) {
         return subscribeToPush({ authId, username });
@@ -60,6 +70,7 @@ export async function enablePush({ authId, username = null }) {
     let perm = await PushNotifications.checkPermissions();
     if (perm.receive !== "granted") perm = await PushNotifications.requestPermissions();
     if (perm.receive !== "granted") return;
+    await createNotificationChannel();
     await PushNotifications.register();
 }
 

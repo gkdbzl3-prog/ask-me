@@ -71,6 +71,14 @@ async function sendFcm(tokens, payload) {
     const r = await messaging.sendEachForMulticast({
         tokens,
         notification: { title: payload.title, body: payload.body },
+        android: {
+            priority: "high",
+            notification: {
+                channelId: "askme_high",
+                priority: "high",
+                sound: "알림",
+            },
+        },
         data: { url: payload.url || "/" },
     });
     r.responses.forEach((resp, i) => {
