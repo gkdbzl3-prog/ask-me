@@ -76,7 +76,7 @@ async function sendFcm(tokens, payload) {
             notification: {
                 channelId: "askme_high",
                 priority: "high",
-                sound: "알림",
+                sound: "pushbell",
             },
         },
         data: { url: payload.url || "/" },

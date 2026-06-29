@@ -8,7 +8,7 @@ export async function createNotificationChannel() {
         description: "새 질문이 오면 알림이 울립니다.",
         importance: 5,
         visibility: 1,
-        sound: "알림음",
+        sound: "pushbell",
     });
 }
 
