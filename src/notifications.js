@@ -6,7 +6,7 @@ const ASKME_SOUND = "notification";
 
 export async function createNotificationChannel() {
     await PushNotifications.createChannel({
-        id: "askme_high",
+        id: "askme_new_question_v3",
         name: "새 질문 알림",
         description: "새 질문이 오면 알림이 울립니다.",
         importance: 5,

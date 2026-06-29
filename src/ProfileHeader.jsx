@@ -573,26 +573,6 @@ export default function ProfileHeader({
           <div className="admin-card">
             <h4 className="background-select-text">Notification</h4>
 
-            <label className="setting-check-row">
-              <input
-                type="checkbox"
-                checked={notificationSettings.newQuestion}
-                onChange={async (e) => {
-                  const on = e.target.checked;
-                  if (on) {
-                    await enablePush({
-                      authId: localStorage.getItem("authId"),
-                      username: routeUsername
-                    });
-                  } else {
-                    await unsubscribeFromPush();
-                  }
-                  setNotificationSettings((prev) => ({ ...prev, newQuestion: on }));
-                }}
-              />
-              새 질문 알림
-            </label>
-
 
 
           </div>
