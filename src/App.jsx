@@ -1540,6 +1540,7 @@ function App() {
   }, [replyTargetId]);
 
   useEffect(() => {
+    console.log("realtime ready", { viewMode, routeUsername, profileUserId });
     if (viewMode !== "owner") return;
     if (!routeUsername) return;
     if (!profileUserId) return;
@@ -1555,6 +1556,7 @@ function App() {
           filter: `user_id=eq.${profileUserId}`,
        },
         (payload) => {
+          console.log("new question realtime payload:", payload);
           loadQuestionsByUsername(routeUsername);
           const newText = payload?.new?.text || "";
           const preview =
