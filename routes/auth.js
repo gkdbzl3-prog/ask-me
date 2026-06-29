@@ -56,7 +56,12 @@ router.get("/x/login", (req, res) => {
     `&code_challenge_method=S256`;
 
   if (req.query.native) {
-    res.cookie("x_oauth_native", "1", { httpOnly: true, secure: isProduction, sameSite: "lax" });
+    res.cookie("x_oauth_native", "1", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+   });
   }
 
   res.redirect(authUrl);
@@ -164,7 +169,12 @@ router.get("/x/callback", async (req, res) => {
         console.error("native auth code insert failed:", insertError);
         return res.status(500).send("native auth code 저장 실패");
       }
-      res.clearCookie("x_oauth_native");
+      res.clearCookie("x_oauth_native", {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax",
+        path: "/",
+      });
       return res.send(
         `<!doctype html><html><body><script>window.location.href="askme://auth?code=${code}";;</script>앱으로 돌아가는 중...</body></html>`
       );
