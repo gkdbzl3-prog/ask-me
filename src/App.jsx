@@ -1168,7 +1168,6 @@ function App() {
 
   useEffect(() => {
     if (viewMode !== "owner") return;
-    if (!notificationSettings.newQuestion) return;
     if (!routeUsername) return;
 
     enablePush({
