@@ -29,19 +29,6 @@ bd create "Issue title" --description="Detailed context" -t bug|feature|task -p 
 bd create "Issue title" --description="What this issue is about" -p 1 --deps discovered-from:bd-123 --json
 ```
 
-**Claim and update:**
-
-```bash
-bd update <id> --claim --json
-bd update bd-42 --priority 1 --json
-```
-
-**Complete work:**
-
-```bash
-bd close bd-42 --reason "Completed" --json
-```
-
 ### Issue Types
 
 - `bug` - Something broken

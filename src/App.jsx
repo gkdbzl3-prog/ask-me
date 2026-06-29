@@ -304,6 +304,15 @@ function App() {
   const replyTargetCard = questionCards.find((card) =>
     card.id === replyTargetId);
 
+  function playInAppNotificationSound() {
+    const audio = new Audio("/sounds/notification.wav");
+    audio.volume = 0.8;
+    audio.play().catch((error) => {
+      console.warn("notification sound play blocked:", error);
+    });
+  }
+
+
   async function uploadImageToStorage(file, folder = "question-files") {
     if (!file) return "";
 
@@ -1471,6 +1480,7 @@ function App() {
             title: "새 질문",
             message: preview || "익명이 비공개 질문을 보냈습니다.",
           });
+          playInAppNotificationSound();
         }
       )
       .subscribe((status) => {

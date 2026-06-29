@@ -1,12 +1,12 @@
 import { Capacitor } from "@capacitor/core";
 import { PushNotifications } from "@capacitor/push-notifications";
 
-const ASKME_NEW_QUESTION_CHANNEL_ID = "askme_new_question_v3";
+const ASKME_NEW_QUESTION_CHANNEL_ID = "askme_new_question_v2";
 const ASKME_SOUND = "notification";
 
 export async function createNotificationChannel() {
     await PushNotifications.createChannel({
-        id: "askme_new_question_v3",
+        id: "askme_new_question_v2",
         name: "새 질문 알림",
         description: "새 질문이 오면 알림이 울립니다.",
         importance: 5,
@@ -71,7 +71,7 @@ export async function enablePush({ authId, username = null }) {
     }
     pushContext = { authId, username };
 
-    await PushNotifications.createCannel({
+    await PushNotifications.createChannel({
         id: ASKME_NEW_QUESTION_CHANNEL_ID,
         name: "AskMe 새 질문",
         description: "새 질문이 올 때 울리는 알림",
@@ -99,8 +99,8 @@ export function initNativePushListeners() {
                 token: token.value,
                 platform: Capacitor.getPlatform(),
                 authId: pushContext.authId,
-                username: username,
-                channelId: ASKME_NEW_QUESTION_CANNEL_ID,
+                username: pushContext.username,
+                channelId: ASKME_NEW_QUESTION_CHANNEL_ID,
             }),
         });
     });
