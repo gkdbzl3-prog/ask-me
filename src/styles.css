@@ -1358,8 +1358,8 @@ body {
 
 
 .profile-public {
-  padding: clamp(18px, 2vw, 28px);
-  border-radius: 28px;
+  padding: clamp(16px, 2.2vw, 30px);
+  border-radius: clamp(20px, 2vw, 30px);
   background: var(--card-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -1369,14 +1369,14 @@ body {
   width: 100%;
   box-shadow: 0 10px 28px rgba(94, 74, 155, 0.12);
   box-sizing: border-box;
-  min-height: 300px;
+  min-height: clamp(240px, 22vw, 340px);
 }
 
 .profile-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 15px;
+  gap: clamp(11px, 1.1vw, 18px);
   margin: 10px 0 20px 0;
 }
 
@@ -1392,7 +1392,7 @@ body {
 }
 
 .profile-main-info label {
-  font-size: 14px;
+  font-size: clamp(12px, 1.05vw, 15px);
   color: #6a4d9d;
 }
 
@@ -1426,7 +1426,7 @@ body {
 .last-answer-text {
   flex-shrink: 0;
   text-align: right;
-  font-size: 12px;
+  font-size: clamp(10px, 0.9vw, 13px);
   font-weight: 500;
   color: rgba(78, 58, 120, 0.62);
   white-space: nowrap;
@@ -1435,8 +1435,8 @@ body {
 
 .avatar-wrap {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: clamp(78px, 7.4vw, 112px);
+  height: clamp(78px, 7.4vw, 112px);
   flex-shrink: 0;
 }
 
@@ -1458,7 +1458,7 @@ body {
   -webkit-backdrop-filter: blur(8px);
   padding: 0 8px 0 8px;
   cursor: pointer;
-  font-size: 20px;
+  font-size: clamp(16px, 1.5vw, 22px);
 }
 
 .profile-bio {
@@ -1471,8 +1471,8 @@ body {
   line-height: 1.6;
   width: 93%;
   min-width: 0;
-  font-size: 13px;
-  min-height: 140px;
+  font-size: clamp(11px, 0.95vw, 14px);
+  min-height: clamp(110px, 10.4vw, 160px);
   display: flex;
   flex-direction: column;
 }
@@ -1495,7 +1495,7 @@ body {
 }
 
 .profile-stats-text {
-  font-size: 14px;
+  font-size: clamp(12px, 1.05vw, 15px);
   color: rgba(63, 43, 104, 0.78);
   margin-top: 10px;
 }
@@ -1526,7 +1526,7 @@ body {
 }
 
 .field-label {
-  font-size: 12px;
+  font-size: clamp(10px, 0.9vw, 13px);
   font-weight: 700;
   letter-spacing: 0.08em;
   color: rgba(83, 59, 132, 0.68);
@@ -1535,7 +1535,7 @@ body {
 }
 
 .field-value {
-  font-size: 14px;
+  font-size: clamp(12px, 1.05vw, 15px);
   color: rgba(63, 43, 104, 0.7);
   word-break: break-all;
   min-width: 0;
@@ -1699,7 +1699,7 @@ body {
   color: #5f418d;
   text-decoration: none;
   word-break: break-all;
-  font-size: 13px;
+  font-size: clamp(11px, 0.95vw, 14px);
 }
 
 .inline-name-input {

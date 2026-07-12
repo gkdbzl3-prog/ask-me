@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { enablePush, unsubscribeFromPush } from "./notifications";
 import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
 
 const DEFAULT_NOTIFICATION_SETTINGS = {
   newQuestion: false,
@@ -89,7 +90,16 @@ export default function ProfileHeader({
     });
 
   const handleConnectX = async () => {
-    window.location.href = "https://ask-me.fly.dev/auth/x/login";
+    const loginUrl = "https://ask-me.fly.dev/auth/x/login?native=1";
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await Browser.open({ url: loginUrl });
+      } catch {
+        window.location.href = loginUrl;
+      }
+    } else {
+      window.location.href = "https://ask-me.fly.dev/auth/x/login";
+    }
   };
 
   async function saveProfileToDB() {
@@ -569,13 +579,6 @@ export default function ProfileHeader({
             </button>
           </div>
 
-
-          <div className="admin-card">
-            <h4 className="background-select-text">Notification</h4>
-
-
-
-          </div>
         </section>
       )}
     </section>
