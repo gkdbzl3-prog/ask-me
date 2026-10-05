@@ -906,6 +906,20 @@ body {
 
 
 .question-delete-btn {
+  /* 짧은 말풍선에서 x가 안 눌렸다. 다른 요소가 그 자리를 덮고 있어 클릭이
+     삼켜졌고, 히트 영역도 글리프 크기(약 9x16)뿐이라 빗나가기 쉬웠다.
+     그래서 둘 다 손본다: 위로 올리고, 누를 영역만 30x30으로 넓힌다.
+     보이는 x 크기는 font-size 그대로이고, 음수 마진은 넓어진 상자 때문에
+     x가 밀리지 않도록 전과 같은 자리에 두기 위한 보정이다. */
+  position: relative;
+  z-index: 1;
+  /* 형제인 .like-btn/.answer-delete-btn처럼 좁아져도 찌그러지지 않는다. */
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border: none;
   background: none;
   cursor: pointer;
@@ -913,7 +927,7 @@ body {
   line-height: 1;
   padding: 0;
   color: #a19e9e;
-  margin: -5px 0 0 -4px;
+  margin: -12px 0 0 -8px;
 }
 
 .question-delete-btn:hover {

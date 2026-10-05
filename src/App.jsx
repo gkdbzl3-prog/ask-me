@@ -581,6 +581,8 @@ function App() {
   }
 
   async function removeAnswer(questionId) {
+    // 질문 삭제와 같은 이유로 진입을 남긴다 — 어느 x를 눌렀는지 구분된다.
+    console.log("removeAnswer start:", questionId);
     try {
       const res = await fetch(`/api/questions/${questionId}/answer/delete`, {
         method: "PATCH",
