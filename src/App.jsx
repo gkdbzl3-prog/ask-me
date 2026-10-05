@@ -537,6 +537,9 @@ function App() {
 
 
   async function removeQuestion(questionId) {
+    // 클릭이 여기까지 왔는지부터 남긴다. 실패만 찍어두면 "성공했다"와
+    // "버튼을 눌렀는데 핸들러가 안 돌았다"가 콘솔에서 구분되지 않는다.
+    console.log("removeQuestion start:", questionId);
     try {
       const requesterAuthId = currentAuthUserId || "";
       const requesterXUserId = localStorage.getItem("connectedXUserId") || "";
@@ -561,6 +564,8 @@ function App() {
         alert(res.status === 403 ? "삭제 권한이 없어요" : "질문 삭제 실패");
         return;
       }
+
+      console.log("removeQuestion ok:", res.status);
 
       // 지운 카드는 바로 치운다. 재조회가 느리거나 캐시된 목록을 받아도
       // "눌렀는데 아무 일도 안 일어난다"로 보이지 않게.
