@@ -7,6 +7,7 @@ import { enablePush, initNativePushListeners } from "./notifications";
 import { App as CapApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
+import { isValidAuthId, createAuthId } from "./authId";
 
 
 function ArchiveGallery({
@@ -542,6 +543,7 @@ function App() {
 
       const res = await fetch(`/api/questions/${questionId}`, {
         method: "DELETE",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -551,17 +553,24 @@ function App() {
         }),
       });
 
-      const result = await res.json();
-
-
       if (!res.ok) {
-        alert("질문 삭제 실패");
+        // 왜 막혔는지 콘솔에 남긴다 — 403(내 질문/내 함이 아님)과
+        // 500(DB 쪽)을 알림창만으로는 구분할 수 없었다.
+        const detail = await res.text().catch(() => "");
+        console.error("removeQuestion failed:", res.status, detail);
+        alert(res.status === 403 ? "삭제 권한이 없어요" : "질문 삭제 실패");
         return;
       }
 
+      // 지운 카드는 바로 치운다. 재조회가 느리거나 캐시된 목록을 받아도
+      // "눌렀는데 아무 일도 안 일어난다"로 보이지 않게.
+      setQuestionCards((prev) => prev.filter((card) => card.id !== questionId));
 
-      await loadQuestionsByUsername(routeUsername);
+      if (routeUsername) {
+        await loadQuestionsByUsername(routeUsername);
+      }
     } catch (error) {
+      console.error("removeQuestion error:", error);
       alert("질문 삭제 중 오류 발생");
     }
   }
@@ -570,15 +579,23 @@ function App() {
     try {
       const res = await fetch(`/api/questions/${questionId}/answer/delete`, {
         method: "PATCH",
+        credentials: "include",
       });
 
-      const result = await res.json();
-
-
       if (!res.ok) {
-        alert("삭제 실패");
+        const detail = await res.text().catch(() => "");
+        console.error("removeAnswer failed:", res.status, detail);
+        alert(res.status === 401 || res.status === 403 ? "로그인이 풀렸어요. 다시 연동해 주세요" : "삭제 실패");
         return;
       }
+
+      setQuestionCards((prev) =>
+        prev.map((card) =>
+          card.id === questionId
+            ? { ...card, answer: "", answerFiles: [], answered: false, answeredAtISO: null }
+            : card
+        )
+      );
 
       if (routeUsername) {
         await loadQuestionsByUsername(routeUsername);
@@ -1041,23 +1058,13 @@ function App() {
   }
 
   const [currentAuthUserId, setCurrentAuthUserId] = useState(() => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9af]{3}-[0-9a-f][12]$/i;
+    // 이미 쓰던 값이면 그대로 쓴다. 여기서 새로 발급하면 자기가 보낸 질문을
+    // 더 이상 자기 것으로 알아보지 못한다. 판단은 authId.js에 있다.
+    const saved = localStorage.getItem("authId");
+    if (isValidAuthId(saved)) return saved.trim();
 
-    let authId = localStorage.getItem("authId");
-
-    const createFallbackId = () =>
-      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-    if (!authId || !uuidRegex.test(authId)) {
-      authId =
-        typeof window.crypto?.randomUUID === "function"
-          ? window.crypto.randomUUID()
-          : createFallbackId();
-
-      localStorage.setItem("authId", authId);
-    }
-
+    const authId = createAuthId();
+    localStorage.setItem("authId", authId);
     return authId;
   });
 
